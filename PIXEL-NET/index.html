@@ -1,65 +1,399 @@
-<script>
-    async function loadGames() {
-        try {
-            // Updated to look in the current folder for games.json
-            const response = await fetch('games.json'); 
-            const games = await response.json();
-            const grid = document.getElementById('arcadeGrid');
-            grid.innerHTML = '';
-
-            games.forEach(game => {
-                const cab = document.createElement('div');
-                cab.className = 'cabinet';
-                cab.setAttribute('data-name', game.title.toLowerCase());
-                
-                // Ensure image paths are relative to the folder
-                cab.innerHTML = `
-                    <div class="cabinet-screen" onclick="launchGame('${game.script}')">
-                        <img src="${game.image}" class="cabinet-thumb" style="width:100%; height:100%; object-fit:cover;">
-                    </div>
-                    <div style="font-weight:bold; margin-top:10px;">${game.title}</div>
-                    <div style="font-size:0.8em; color:#888;">${game.description}</div>
-                `;
-                grid.appendChild(cab);
-            });
-
-            // Update Featured Hero
-            if(games.length > 0) {
-                const hero = games[0];
-                document.getElementById('heroTitle').innerText = "🔥 FEATURE: " + hero.title;
-                document.getElementById('heroSubtitle').innerText = hero.description;
-                document.getElementById('heroButton').onclick = () => launchGame(hero.script);
-            }
-        } catch (e) { 
-            console.error("Load Error:", e);
-            alert("System Error: Could not load games.json. Check file location.");
-        }
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PIXEL-NET</title>
+  <style>
+    :root{
+      --bg:#050606;
+      --green:#39ff14;
+      --cyan:#00ffd5;
+      --pink:#ff2bd6;
+      --text:#a8ffb0;
+      --glow-green: 0 0 8px rgba(57,255,20,.55), 0 0 20px rgba(57,255,20,.25);
+      --glow-cyan:  0 0 10px rgba(0,255,213,.45), 0 0 22px rgba(0,255,213,.22);
+      --glow-pink:  0 0 10px rgba(255,43,214,.55), 0 0 24px rgba(255,43,214,.25);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:
+        radial-gradient(1200px 700px at 50% 10%, rgba(57,255,20,.06), transparent 60%),
+        radial-gradient(900px 600px at 75% 25%, rgba(0,255,213,.05), transparent 60%),
+        radial-gradient(900px 700px at 25% 25%, rgba(255,43,214,.04), transparent 60%),
+        var(--bg);
+      color:var(--text);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      overflow-x:hidden;
+    }
+    body:before{
+      content:"";
+      position:fixed; inset:0;
+      pointer-events:none;
+      background:
+        linear-gradient(to bottom, rgba(255,255,255,.03), rgba(255,255,255,0) 30%),
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255,255,255,.02) 0px,
+          rgba(255,255,255,.02) 1px,
+          rgba(0,0,0,0) 3px,
+          rgba(0,0,0,0) 6px
+        );
+      mix-blend-mode: overlay;
+      opacity:.35;
+    }
+    body:after{
+      content:"";
+      position:fixed; inset:0;
+      pointer-events:none;
+      background: radial-gradient(closest-side, transparent 55%, rgba(0,0,0,.65));
+      opacity:.75;
     }
 
-    function launchGame(scriptPath) {
-        // Clear old game instances
-        const old = document.getElementById('active-cart');
-        if(old) old.remove();
-
-        const script = document.createElement('script');
-        // This ensures it looks in the 'js' folder relative to index.html
-        script.src = scriptPath; 
-        script.id = 'active-cart';
-        
-        script.onerror = () => alert("ERROR: Could not find game file at " + scriptPath);
-        
-        document.body.appendChild(script);
-        document.getElementById('gameOverlay').style.display = 'flex';
+    .topbar{
+      height:56px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0 18px;
+      position:sticky;
+      top:0;
+      z-index:5;
+      background:rgba(0,0,0,.35);
+      backdrop-filter: blur(6px);
+      border-bottom:2px solid rgba(57,255,20,.65);
+      box-shadow: var(--glow-green);
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      color:var(--green);
+      text-shadow: 0 0 10px rgba(57,255,20,.55);
+      letter-spacing:2px;
+      font-weight:700;
+    }
+    .brand .dot{
+      width:14px; height:14px; border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, #fff, var(--pink) 45%, rgba(255,43,214,.2) 70%);
+      box-shadow: var(--glow-pink);
+    }
+    .player{
+      color:var(--green);
+      opacity:.9;
+      text-shadow: 0 0 10px rgba(57,255,20,.35);
+      font-size:13px;
     }
 
-    function closeGame() { 
-        document.getElementById('gameOverlay').style.display = 'none'; 
-        window.location.reload(); 
+    .wrap{
+      max-width:1180px;
+      margin:0 auto;
+      padding:26px 18px 60px;
+      display:grid;
+      grid-template-columns: 1fr 320px;
+      gap:22px;
     }
 
-    function enterArcade() { 
-        document.getElementById('loginGate').style.display = 'none'; 
+    .featured{
+      border:2px solid rgba(255,43,214,.75);
+      box-shadow: var(--glow-pink);
+      border-radius:10px;
+      overflow:hidden;
+      background:#070709;
+      position:relative;
+      min-height:190px;
+    }
+    .featured .bg{
+      position:absolute; inset:0;
+      background:
+        radial-gradient(800px 260px at 60% 20%, rgba(255,43,214,.18), transparent 60%),
+        url("assets/millipede_feature.png") center/cover no-repeat;
+      opacity:.85;
+    }
+    .featured .inner{
+      position:relative;
+      padding:22px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      align-items:center;
+      justify-content:center;
+      min-height:190px;
+      text-align:center;
+    }
+    .featured .tag{
+      color:var(--green);
+      text-shadow: var(--glow-green);
+      letter-spacing:1px;
+      font-weight:800;
+    }
+    .featured .sub{
+      color:#d6ffd9;
+      opacity:.9;
+      font-size:13px;
+    }
+    .btn{
+      margin-top:6px;
+      border:none;
+      cursor:pointer;
+      padding:10px 18px;
+      border-radius:8px;
+      background: linear-gradient(180deg, rgba(255,43,214,1), rgba(180,0,160,1));
+      color:#fff;
+      font-weight:800;
+      letter-spacing:1px;
+      box-shadow: var(--glow-pink);
+      text-transform:uppercase;
+    }
+    .btn:hover{ filter:brightness(1.08) }
+
+    .panel{
+      border:2px solid rgba(0,255,213,.7);
+      box-shadow: var(--glow-cyan);
+      border-radius:10px;
+      background: rgba(0,0,0,.45);
+      backdrop-filter: blur(8px);
+      padding:14px 14px 10px;
+      height: fit-content;
+    }
+    .panel h3{
+      margin:0 0 10px;
+      color:var(--cyan);
+      font-size:12px;
+      letter-spacing:1.5px;
+      text-transform:uppercase;
+    }
+    .panel .divider{
+      height:1px;
+      background: linear-gradient(90deg, transparent, rgba(0,255,213,.75), transparent);
+      margin:10px 0;
+      opacity:.9;
+    }
+    .score-row{
+      display:flex;
+      justify-content:space-between;
+      padding:6px 2px;
+      font-size:12px;
+      color:#d9fff6;
+      opacity:.92;
+    }
+    .score-row b{ color:var(--green); font-weight:800 }
+
+    .library-title{
+      margin:18px 0 10px;
+      color:rgba(57,255,20,.85);
+      text-shadow: var(--glow-green);
+      font-size:12px;
+      letter-spacing:1.2px;
+    }
+    .search{
+      width:100%;
+      padding:12px 12px;
+      border-radius:8px;
+      background: rgba(0,0,0,.45);
+      border:1px solid rgba(57,255,20,.25);
+      color:#d8ffe0;
+      outline:none;
+      box-shadow: inset 0 0 10px rgba(57,255,20,.07);
     }
 
-    window.onload = loadGames;
-</script>
+    .grid{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+      gap:16px;
+    }
+
+    .card{
+      background: rgba(0,0,0,.5);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:10px;
+      padding:10px;
+      cursor:pointer;
+      transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
+    }
+    .card:hover{
+      transform: translateY(-2px);
+      border-color: rgba(255,43,214,.35);
+      box-shadow: 0 0 18px rgba(255,43,214,.12);
+    }
+    .thumb{
+      width:100%;
+      aspect-ratio: 1 / 1;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,.08);
+      object-fit:cover;
+    }
+    .card h4{
+      margin:10px 0 4px;
+      color:#eaffef;
+      font-size:12px;
+      letter-spacing:1px;
+      text-transform:uppercase;
+    }
+    .card p{
+      margin:0;
+      font-size:11px;
+      opacity:.8;
+      color:#cffff0;
+      min-height:28px;
+    }
+
+    /* full-screen game frame */
+    #gameStage{
+      display:none;
+      padding:20px 18px 60px;
+      max-width: 1180px;
+      margin: 0 auto;
+    }
+    #gameFrame{
+      width: 480px;
+      height: 640px;
+      border: 0;
+      display:block;
+      margin: 0 auto;
+      border-radius: 12px;
+      box-shadow: 0 0 20px rgba(0,255,213,.15);
+    }
+    .backRow{
+      display:flex;
+      justify-content:center;
+      margin: 10px 0 18px;
+    }
+    .backBtn{
+      border:1px solid rgba(57,255,20,.35);
+      background: rgba(0,0,0,.45);
+      color: var(--green);
+      padding:10px 14px;
+      border-radius: 10px;
+      cursor:pointer;
+      box-shadow: var(--glow-green);
+      font-weight:800;
+      letter-spacing:1px;
+    }
+
+    @media (max-width: 980px){
+      .wrap{ grid-template-columns: 1fr; }
+      #gameFrame{ width: 100%; max-width: 520px; }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="dot"></div>
+      <div>PIXEL-NET</div>
+    </div>
+    <div class="player">PLAYER: <span id="playerTag">---</span></div>
+  </header>
+
+  <!-- MENU STAGE -->
+  <main id="menuStage" class="wrap">
+    <section>
+      <div class="featured">
+        <div class="bg"></div>
+        <div class="inner">
+          <div class="tag">FEATURE: MILLIPEDE</div>
+          <div class="sub">Defend the garden from the swarm.</div>
+          <button class="btn" id="featuredPlay">PLAY NOW</button>
+        </div>
+      </div>
+
+      <div class="library-title">// GAME LIBRARY</div>
+      <input class="search" id="search" placeholder="SEARCH TITLES..." />
+
+      <div class="grid" id="grid"></div>
+    </section>
+
+    <aside class="panel">
+      <h3>🏆 THE IMMOVABLE DOGS</h3>
+      <div class="score-row"><span>1 ASH</span><b>99,400</b></div>
+      <div class="score-row"><span>2 RAT</span><b>98,100</b></div>
+      <div class="score-row"><span>3 BOB</span><b>85,000</b></div>
+      <div class="score-row"><span>4 JON</span><b>72,000</b></div>
+      <div class="score-row"><span>5 AMY</span><b>64,200</b></div>
+
+      <div class="divider"></div>
+
+      <h3>🚀 BIG MOVERS</h3>
+      <div class="score-row"><span>ZED (Space Rocks)</span><b>+11,500</b></div>
+      <div class="score-row"><span>MAX (Millipede)</span><b>+8,200</b></div>
+      <div class="score-row"><span>LIA (Droid Arena)</span><b>+5,400</b></div>
+    </aside>
+  </main>
+
+  <!-- GAME STAGE -->
+  <section id="gameStage">
+    <div class="backRow">
+      <button class="backBtn" id="backBtn">← BACK TO MENU</button>
+    </div>
+    <iframe id="gameFrame" title="PIXEL-NET Game"></iframe>
+  </section>
+
+  <script>
+    // initials
+    let initials = localStorage.getItem("playerInitials");
+    if (!initials) {
+      initials = (prompt("ENTER YOUR INITIALS (3 LETTERS):") || "AAA")
+        .substring(0,3).toUpperCase();
+      localStorage.setItem("playerInitials", initials);
+    }
+    document.getElementById("playerTag").textContent = initials;
+
+    const menuStage = document.getElementById("menuStage");
+    const gameStage = document.getElementById("gameStage");
+    const gameFrame = document.getElementById("gameFrame");
+
+    let allGames = [];
+
+    fetch("games.json")
+      .then(r => r.json())
+      .then(games => {
+        allGames = games;
+        render(games);
+        // make featured play the first game in list
+        document.getElementById("featuredPlay").onclick = () => launchGame(games[0]);
+      });
+
+    function render(list){
+      const grid = document.getElementById("grid");
+      grid.innerHTML = "";
+      list.forEach(g => {
+        const el = document.createElement("div");
+        el.className = "card";
+        el.innerHTML = `
+          <img class="thumb" src="assets/${g.thumb}" alt="${g.title}">
+          <h4>${g.title}</h4>
+          <p>${g.desc || ""}</p>
+        `;
+        el.onclick = () => launchGame(g);
+        grid.appendChild(el);
+      });
+    }
+
+    document.getElementById("search").addEventListener("input", (e) => {
+      const q = e.target.value.trim().toLowerCase();
+      render(allGames.filter(g => g.title.toLowerCase().includes(q)));
+    });
+
+    function launchGame(game){
+      menuStage.style.display = "none";
+      gameStage.style.display = "block";
+
+      // iframe launch (React builds)
+      if (game.type === "iframe") {
+        gameFrame.src = game.url;
+        return;
+      }
+
+      alert("This entry is not an iframe game yet.");
+    }
+
+    document.getElementById("backBtn").onclick = () => {
+      gameFrame.src = "about:blank";
+      gameStage.style.display = "none";
+      menuStage.style.display = "grid";
+    };
+  </script>
+</body>
+</html>
