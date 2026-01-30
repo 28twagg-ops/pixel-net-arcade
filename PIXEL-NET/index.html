@@ -2,153 +2,384 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>PIXEL-NET ARCADE</title>
+    <title>PIXEL-NET</title>
     <style>
-        body { background-color: #050505; color: #0f0; font-family: 'Courier New', monospace; margin: 0; }
-        
-        .header { display: flex; justify-content: space-between; padding: 15px 30px; border-bottom: 2px solid #0f0; background: #000; }
-        .logo { font-size: 1.8em; font-weight: bold; text-shadow: 2px 2px #ff00ff; }
-
-        .container { display: grid; grid-template-columns: 3fr 1fr; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
-
-        /* THE IMAGE-ONLY GRID */
-        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
-        
-        .cabinet {
-            background: #000; border: 2px solid #222; cursor: pointer;
-            overflow: hidden; position: relative; line-height: 0; /* Removes bottom gap */
-            transition: 0.3s ease-in-out;
+        /* --- THE RETRO AESTHETIC --- */
+        body {
+            background-color: #050505;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
         }
-        
-        .cabinet:hover { border-color: #0f0; transform: scale(1.03); box-shadow: 0 0 30px rgba(0, 255, 0, 0.3); z-index: 10; }
-        
-        .cabinet img { 
-            width: 100%; 
-            height: 450px; /* Taller for that "Poster" look */
-            object-fit: cover; 
+
+        /* Scanline effect */
+        body::after {
+            content: " ";
             display: block;
-            filter: grayscale(20%) brightness(0.8);
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        /* --- LAYOUT --- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            border-bottom: 2px solid #0f0;
+            box-shadow: 0 0 10px #0f0;
+            background: #000;
+        }
+
+        .logo {
+            font-size: 1.8em; 
+            font-weight: bold; 
+            text-shadow: 2px 2px #ff00ff;
+            letter-spacing: 2px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 3fr 1.2fr; 
+            gap: 20px;
+        }
+
+        /* --- GAME OF THE WEEK HERO --- */
+        .hero-section {
+            grid-column: 1 / -1;
+            border: 2px solid #ff00ff;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px #ff00ff;
+            background: rgba(255, 0, 255, 0.05);
+            transition: 0.5s;
+        }
+
+        /* --- SEARCH BAR --- */
+        .library-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px dashed #333;
+            padding-bottom: 15px;
+        }
+
+        .search-wrapper { position: relative; width: 50%; }
+
+        #gameSearch {
+            background: #000;
+            border: 1px solid #0f0;
+            color: #0f0;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            width: 100%; 
+            font-size: 1em;
+            outline: none;
+        }
+        #gameSearch:focus { box-shadow: 0 0 10px #0f0; }
+
+        /* --- GAME CARDS --- */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .cabinet {
+            border: 1px solid #0f0;
+            padding: 10px;
+            text-align: center;
             transition: 0.3s;
+            cursor: pointer;
+            background: #000;
         }
 
-        .cabinet:hover img { filter: grayscale(0%) brightness(1.1); }
+        .cabinet:hover {
+            background: #0f0;
+            color: #000;
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px #0f0;
+        }
 
-        /* OVERLAYS */
+        .cabinet-screen {
+            width: 100%;
+            height: 120px;
+            background-color: #222;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #333;
+            font-size: 2.5em;
+        }
+
+        /* --- SIDEBAR STATS --- */
+        .stats-panel {
+            border: 1px solid #0ff;
+            padding: 15px;
+            height: fit-content;
+            box-shadow: 0 0 10px #0ff;
+        }
+
+        .section-title {
+            color: #0ff; 
+            margin-top: 0; 
+            border-bottom: 2px solid #0ff; 
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+            letter-spacing: 1px;
+        }
+
+        .legend-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            border-bottom: 1px dashed #222;
+            padding-bottom: 4px;
+        }
+        .rank { width: 20px; color: gold; font-weight: bold; }
+        .legend-info { flex-grow: 1; text-align: left; }
+        .legend-game { font-size: 0.7em; color: #666; display: block; }
+        .legend-score { color: #fff; font-weight: bold; }
+
+        .mover-item {
+            margin-bottom: 15px;
+            border-left: 2px solid #ff00ff;
+            padding-left: 10px;
+        }
+        .mover-header { font-weight: bold; font-size: 0.9em; margin-bottom: 4px;}
+        .new-score { color: #0f0; font-size: 1.1em; font-weight: bold; text-shadow: 0 0 5px #0f0; }
+        .old-score { color: #666; font-size: 0.7em; display: block; margin-top: 2px; }
+
+        /* --- INITIALS POPUP --- */
+        .login-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            z-index: 20;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        
+        .login-box { 
+            text-align: center; 
+            border: 2px solid #0f0; 
+            padding: 40px; 
+            box-shadow: 0 0 30px #0f0; 
+            background: #000;
+        }
+        input { 
+            background: #111; border: 2px solid #0f0; color: #0f0; 
+            font-family: 'Courier New'; font-size: 2em; text-align: center; 
+            width: 150px; text-transform: uppercase; margin: 20px 0; outline: none; 
+        }
+
+        /* --- GAME OVERLAY --- */
         .overlay {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95);
-            z-index: 2000; align-items: center; justify-content: center; flex-direction: column;
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            z-index: 10;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
         }
-        .modal { background: #000; border: 3px solid #0ff; padding: 35px; text-align: center; max-width: 450px; color: #fff; }
-        
-        /* LOGIN STYLING */
-        input { background: #111; border: 2px solid #ff00ff; color: #ff00ff; font-size: 2.5em; text-align: center; width: 180px; outline: none; margin: 20px 0; font-family: inherit; }
-        
-        #gameOverlay { display: none; position: fixed; inset: 0; background: #000; z-index: 3000; flex-direction: column; align-items: center; justify-content: center; }
-        .game-frame { border: 4px solid #fff; box-shadow: 0 0 40px #fff; }
+        .game-frame {
+            border: 4px solid #fff;
+            box-shadow: 0 0 50px #fff;
+            padding: 5px;
+            background: #000;
+        }
+        .close-btn {
+            margin-top: 20px;
+            padding: 10px 30px;
+            background: transparent;
+            color: red;
+            border: 2px solid red;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+            font-size: 1.2em;
+        }
     </style>
 </head>
 <body>
 
-    <div id="loginGate" class="overlay">
-        <div class="modal" style="border-color: #ff00ff;">
-            <h1 style="color:#ff00ff; margin-top:0;">INITIALIZE</h1>
-            <p style="color:#888;">ENTER 3-LETTER ID</p>
-            <input type="text" id="initialsInput" maxlength="3">
+    <div id="loginGate" class="login-overlay">
+        <div class="login-box">
+            <h1>INSERT COIN</h1>
+            <p>ENTER INITIALS</p>
+            <input type="text" id="initialsInput" maxlength="3" placeholder="_ _ _" onkeypress="handleLoginKey(event)">
             <br>
-            <button onclick="saveInitials()" style="background:#ff00ff; color:white; padding:12px 40px; border:none; cursor:pointer; font-family:inherit; font-weight:bold; letter-spacing:2px;">ACCESS ARCADE</button>
+            <button onclick="enterArcade()" style="background:#0f0; padding:10px 30px; border:none; cursor:pointer; font-family:inherit; font-weight:bold;">START</button>
         </div>
     </div>
 
     <div class="header">
         <div class="logo">🕹️ PIXEL-NET</div>
-        <div id="playerDisplay" style="color:#0ff;">PLAYER: ---</div>
+        <div id="playerDisplay">PLAYER: ???</div>
     </div>
 
     <div class="container">
-        <div class="main">
-            <h2 style="color:#444; margin-bottom:20px; font-size:0.9em; letter-spacing:3px;">// SELECT_CARTRIDGE</h2>
-            <div class="game-grid" id="arcadeGrid"></div>
-        </div>
+        
+        <div class="main-content">
+            
+            <div class="hero-section" id="heroBanner">
+                <h2 style="margin:0;" id="heroTitle">🔥 WEEKLY FEATURE: LOADING...</h2>
+                <p id="heroSubtitle">SYSTEM SELECTING...</p>
+                <button id="heroButton" onclick="openGame('Space Rocks')" style="background:#ff00ff; border:none; padding:10px 20px; color:white; font-family:inherit; cursor:pointer; font-size:1.2em;">▶ PLAY NOW</button>
+            </div>
 
-        <div class="sidebar">
-            <div style="border: 1px solid #0ff; padding: 15px; background: rgba(0,255,255,0.05);">
-                <h3 style="color:#0ff; margin-top:0; font-size:1em;">🏆 LOCAL_LEGENDS</h3>
-                <div style="font-size:0.9em; line-height:2;">
-                    <div style="display:flex; justify-content:space-between;"><span>ASH</span><span>99,400</span></div>
-                    <div style="display:flex; justify-content:space-between;"><span>KAI</span><span>98,100</span></div>
-                    <div style="display:flex; justify-content:space-between;"><span>BOB</span><span>85,000</span></div>
+            <div class="library-controls">
+                <h3 style="margin:0;">// GAME LIBRARY</h3>
+                <div class="search-wrapper">
+                    <input type="text" id="gameSearch" placeholder="SEARCH TITLES..." onkeyup="filterGames()">
+                </div>
+            </div>
+
+            <div class="game-grid">
+                <div class="cabinet" data-name="maze runner" data-desc="EAT DOTS. AVOID GHOSTS.">
+                    <div class="cabinet-screen" onclick="openGame('Maze Runner')"><span style="font-size:3em;">👻</span></div>
+                    <div class="game-title">MAZE RUNNER</div>
+                </div>
+                <div class="cabinet" data-name="droid arena" data-desc="SURVIVE THE CYBER GLADIATORS">
+                    <div class="cabinet-screen" onclick="openGame('Droid Arena')"><span style="font-size:3em;">🤖</span></div>
+                    <div class="game-title">DROID ARENA</div>
+                </div>
+                <div class="cabinet" data-name="bug blaster" data-desc="DEFEND THE GARDEN">
+                    <div class="cabinet-screen" onclick="openGame('Bug Blaster')"><span style="font-size:3em;">🐛</span></div>
+                    <div class="game-title">BUG BLASTER</div>
+                </div>
+                <div class="cabinet" data-name="tetra blocks" data-desc="CLEAR THE LINES">
+                    <div class="cabinet-screen" onclick="openGame('Tetra Blocks')"><span style="font-size:3em;">🧱</span></div>
+                    <div class="game-title">TETRA BLOCKS</div>
+                </div>
+                <div class="cabinet" data-name="space rocks" data-desc="DRIFT AND DESTROY">
+                    <div class="cabinet-screen" onclick="openGame('Space Rocks')"><span style="font-size:3em;">🚀</span></div>
+                    <div class="game-title">SPACE ROCKS</div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div id="tutGate" class="overlay">
-        <div class="modal">
-            <h1 id="tutTitle" style="color:#0ff; margin-top:0; font-size:2em;">GAME_TITLE</h1>
-            <p id="tutDesc" style="color:#888; margin-bottom:25px;"></p>
-            <div style="text-align:left; background:#111; padding:20px; border:1px solid #333; margin-bottom:25px;">
-                <p style="margin:5px 0;">🕹️ MOVE: Arrow Keys</p>
-                <p style="margin:5px 0;">🚀 FIRE: Spacebar</p>
+        <div class="stats-panel">
+            <div class="section-title">🏆 LEGENDS (TOP 5)</div>
+            <div class="legend-row">
+                <span class="rank">1</span>
+                <div class="legend-info">
+                    <span>ASH</span> <span class="legend-game">Bug Blaster</span>
+                </div>
+                <div class="legend-score">99,400</div>
             </div>
-            <button id="startBtn" style="background:#0f0; color:black; padding:15px 50px; border:none; font-weight:bold; cursor:pointer; font-family:inherit; font-size:1.1em;">RUN PROGRAM</button>
-            <p onclick="closeTut()" style="cursor:pointer; color:#444; margin-top:20px; font-size:0.8em;">[ RETURN ]</p>
+            <div class="legend-row">
+                <span class="rank">2</span>
+                <div class="legend-info">
+                    <span>KAI</span> <span class="legend-game">Space Rocks</span>
+                </div>
+                <div class="legend-score">98,100</div>
+            </div>
+            <div class="legend-row">
+                <span class="rank">3</span>
+                <div class="legend-info">
+                    <span>BOB</span> <span class="legend-game">Droid Arena</span>
+                </div>
+                <div class="legend-score">85,000</div>
+            </div>
+            <div class="legend-row">
+                <span class="rank">4</span>
+                <div class="legend-info">
+                    <span>JON</span> <span class="legend-game">Maze Runner</span>
+                </div>
+                <div class="legend-score">62,000</div>
+            </div>
+            <div class="legend-row">
+                <span class="rank">5</span>
+                <div class="legend-info">
+                    <span>AMY</span> <span class="legend-game">Space Rocks</span>
+                </div>
+                <div class="legend-score">54,200</div>
+            </div>
+            <br>
+            <div class="section-title" style="color:#ff00ff; border-color:#ff00ff;">🚀 BIG MOVERS</div>
+            <div class="mover-item">
+                <div class="mover-header">JON (Maze Runner)</div>
+                <span class="new-score">14,200</span>
+                <span class="old-score">PREVIOUS: 8,100</span>
+            </div>
+            <div class="mover-item">
+                <div class="mover-header">ZED (Space Rocks)</div>
+                <span class="new-score">32,500</span>
+                <span class="old-score">PREVIOUS: 21,000</span>
+            </div>
         </div>
     </div>
 
-    <div id="gameOverlay">
-        <div class="game-frame"><canvas id="gameCanvas" width="400" height="640"></canvas></div>
-        <button onclick="location.reload()" style="margin-top:25px; color:red; border:1px solid red; background:none; padding:8px 20px; cursor:pointer; font-family:inherit;">[ EJECT_TAPE ]</button>
+    <div id="gameOverlay" class="overlay">
+        <div class="game-frame">
+            <div style="width:800px; height:600px; background:#000; display:flex; align-items:center; justify-content:center; color:#fff;">
+                <h2 id="gameTitleDisplay">LOADING...</h2>
+            </div>
+        </div>
+        <button class="close-btn" onclick="closeGame()">[ QUIT GAME ]</button>
     </div>
 
     <script>
-        // Auth Logic
-        const saved = localStorage.getItem('arcadeInitials');
-        if (!saved) {
-            document.getElementById('loginGate').style.display = 'flex';
-        } else {
-            document.getElementById('playerDisplay').innerText = "PLAYER: " + saved;
+        window.onload = function() {
+            const cabinets = document.querySelectorAll('.cabinet');
+            const random = Math.floor(Math.random() * cabinets.length);
+            const selected = cabinets[random];
+            const name = selected.getAttribute('data-name').toUpperCase();
+            const desc = selected.getAttribute('data-desc');
+            document.getElementById('heroTitle').innerText = "🔥 WEEKLY FEATURE: " + name;
+            document.getElementById('heroSubtitle').innerText = desc;
+            document.getElementById('heroButton').setAttribute('onclick', `openGame('${name}')`);
+        };
+
+        function handleLoginKey(event) {
+            if (event.key === "Enter") enterArcade();
         }
 
-        function saveInitials() {
-            const val = document.getElementById('initialsInput').value.toUpperCase();
-            if (val.length > 0) {
-                localStorage.setItem('arcadeInitials', val);
-                location.reload();
+        function enterArcade() {
+            const input = document.getElementById('initialsInput').value;
+            if(input.length > 0) {
+                sessionStorage.setItem('playerInitials', input.toUpperCase());
+                document.getElementById('playerDisplay').innerText = "PLAYER: " + input.toUpperCase();
+                document.getElementById('loginGate').style.opacity = '0';
+                setTimeout(() => { document.getElementById('loginGate').style.display = 'none'; }, 500);
             }
         }
 
-        // Load visual-only grid
-        async function loadGames() {
-            const resp = await fetch('games.json');
-            const games = await resp.json();
-            const grid = document.getElementById('arcadeGrid');
-            
-            games.forEach(game => {
-                const card = document.createElement('div');
-                card.className = 'cabinet';
-                card.innerHTML = `<img src="${game.image}" alt="${game.title}">`;
-                card.onclick = () => {
-                    document.getElementById('tutTitle').innerText = game.title.toUpperCase();
-                    document.getElementById('tutDesc').innerText = game.description;
-                    document.getElementById('tutGate').style.display = 'flex';
-                    document.getElementById('startBtn').onclick = () => launchGame(game.script);
-                };
-                grid.appendChild(card);
-            });
+        function filterGames() {
+            var input = document.getElementById("gameSearch").value.toUpperCase();
+            var cabinets = document.getElementsByClassName("cabinet");
+            for (var i = 0; i < cabinets.length; i++) {
+                var name = cabinets[i].getAttribute("data-name").toUpperCase();
+                cabinets[i].style.display = name.indexOf(input) > -1 ? "" : "none";
+            }
         }
 
-        function closeTut() { document.getElementById('tutGate').style.display = 'none'; }
-
-        function launchGame(path) {
-            closeTut();
-            const s = document.createElement('script');
-            // Look for js/games/ as the source
-            s.src = path.includes('games/') ? path : 'js/games/' + path;
-            document.body.appendChild(s);
+        function openGame(gameName) {
             document.getElementById('gameOverlay').style.display = 'flex';
+            document.getElementById('gameTitleDisplay').innerText = "BOOTING: " + gameName.toUpperCase();
         }
 
-        window.onload = loadGames;
+        function closeGame() {
+            document.getElementById('gameOverlay').style.display = 'none';
+        }
     </script>
 </body>
 </html>
