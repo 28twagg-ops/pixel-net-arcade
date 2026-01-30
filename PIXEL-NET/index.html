@@ -6,104 +6,107 @@
     <style>
         body { background-color: #050505; color: #0f0; font-family: 'Courier New', monospace; margin: 0; }
         
-        /* THE HEADER */
         .header { display: flex; justify-content: space-between; padding: 15px 30px; border-bottom: 2px solid #0f0; background: #000; }
         .logo { font-size: 1.8em; font-weight: bold; text-shadow: 2px 2px #ff00ff; }
 
-        /* THE LAYOUT */
         .container { display: grid; grid-template-columns: 3fr 1fr; gap: 20px; padding: 20px; max-width: 1400px; margin: 0 auto; }
 
-        /* GAME CARDS (The "No Sucking" Version) */
-        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+        /* THE IMAGE-ONLY GRID */
+        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
         
         .cabinet {
-            background: #111; border: 2px solid #333; cursor: pointer;
-            display: flex; flex-direction: column; overflow: hidden;
+            background: #000; border: 2px solid #222; cursor: pointer;
+            overflow: hidden; position: relative; line-height: 0; /* Removes bottom gap */
+            transition: 0.3s ease-in-out;
         }
-        .cabinet:hover { border-color: #0f0; transform: translateY(-5px); box-shadow: 0 0 20px #0f0; }
         
-        /* 100% IMAGE FILL */
+        .cabinet:hover { border-color: #0f0; transform: scale(1.03); box-shadow: 0 0 30px rgba(0, 255, 0, 0.3); z-index: 10; }
+        
         .cabinet img { 
-            width: 100%; height: 280px; 
-            object-fit: cover; /* Fills Left, Right, and Top completely */
+            width: 100%; 
+            height: 450px; /* Taller for that "Poster" look */
+            object-fit: cover; 
             display: block;
+            filter: grayscale(20%) brightness(0.8);
+            transition: 0.3s;
         }
 
-        .cab-footer { padding: 15px; background: #000; border-top: 1px solid #222; }
-        .cab-title { font-size: 1.4em; font-weight: bold; color: #fff; margin-bottom: 5px; }
-        .cab-desc { font-size: 0.85em; color: #888; }
+        .cabinet:hover img { filter: grayscale(0%) brightness(1.1); }
 
-        /* TUTORIAL & LOGIN OVERLAYS */
+        /* OVERLAYS */
         .overlay {
             display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95);
             z-index: 2000; align-items: center; justify-content: center; flex-direction: column;
         }
-        .modal { background: #000; border: 3px solid #0ff; padding: 30px; text-align: center; max-width: 400px; }
+        .modal { background: #000; border: 3px solid #0ff; padding: 35px; text-align: center; max-width: 450px; color: #fff; }
         
-        input { background: #111; border: 2px solid #0f0; color: #0f0; font-size: 2em; text-align: center; width: 150px; outline: none; margin: 20px 0; }
+        /* LOGIN STYLING */
+        input { background: #111; border: 2px solid #ff00ff; color: #ff00ff; font-size: 2.5em; text-align: center; width: 180px; outline: none; margin: 20px 0; font-family: inherit; }
         
-        /* THE GAME BOX */
         #gameOverlay { display: none; position: fixed; inset: 0; background: #000; z-index: 3000; flex-direction: column; align-items: center; justify-content: center; }
         .game-frame { border: 4px solid #fff; box-shadow: 0 0 40px #fff; }
     </style>
 </head>
 <body>
 
-    <div id="loginGate" class="overlay" style="display: flex;">
+    <div id="loginGate" class="overlay">
         <div class="modal" style="border-color: #ff00ff;">
-            <h1 style="color:#ff00ff">INSERT COIN</h1>
-            <p>ENTER INITIALS</p>
+            <h1 style="color:#ff00ff; margin-top:0;">INITIALIZE</h1>
+            <p style="color:#888;">ENTER 3-LETTER ID</p>
             <input type="text" id="initialsInput" maxlength="3">
             <br>
-            <button onclick="saveInitials()" style="background:#ff00ff; color:white; padding:10px 30px; border:none; cursor:pointer; font-family:inherit; font-weight:bold;">START</button>
+            <button onclick="saveInitials()" style="background:#ff00ff; color:white; padding:12px 40px; border:none; cursor:pointer; font-family:inherit; font-weight:bold; letter-spacing:2px;">ACCESS ARCADE</button>
         </div>
     </div>
 
     <div class="header">
         <div class="logo">🕹️ PIXEL-NET</div>
-        <div id="playerDisplay">PLAYER: ???</div>
+        <div id="playerDisplay" style="color:#0ff;">PLAYER: ---</div>
     </div>
 
     <div class="container">
         <div class="main">
-            <h2 style="border-bottom: 1px dashed #333; padding-bottom: 10px;">// ARCADE_FLOOR</h2>
+            <h2 style="color:#444; margin-bottom:20px; font-size:0.9em; letter-spacing:3px;">// SELECT_CARTRIDGE</h2>
             <div class="game-grid" id="arcadeGrid"></div>
         </div>
 
         <div class="sidebar">
             <div style="border: 1px solid #0ff; padding: 15px; background: rgba(0,255,255,0.05);">
-                <h3 style="color:#0ff; margin-top:0;">🏆 IMMOVABLE DOGS</h3>
-                <p>ASH - 99,400</p>
-                <p>KAI - 98,100</p>
-                <p>BOB - 85,000</p>
+                <h3 style="color:#0ff; margin-top:0; font-size:1em;">🏆 LOCAL_LEGENDS</h3>
+                <div style="font-size:0.9em; line-height:2;">
+                    <div style="display:flex; justify-content:space-between;"><span>ASH</span><span>99,400</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>KAI</span><span>98,100</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span>BOB</span><span>85,000</span></div>
+                </div>
             </div>
         </div>
     </div>
 
     <div id="tutGate" class="overlay">
         <div class="modal">
-            <h1 id="tutTitle">HOW TO PLAY</h1>
-            <div style="text-align:left; margin: 20px 0; font-size: 0.9em;">
-                <p>🕹️ MOVE: Arrow Keys</p>
-                <p>🚀 FIRE: Spacebar</p>
-                <p>💥 DDT: Shoot yellow boxes to blast!</p>
+            <h1 id="tutTitle" style="color:#0ff; margin-top:0; font-size:2em;">GAME_TITLE</h1>
+            <p id="tutDesc" style="color:#888; margin-bottom:25px;"></p>
+            <div style="text-align:left; background:#111; padding:20px; border:1px solid #333; margin-bottom:25px;">
+                <p style="margin:5px 0;">🕹️ MOVE: Arrow Keys</p>
+                <p style="margin:5px 0;">🚀 FIRE: Spacebar</p>
             </div>
-            <button id="startBtn" style="background:#0f0; color:black; padding:10px 40px; border:none; font-weight:bold; cursor:pointer;">PLAY</button>
-            <p onclick="closeTut()" style="cursor:pointer; color:#555; margin-top:15px;">[ CANCEL ]</p>
+            <button id="startBtn" style="background:#0f0; color:black; padding:15px 50px; border:none; font-weight:bold; cursor:pointer; font-family:inherit; font-size:1.1em;">RUN PROGRAM</button>
+            <p onclick="closeTut()" style="cursor:pointer; color:#444; margin-top:20px; font-size:0.8em;">[ RETURN ]</p>
         </div>
     </div>
 
     <div id="gameOverlay">
         <div class="game-frame"><canvas id="gameCanvas" width="400" height="640"></canvas></div>
-        <button onclick="location.reload()" style="margin-top:20px; color:red; border:2px solid red; background:none; padding:10px; cursor:pointer;">[ EJECT ]</button>
+        <button onclick="location.reload()" style="margin-top:25px; color:red; border:1px solid red; background:none; padding:8px 20px; cursor:pointer; font-family:inherit;">[ EJECT_TAPE ]</button>
     </div>
 
     <script>
-        // 1. Initials Logic
-        const savedInitials = localStorage.getItem('arcadeInitials');
-        if (savedInitials) {
-            document.getElementById('loginGate').style.display = 'none';
-            document.getElementById('playerDisplay').innerText = "PLAYER: " + savedInitials;
+        // Auth Logic
+        const saved = localStorage.getItem('arcadeInitials');
+        if (!saved) {
+            document.getElementById('loginGate').style.display = 'flex';
+        } else {
+            document.getElementById('playerDisplay').innerText = "PLAYER: " + saved;
         }
 
         function saveInitials() {
@@ -114,7 +117,7 @@
             }
         }
 
-        // 2. Load Games
+        // Load visual-only grid
         async function loadGames() {
             const resp = await fetch('games.json');
             const games = await resp.json();
@@ -123,15 +126,10 @@
             games.forEach(game => {
                 const card = document.createElement('div');
                 card.className = 'cabinet';
-                card.innerHTML = `
-                    <img src="${game.image}">
-                    <div class="cab-footer">
-                        <div class="cab-title">${game.title}</div>
-                        <div class="cab-desc">${game.description}</div>
-                    </div>
-                `;
+                card.innerHTML = `<img src="${game.image}" alt="${game.title}">`;
                 card.onclick = () => {
-                    document.getElementById('tutTitle').innerText = game.title;
+                    document.getElementById('tutTitle').innerText = game.title.toUpperCase();
+                    document.getElementById('tutDesc').innerText = game.description;
                     document.getElementById('tutGate').style.display = 'flex';
                     document.getElementById('startBtn').onclick = () => launchGame(game.script);
                 };
@@ -144,6 +142,7 @@
         function launchGame(path) {
             closeTut();
             const s = document.createElement('script');
+            // Look for js/games/ as the source
             s.src = path.includes('games/') ? path : 'js/games/' + path;
             document.body.appendChild(s);
             document.getElementById('gameOverlay').style.display = 'flex';
