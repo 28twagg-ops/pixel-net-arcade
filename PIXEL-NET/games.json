@@ -5,11 +5,13 @@
     "script": "js/games/millipede.js",
     "image": "assets/millipede_thumb.png",
     "description": "Defend the garden from the swarm."
+  },
+  {
+    "id": "millipede-react",
+    "title": "MILLIPEDE (React)",
+    "type": "iframe",
+    "url": "games/millipede-react/index.html",
+    "thumb": "assets/millipede_thumb.png",
+    "description": "Modern React remake of the classic."
   }
 ]
-{
-  "title": "MILLIPEDE (React)",
-  "type": "iframe",
-  "url": "games/millipede-react/index.html",
-  "thumb": "assets/millipede_thumb.png"
-}
