@@ -1,9 +1,9 @@
 [
   {
-    "id": "millipede",
-    "title": "MILLIPEDE CHAOS",
-    "script": "js/games/millipede.js",
-    "image": "assets/millipede_thumb.png",
-    "description": "Defend the garden from the swarm."
+    "title": "MILLIPEDE",
+    "desc": "Arcade simulation with DDT, poison diving, spiders, bees, earwigs, and online scores.",
+    "thumb": "millipede_thumb.png",
+    "type": "iframe",
+    "url": "games/millipede-react/index.html"
   }
 ]
