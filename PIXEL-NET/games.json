@@ -1,0 +1,9 @@
+[
+  {
+    "id": "millipede",
+    "title": "MILLIPEDE CHAOS",
+    "script": "js/games/millipede.js",
+    "image": "assets/millipede_thumb.png",
+    "description": "Defend the garden from the swarm."
+  }
+]
