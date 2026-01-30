@@ -11,7 +11,36 @@
     "title": "MILLIPEDE (React)",
     "type": "iframe",
     "url": "games/millipede-react/index.html",
-    "image": "assets/millipede_thumb.png",
+    "thumb": "assets/millipede_thumb.png",
     "description": "Modern React remake of the classic."
+  }
+  ,
+  {
+    "id": "robo-arena",
+    "title": "Robo‑Arena",
+    "script": "js/games/robo-arena.js",
+    "image": "assets/robo-arena_thumb.jpg",
+    "description": "Battle bots in a neon‑lit arena."
+  },
+  {
+    "id": "neon-chase",
+    "title": "Neon Chase",
+    "script": "js/games/neon-chase.js",
+    "image": "assets/neon-chase_thumb.jpg",
+    "description": "Race through a neon labyrinth in pursuit."
+  },
+  {
+    "id": "vector-duel",
+    "title": "Vector Duel",
+    "script": "js/games/vector-duel.js",
+    "image": "assets/vector-duel_thumb.jpg",
+    "description": "Engage in fast‑paced vector ship duels."
+  },
+  {
+    "id": "cyber-python",
+    "title": "Cyber Python",
+    "script": "js/games/cyber-python.js",
+    "image": "assets/cyber-python_thumb.jpg",
+    "description": "Control a digital serpent in cyberspace."
   }
 ]
