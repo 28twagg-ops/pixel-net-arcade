@@ -247,7 +247,8 @@
                         <div class="game-title">${game.title}</div>
                         <div class="game-desc">${game.description}</div>
                     `;
-                    cab.onclick = () => launchGame(game.script);
+                    // Pass the entire game object so launchGame can decide how to load it
+                    cab.onclick = () => launchGame(game);
                     grid.appendChild(cab);
                 });
 
@@ -262,27 +263,72 @@
                     
                     document.getElementById('heroTitle').innerText = "🔥 FEATURE: " + hero.title;
                     document.getElementById('heroSubtitle').innerText = hero.description;
-                    document.getElementById('heroButton').onclick = () => launchGame(hero.script);
+                    // Pass the hero object rather than just its script so launchGame can handle iframe types
+                    document.getElementById('heroButton').onclick = () => launchGame(hero);
                 }
 
             } catch (e) { console.error("System Error:", e); }
         }
 
-        function launchGame(scriptPath) {
-            let cleanPath = scriptPath;
-            if(scriptPath.includes('games/')) cleanPath = scriptPath.replace('games/', '');
-            if(!cleanPath.startsWith('js/')) cleanPath = 'js/' + cleanPath;
+function launchGame(game) {
+            /**
+             * Launch a game by either injecting a script (.js classic games) or
+             * embedding an iframe (.html/iframe games). The function accepts either
+             * a game object or a string path for backward compatibility.
+             */
+            let type;
+            let path;
+            // Determine type and path based on whether a full object was passed
+            if (typeof game === 'object') {
+                type = game.type;
+                // Prefer explicit script property, then url
+                path = game.script || game.url;
+            } else {
+                path = game;
+                type = undefined;
+            }
 
-            const oldScript = document.getElementById('active-cartridge');
-            if (oldScript) oldScript.remove();
+            const overlay = document.getElementById('gameOverlay');
+            const frameContainer = overlay.querySelector('.game-frame');
+            const canvas = document.getElementById('gameCanvas');
+            // Try to find an existing iframe element within the game overlay
+            let iframe = document.getElementById('iframeGame');
 
-            const script = document.createElement('script');
-            script.src = cleanPath;
-            script.id = 'active-cartridge';
-            script.onerror = () => alert("ERROR: Could not find game file at " + cleanPath);
+            // Determine whether this should be loaded as an iframe
+            const useIframe = type === 'iframe' || (path && path.endsWith('.html'));
 
-            document.body.appendChild(script);
-            document.getElementById('gameOverlay').style.display = 'flex';
+            if (useIframe) {
+                // If no iframe exists yet, create one and append it to the game-frame container
+                if (!iframe) {
+                    iframe = document.createElement('iframe');
+                    iframe.id = 'iframeGame';
+                    iframe.style.border = '0';
+                    iframe.style.width = '100%';
+                    iframe.style.height = canvas ? canvas.height + 'px' : '640px';
+                    // Hide default canvas when using iframe
+                    if (canvas) canvas.style.display = 'none';
+                    frameContainer.appendChild(iframe);
+                }
+                // Set the iframe source to the provided path and show it
+                iframe.src = path;
+                iframe.style.display = 'block';
+                if (canvas) canvas.style.display = 'none';
+            } else {
+                // For script-based games, ensure canvas is visible and hide iframe if present
+                if (iframe) iframe.style.display = 'none';
+                if (canvas) canvas.style.display = 'block';
+                // Remove any previously injected script
+                const oldScript = document.getElementById('active-cartridge');
+                if (oldScript) oldScript.remove();
+                // Create and append the new script
+                const script = document.createElement('script');
+                script.src = path;
+                script.id = 'active-cartridge';
+                script.onerror = () => alert("ERROR: Could not find game file at " + path);
+                document.body.appendChild(script);
+            }
+            // Finally, display the overlay
+            overlay.style.display = 'flex';
         }
 
         function closeGame() {

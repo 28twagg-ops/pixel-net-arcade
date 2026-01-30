@@ -11,7 +11,8 @@
     "title": "MILLIPEDE (React)",
     "type": "iframe",
     "url": "games/millipede-react/index.html",
-    "thumb": "assets/millipede_thumb.png",
+    "script": "games/millipede-react/index.html",
+    "image": "assets/millipede_thumb.png",
     "description": "Modern React remake of the classic."
   }
   ,
