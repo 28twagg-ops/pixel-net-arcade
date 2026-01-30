@@ -15,7 +15,8 @@
         body::after {
             content: " "; display: block; position: absolute;
             top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
             z-index: 2; background-size: 100% 2px, 3px 100%; pointer-events: none;
         }
 
@@ -95,13 +96,11 @@
         
         .cabinet-thumb { 
             width: 100%; height: 100%; object-fit: contain;
-            /* 75% Color by default */
             filter: saturate(75%) brightness(0.9); 
             transition: 0.4s ease;
         }
 
         .cabinet:hover .cabinet-thumb { 
-            /* 100% Color + Glow on hover */
             filter: saturate(100%) brightness(1.2) drop-shadow(0 0 5px #fff); 
         }
 
@@ -176,12 +175,10 @@
                 </div>
             </div>
 
-            <div class="game-grid" id="arcadeGrid">
-                </div>
+            <div class="game-grid" id="arcadeGrid"></div>
         </div>
 
         <div class="stats-panel">
-            
             <div class="section-title">🏆 THE IMMOVABLE DOGS</div>
             <div class="legend-row"><span class="rank">1</span><div class="legend-info"><span>ASH</span></div><div>99,400</div></div>
             <div class="legend-row"><span class="rank">2</span><div class="legend-info"><span>KAI</span></div><div>98,100</div></div>
@@ -210,7 +207,8 @@
     </div>
 
     <div id="gameOverlay">
-        <div class="game-frame">
+        <div class="game-frame" id="gameFrame">
+            <!-- default content (classic games use canvas) -->
             <canvas id="gameCanvas" width="400" height="640" style="display:block; background:#000;"></canvas>
         </div>
         <button class="close-btn" onclick="closeGame()">[ EJECT CARTRIDGE ]</button>
@@ -239,38 +237,87 @@
                 games.forEach(game => {
                     const cab = document.createElement('div');
                     cab.className = 'cabinet';
-                    cab.setAttribute('data-name', game.title.toLowerCase());
+                    cab.setAttribute('data-name', (game.title || '').toLowerCase());
+
+                    // Allow `image` or `thumb`
+                    const imgSrc = game.image || game.thumb || '';
+
                     cab.innerHTML = `
                         <div class="cabinet-screen">
-                            <img src="${game.image}" class="cabinet-thumb" onerror="this.style.display='none'">
+                            <img src="${imgSrc}" class="cabinet-thumb" onerror="this.style.display='none'">
                         </div>
-                        <div class="game-title">${game.title}</div>
-                        <div class="game-desc">${game.description}</div>
+                        <div class="game-title">${game.title || 'UNTITLED'}</div>
+                        <div class="game-desc">${game.description || ''}</div>
                     `;
-                    cab.onclick = () => launchGame(game.script);
+
+                    cab.onclick = () => {
+                        const target = game.script || game.url;
+                        if (!target) {
+                            alert("ERROR: This game entry is missing 'script' or 'url' in games.json");
+                            return;
+                        }
+                        if (game.type === 'iframe' || target.endsWith('.html')) {
+                            launchIframeGame(target);
+                        } else {
+                            launchGame(target);
+                        }
+                    };
+
                     grid.appendChild(cab);
                 });
 
-                // --- HERO LOGIC: FILL BACKGROUND ---
+                // --- HERO LOGIC ---
                 if(games.length > 0) {
                     const hero = games[Math.floor(Math.random() * games.length)];
                     const banner = document.getElementById('heroBanner');
-                    
-                    banner.style.display = 'flex'; // Use flex to center content
-                    // Set the image as the background of the box
-                    banner.style.backgroundImage = `url('${hero.image}')`;
-                    
-                    document.getElementById('heroTitle').innerText = "🔥 FEATURE: " + hero.title;
-                    document.getElementById('heroSubtitle').innerText = hero.description;
-                    document.getElementById('heroButton').onclick = () => launchGame(hero.script);
+
+                    const heroImg = hero.image || hero.thumb || '';
+                    banner.style.display = 'flex';
+                    banner.style.backgroundImage = `url('${heroImg}')`;
+
+                    document.getElementById('heroTitle').innerText = "🔥 FEATURE: " + (hero.title || '');
+                    document.getElementById('heroSubtitle').innerText = hero.description || '';
+
+                    document.getElementById('heroButton').onclick = () => {
+                        const target = hero.script || hero.url;
+                        if (!target) {
+                            alert("ERROR: Featured game entry is missing 'script' or 'url' in games.json");
+                            return;
+                        }
+                        if (hero.type === 'iframe' || target.endsWith('.html')) {
+                            launchIframeGame(target);
+                        } else {
+                            launchGame(target);
+                        }
+                    };
                 }
 
-            } catch (e) { console.error("System Error:", e); }
+            } catch (e) { 
+                console.error("System Error:", e); 
+            }
+        }
+
+        function ensureCanvasFrame() {
+            const frame = document.getElementById('gameFrame');
+            const existingCanvas = document.getElementById('gameCanvas');
+            if (existingCanvas) return;
+
+            frame.innerHTML = `<canvas id="gameCanvas" width="400" height="640" style="display:block; background:#000;"></canvas>`;
         }
 
         function launchGame(scriptPath) {
+            if (!scriptPath || typeof scriptPath !== 'string') {
+                alert("ERROR: Invalid script path (missing or not a string).");
+                return;
+            }
+
+            // Make sure classic games have a canvas to render into
+            ensureCanvasFrame();
+
             let cleanPath = scriptPath;
-            if(scriptPath.includes('games/')) cleanPath = scriptPath.replace('games/', '');
+
+            // Keep your existing behavior, but protect it
+            if(cleanPath.includes('games/')) cleanPath = cleanPath.replace('games/', '');
             if(!cleanPath.startsWith('js/')) cleanPath = 'js/' + cleanPath;
 
             const oldScript = document.getElementById('active-cartridge');
@@ -282,6 +329,30 @@
             script.onerror = () => alert("ERROR: Could not find game file at " + cleanPath);
 
             document.body.appendChild(script);
+            document.getElementById('gameOverlay').style.display = 'flex';
+        }
+
+        function launchIframeGame(url) {
+            if (!url || typeof url !== 'string') {
+                alert("ERROR: Invalid iframe url (missing or not a string).");
+                return;
+            }
+
+            // Remove any active script cartridge
+            const oldScript = document.getElementById('active-cartridge');
+            if (oldScript) oldScript.remove();
+
+            const frame = document.getElementById('gameFrame');
+            frame.innerHTML = '';
+
+            const iframe = document.createElement('iframe');
+            iframe.src = url;
+            iframe.width = '400';
+            iframe.height = '640';
+            iframe.style.border = 'none';
+            iframe.allow = 'fullscreen';
+
+            frame.appendChild(iframe);
             document.getElementById('gameOverlay').style.display = 'flex';
         }
 
@@ -300,13 +371,15 @@
             } else { alert("ENTER INITIALS"); }
         }
 
-        function handleLoginKey(event) { if (event.key === "Enter") enterArcade(); }
+        function handleLoginKey(event) { 
+            if (event.key === "Enter") enterArcade(); 
+        }
 
         function filterGames() {
             const term = document.getElementById("gameSearch").value.toLowerCase();
             const cabs = document.querySelectorAll(".cabinet");
             cabs.forEach(cab => {
-                const name = cab.getAttribute("data-name");
+                const name = cab.getAttribute("data-name") || '';
                 cab.style.display = name.includes(term) ? "" : "none";
             });
         }
