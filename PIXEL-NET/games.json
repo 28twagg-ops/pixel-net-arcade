@@ -14,8 +14,7 @@
     "script": "games/millipede-react/index.html",
     "image": "assets/millipede_thumb.png",
     "description": "Modern React remake of the classic."
-  }
-  ,
+  },
   {
     "id": "robo-arena",
     "title": "Robo‑Arena",
@@ -27,14 +26,14 @@
     "id": "neon-chase",
     "title": "Neon Chase",
     "script": "js/games/neon-chase.js",
-    "image": "assets/neon-chase_thumb.jpg",
+    "image": "assets/neon-chase_thumb.png",
     "description": "Race through a neon labyrinth in pursuit."
   },
   {
     "id": "vector-duel",
     "title": "Vector Duel",
     "script": "js/games/vector-duel.js",
-    "image": "assets/vector-duel_thumb.jpg",
+    "image": "assets/vector-duel_thumb.png",
     "description": "Engage in fast‑paced vector ship duels."
   },
   {
