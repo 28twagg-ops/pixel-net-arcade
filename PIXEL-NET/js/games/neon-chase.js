@@ -72,7 +72,8 @@
       ob.x -= speed;
 
       // Remove off screen
-      if (ob.x + ob.width < 0) {
+      // Do not award points after crash/game over
+      if (!gameOver && ob.x + ob.width < 0) {
         obstacles.splice(i, 1);
         score += 10;
       }
