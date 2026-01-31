@@ -1,45 +1,37 @@
 [
   {
-    "id": "millipede",
-    "title": "MILLIPEDE CHAOS",
-    "script": "js/games/millipede.js",
-    "image": "assets/millipede_thumb.png",
+    "name": "MILLIPEDE CHAOS",
+    "type": "iframe",
+    "path": "games/millipede-react/index.html",
+    "thumb": "assets/millipede_thumb.png",
     "description": "Defend the garden from the swarm."
   },
   {
-    "id": "millipede-react",
-    "title": "MILLIPEDE (React)",
+    "name": "NEON CHASE",
     "type": "iframe",
-    "url": "games/millipede-react/index.html",
-    "image": "assets/millipede_thumb.png",
-    "description": "Modern React remake of the classic."
+    "path": "games/neon-chase/index.html",
+    "thumb": "assets/neon-chase_thumb.png",
+    "description": "High-speed neon survival."
   },
   {
-    "id": "robo-arena",
-    "title": "Robo\u2011Arena",
-    "script": "js/games/robo-arena.js",
-    "image": "assets/robo-arena_thumb.jpg",
-    "description": "Battle bots in a neon\u2011lit arena."
+    "name": "ROBO ARENA",
+    "type": "iframe",
+    "path": "games/robo-arena/index.html",
+    "thumb": "assets/robo-arena_thumb.jpg",
+    "description": "Enter the arena. Win the fight."
   },
   {
-    "id": "neon-chase",
-    "title": "Neon Chase",
-    "script": "js/games/neon-chase.js",
-    "image": "assets/neon-chase_thumb.png",
-    "description": "Race through a neon labyrinth in pursuit."
+    "name": "VECTOR DUEL",
+    "type": "iframe",
+    "path": "games/vector-duel/index.html",
+    "thumb": "assets/vector-duel_thumb.png",
+    "description": "Retro vectors. Modern reflex."
   },
   {
-    "id": "vector-duel",
-    "title": "Vector Duel",
-    "script": "js/games/vector-duel.js",
-    "image": "assets/vector-duel_thumb.png",
-    "description": "Engage in fast\u2011paced vector ship duels."
-  },
-  {
-    "id": "cyber-python",
-    "title": "Cyber Python",
-    "script": "js/games/cyber-python.js",
-    "image": "assets/cyber-python_thumb.jpg",
-    "description": "Control a digital serpent in cyberspace."
+    "name": "CYBER PYTHON",
+    "type": "iframe",
+    "path": "games/cyber-python/index.html",
+    "thumb": "assets/cyber-python_thumb.jpg",
+    "description": "Classic snake, cyber style."
   }
 ]
