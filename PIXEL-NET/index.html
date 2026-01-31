@@ -14,9 +14,7 @@
     async function loadGames() {
       try {
         const response = await fetch('./games.json');
-        if (!response.ok) {
-          throw new Error('Failed to load games.json');
-        }
+        if (!response.ok) throw new Error('Failed to load games.json');
 
         const games = await response.json();
         const grid = document.getElementById('arcadeGrid');
