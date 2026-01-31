@@ -1,42 +1,121 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Millipede Chaos</title>
-<link rel="stylesheet" href="../../style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MILLIPEDE CHAOS</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{--text:#e9ecff;--muted:#a7b0d6;--card1:rgba(15,19,36,.72);--card2:rgba(10,12,26,.55);--stroke:rgba(255,255,255,.10);--shadow:0 14px 40px rgba(0,0,0,.35)}
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(1200px 700px at 20% 10%, rgba(255,0,122,.14), transparent 60%),radial-gradient(900px 500px at 85% 20%, rgba(0,255,247,.12), transparent 55%),linear-gradient(180deg,#050611 0%,#060716 100%);color-scheme:dark}
+    .topbar{width:min(1300px,94vw);margin:14px auto 10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .btn{height:38px;padding:0 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(10,12,26,.72);color:var(--text);font:700 13px/1 "Orbitron",system-ui,sans-serif;letter-spacing:.10em;cursor:pointer}
+    .badge{min-width:54px;display:inline-grid;place-items:center;height:38px;padding:0 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(10,12,26,.72);color:var(--text);font:700 13px/1 "Orbitron",system-ui,sans-serif;letter-spacing:.10em;cursor:pointer}
+    .layout{width:min(1300px,94vw);margin:0 auto 18px;display:grid;grid-template-columns:280px 1fr 320px;gap:14px;align-items:stretch}
+    @media (max-width:1100px){.layout{grid-template-columns:1fr}}
+    .panel{background:linear-gradient(180deg,var(--card1),var(--card2));border:1px solid var(--stroke);border-radius:18px;box-shadow:var(--shadow);padding:14px}
+    .title{font-family:"Orbitron",system-ui,sans-serif;letter-spacing:.10em;margin:0 0 10px;font-size:14px}
+    .muted{color:var(--muted)}
+    .gamebox{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.28);min-height:520px}
+    #root{width:100%;height:100%;min-height:520px}
+    .lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    .lb-col{list-style:none;padding:0;margin:0}
+    .lb-item{display:flex;justify-content:space-between;gap:10px;padding:6px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);margin-bottom:8px;font-family:"Orbitron",system-ui,sans-serif;letter-spacing:.06em;font-size:12px}
+    .lb-rank{opacity:.85;min-width:22px}.lb-score{font-weight:800}
+    .lb-meta{color:var(--muted);font-size:11px;margin-top:10px}
+  </style>
+
+  <!-- KEEP THIS (YOUR REACT BUILD) -->
+  <script type="module" crossorigin src="./assets/index-BTthQfIO.js"></script>
 </head>
+<body>
 
-<body class="game-shell">
+  <div class="topbar">
+    <button class="btn" id="px-exit">EXIT</button>
+    <div class="badge" id="px-badge" title="Click to change initials on home page">???</div>
+  </div>
 
-<header class="game-topbar">
-  <button onclick="location.href='../../index.html'">EXIT</button>
-  <div id="playerBadge"></div>
-</header>
+  <div class="layout">
+    <aside class="panel">
+      <h3 class="title">HOW TO PLAY</h3>
+      <div class="muted">
+        <p><b>Move:</b> Arrow Keys / WASD</p>
+        <p><b>Shoot:</b> Space</p>
+        <p><b>Goal:</b> Clear the swarm, survive, score high.</p>
+      </div>
+      <div class="lb-meta">Initials are set on the homepage. Click the badge (top-right) to change.</div>
+    </aside>
 
-<div class="game-layout">
+    <main class="panel">
+      <h3 class="title">MILLIPEDE CHAOS</h3>
+      <div class="gamebox">
+        <div id="root"></div>
+      </div>
+      <div class="muted">Leaderboard refreshes automatically.</div>
+    </main>
 
-  <aside class="game-panel left">
-    <h3>How to Play</h3>
-    <p>Arrow keys to move, space to fire.</p>
-  </aside>
+    <aside class="panel">
+      <h3 class="title">LEADERBOARD</h3>
+      <div class="muted">Top 10</div>
+      <div class="lb-grid">
+        <ol class="lb-col" id="lb-left"></ol>
+        <ol class="lb-col" id="lb-right"></ol>
+      </div>
+      <div class="lb-meta" id="lb-status">Loading…</div>
+    </aside>
+  </div>
 
-  <main class="game-center">
-    <div id="root"></div>
-  </main>
+  <script src="../../js/engine.js"></script>
+  <script>
+    (function(){
+      const ls = localStorage.getItem("px_player_initials") || "";
+      if(ls) sessionStorage.setItem("playerInitials", ls);
+      if(window.PixelNet && PixelNet.init) PixelNet.init();
 
-  <aside class="game-panel right">
-    <h3>Leaderboard</h3>
-    <div id="leaderboard"></div>
-  </aside>
+      const badge = document.getElementById("px-badge");
+      badge.textContent = ls || "???";
+      badge.onclick = () => location.href = "../../index.html";
 
-</div>
+      document.getElementById("px-exit").onclick = () => location.href = "../../index.html";
 
-<script>
-const initials = localStorage.getItem("px_player_initials") || "???";
-document.getElementById("playerBadge").textContent = initials;
-</script>
+      async function renderLeaderboard(){
+        const status = document.getElementById("lb-status");
+        const L = document.getElementById("lb-left");
+        const R = document.getElementById("lb-right");
+        L.innerHTML=""; R.innerHTML="";
 
-<script type="module" src="./assets/index-BTthQfIO.js"></script>
+        try{
+          const data = await PixelNet.getLeaderboard("millipede-react");
+          const rows = Array.isArray(data) ? data : (data?.scores || data?.leaderboard || []);
+          const top = rows.slice(0,10);
 
+          if(!top.length){ status.textContent="No scores yet."; return; }
+
+          top.forEach((row,i)=>{
+            const initials=(row.initials||row.name||"???").toString().toUpperCase();
+            const score=row.score ?? row.points ?? row.value ?? 0;
+
+            const li=document.createElement("li");
+            li.className="lb-item";
+            li.innerHTML=`<span class="lb-rank">${i+1}.</span><span>${initials}</span><span class="lb-score">${score}</span>`;
+            (i<5?L:R).appendChild(li);
+          });
+
+          status.textContent="Auto-refreshing…";
+        }catch(e){
+          console.error(e);
+          status.textContent="Failed to load leaderboard (backend sleeping?).";
+        }
+      }
+
+      renderLeaderboard();
+      setInterval(renderLeaderboard,15000);
+    })();
+  </script>
 </body>
 </html>

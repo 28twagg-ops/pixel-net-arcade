@@ -2,224 +2,117 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cyber Python</title>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CYBER PYTHON</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
   <style>
-    :root{
-      --bg:#070812;
-      --text:#e9ecff;
-      --muted:#a7b0d6;
-      --stroke: rgba(255,255,255,.10);
-      --panel: rgba(15,19,36,.92);
-      --cyan:#00fff7;
-      --pink:#ff007a;
-      --shadow: 0 14px 40px rgba(0,0,0,.35);
-    }
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; }
-    body{
-      margin:0;
-      color:var(--text);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background:
-        radial-gradient(900px 600px at 20% 0%, rgba(0,255,247,.14), transparent 60%),
-        radial-gradient(900px 600px at 80% 10%, rgba(255,0,122,.12), transparent 60%),
-        linear-gradient(180deg, #050614, var(--bg));
-    }
-    .muted{ color: var(--muted); }
-
-    .exit-btn{
-      position:fixed; top:16px; left:16px; z-index:9999;
-      padding:10px 12px; border-radius:14px;
-      background: rgba(0,0,0,.55);
-      border:1px solid rgba(255,255,255,.18);
-      color:#fff; text-decoration:none;
-      font-weight:900; letter-spacing:.6px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(8px);
-    }
-    .exit-btn:hover{ background: rgba(0,0,0,.75); border-color: rgba(0,255,247,.45); }
-
-    .play-grid{
-      display:grid;
-      grid-template-columns: 340px 1fr 340px;
-      gap:14px;
-      padding:76px 14px 18px;
-      width:min(1460px, 96vw);
-      margin:0 auto;
-      min-height:100vh;
-    }
-
-    .panel{
-      background: linear-gradient(180deg, rgba(15,19,36,.94), rgba(11,16,32,.92));
-      border:1px solid var(--stroke);
-      border-radius:18px;
-      padding:16px;
-      box-shadow: var(--shadow);
-      overflow:hidden;
-      position:relative;
-    }
-    .panel::before{
-      content:"";
-      position:absolute; inset:-2px;
-      background:
-        radial-gradient(circle at 20% 20%, rgba(0,255,247,.14), transparent 45%),
-        radial-gradient(circle at 80% 15%, rgba(255,0,122,.10), transparent 50%);
-      pointer-events:none;
-      filter: blur(10px);
-      opacity:.65;
-    }
-    .panel > *{ position:relative; z-index:1; }
-
-    .tag{
-      display:inline-flex; align-items:center;
-      font-size:11px; letter-spacing:1px; text-transform:uppercase;
-      color:#fff;
-      background: linear-gradient(45deg, rgba(255,0,122,.95), rgba(0,255,247,.55));
-      padding:6px 10px; border-radius:999px;
-      border:1px solid rgba(255,255,255,.10);
-      width:fit-content;
-    }
-    h1{ margin:10px 0 6px; font-size:20px; letter-spacing:.4px; }
-
-    .block{
-      margin-top:12px;
-      padding:12px;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.08);
-      background: rgba(0,0,0,.20);
-    }
-    .block h3{
-      margin:0 0 8px;
-      font-size:13px;
-      letter-spacing:.6px;
-      text-transform:uppercase;
-    }
-    .kv{
-      display:grid;
-      grid-template-columns: 92px 1fr;
-      gap:8px 10px;
-      font-size:13px;
-      line-height:1.35;
-    }
-    .k{ color: var(--muted); }
-
-    .play-center{
-      background: rgba(0,0,0,.25);
-      border:1px solid rgba(255,255,255,.10);
-      border-radius:18px;
-      overflow:hidden;
-      display:grid;
-      place-items:center;
-      min-height:72vh;
-      padding:10px;
-      box-shadow: var(--shadow);
-      position:relative;
-    }
-    .center-head{
-      position:absolute; top:10px; left:10px; right:10px;
-      display:flex; justify-content:space-between; gap:10px;
-      pointer-events:none; opacity:.95;
-    }
-    .chip{
-      font-size:11px; letter-spacing:1px; text-transform:uppercase;
-      color: rgba(233,236,255,.95);
-      padding:6px 10px; border-radius:999px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.35);
-      backdrop-filter: blur(6px);
-    }
-    .chip b{ color: var(--cyan); }
-
-    canvas{ border:2px solid #222; max-width:100%; max-height:100%; display:block; }
-
-    .lb-grid{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-top:12px; }
-    .lb-col{
-      padding:12px; border-radius:14px;
-      border:1px solid rgba(255,255,255,.08);
-      background: rgba(0,0,0,.20);
-      min-height:260px;
-    }
-    .lb-title{ margin:0 0 8px; font-size:13px; letter-spacing:.6px; text-transform:uppercase; }
-    .lb-list{ margin:0; padding-left:18px; color: var(--muted); font-size:13px; line-height:1.6; }
-    .lb-list li{ margin:4px 0; }
-    .lb-note{ margin-top:12px; font-size:12px; color: var(--muted); opacity:.9; }
-
-    @media (max-width:1180px){
-      .play-grid{ grid-template-columns: 1fr; }
-      .play-center{ min-height:52vh; }
-      .lb-col{ min-height:auto; }
-    }
+    :root{--text:#e9ecff;--muted:#a7b0d6;--card1:rgba(15,19,36,.72);--card2:rgba(10,12,26,.55);--stroke:rgba(255,255,255,.10);--shadow:0 14px 40px rgba(0,0,0,.35)}
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(1200px 700px at 20% 10%, rgba(255,0,122,.14), transparent 60%),radial-gradient(900px 500px at 85% 20%, rgba(0,255,247,.12), transparent 55%),linear-gradient(180deg,#050611 0%,#060716 100%);color-scheme:dark}
+    .topbar{width:min(1300px,94vw);margin:14px auto 10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .btn{height:38px;padding:0 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(10,12,26,.72);color:var(--text);font:700 13px/1 "Orbitron",system-ui,sans-serif;letter-spacing:.10em;cursor:pointer}
+    .badge{min-width:54px;display:inline-grid;place-items:center;height:38px;padding:0 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(10,12,26,.72);color:var(--text);font:700 13px/1 "Orbitron",system-ui,sans-serif;letter-spacing:.10em;cursor:pointer}
+    .layout{width:min(1300px,94vw);margin:0 auto 18px;display:grid;grid-template-columns:280px 1fr 320px;gap:14px;align-items:stretch}
+    @media (max-width:1100px){.layout{grid-template-columns:1fr}}
+    .panel{background:linear-gradient(180deg,var(--card1),var(--card2));border:1px solid var(--stroke);border-radius:18px;box-shadow:var(--shadow);padding:14px}
+    .title{font-family:"Orbitron",system-ui,sans-serif;letter-spacing:.10em;margin:0 0 10px;font-size:14px}
+    .muted{color:var(--muted)}
+    .gamewrap{display:flex;flex-direction:column;gap:10px}
+    .gamebox{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.28);display:grid;place-items:center;min-height:520px}
+    canvas#gameCanvas{width:100%;height:100%;display:block}
+    .lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    .lb-col{list-style:none;padding:0;margin:0}
+    .lb-item{display:flex;justify-content:space-between;gap:10px;padding:6px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);margin-bottom:8px;font-family:"Orbitron",system-ui,sans-serif;letter-spacing:.06em;font-size:12px}
+    .lb-rank{opacity:.85;min-width:22px}.lb-score{font-weight:800}
+    .lb-meta{color:var(--muted);font-size:11px;margin-top:10px}
   </style>
 </head>
-
 <body>
-  <a class="exit-btn" href="../../index.html">✕ EXIT</a>
+  <div class="topbar">
+    <button class="btn" id="px-exit">EXIT</button>
+    <div class="badge" id="px-badge" title="Click to change initials on home page">???</div>
+  </div>
 
-  <div class="play-grid">
+  <div class="layout">
     <aside class="panel">
-      <div class="tag">Cabinet Brief</div>
-      <h1>Cyber Python</h1>
-      <div class="muted">Classic snake — cyber flavor.</div>
-
-      <div class="block">
-        <h3>Controls</h3>
-        <div class="kv">
-          <div class="k">Move</div><div><b>WASD</b> / <b>Arrow Keys</b></div>
-          <div class="k">Focus</div><div>Click the game once to capture keys</div>
-        </div>
+      <h3 class="title">HOW TO PLAY</h3>
+      <div class="muted">
+        <p><b>Move:</b> Arrow Keys / WASD</p>
+        <p><b>Goal:</b> Eat pickups, grow longer, don’t collide.</p>
+        <p><b>Tip:</b> Turn early—your tail is your enemy.</p>
       </div>
-
-      <div class="block">
-        <h3>Objective</h3>
-        <div class="kv">
-          <div class="k">Eat</div><div>Food to grow and score.</div>
-          <div class="k">Avoid</div><div>Walls + your own body.</div>
-        </div>
-      </div>
-
-      <div class="block">
-        <h3>Pro Tips</h3>
-        <div class="muted">Plan your turns early. Leave yourself an escape lane.</div>
-      </div>
+      <div class="lb-meta">Initials are set on the homepage. Click the badge (top-right) to change.</div>
     </aside>
 
-    <main class="play-center">
-      <div class="center-head">
-        <div class="chip">Player: <b id="pxInit">???</b></div>
-        <div class="chip">Don’t trap yourself.</div>
+    <main class="panel gamewrap">
+      <h3 class="title">CYBER PYTHON</h3>
+      <div class="gamebox">
+        <canvas id="gameCanvas"></canvas>
       </div>
-      <canvas id="gameCanvas"></canvas>
+      <div class="muted">Leaderboard refreshes automatically.</div>
     </main>
 
     <aside class="panel">
-      <div class="tag">Top 10</div>
-      <h1 style="margin-bottom:0;">Leaderboard</h1>
-      <div class="muted">Arcade-style split view.</div>
-
+      <h3 class="title">LEADERBOARD</h3>
+      <div class="muted">Top 10</div>
       <div class="lb-grid">
-        <div class="lb-col">
-          <div class="lb-title">1–5</div>
-          <ol class="lb-list"><li>---</li><li>---</li><li>---</li><li>---</li><li>---</li></ol>
-        </div>
-        <div class="lb-col">
-          <div class="lb-title">6–10</div>
-          <ol class="lb-list"><li>---</li><li>---</li><li>---</li><li>---</li><li>---</li></ol>
-        </div>
+        <ol class="lb-col" id="lb-left"></ol>
+        <ol class="lb-col" id="lb-right"></ol>
       </div>
-
-      <div class="lb-note">Online sync returns when score submission is re-enabled.</div>
+      <div class="lb-meta" id="lb-status">Loading…</div>
     </aside>
   </div>
 
+  <script src="../../js/engine.js"></script>
   <script>
-    const init = (localStorage.getItem("px_player_initials") || sessionStorage.getItem("playerInitials") || "???")
-      .toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,3) || "???";
-    document.getElementById("pxInit").textContent = init;
+    (function(){
+      const ls = localStorage.getItem("px_player_initials") || "";
+      if(ls) sessionStorage.setItem("playerInitials", ls);
+      if(window.PixelNet && PixelNet.init) PixelNet.init();
+
+      const badge = document.getElementById("px-badge");
+      badge.textContent = ls || "???";
+      badge.onclick = () => location.href = "../../index.html";
+
+      document.getElementById("px-exit").onclick = () => location.href = "../../index.html";
+
+      async function renderLeaderboard(){
+        const status = document.getElementById("lb-status");
+        const L = document.getElementById("lb-left");
+        const R = document.getElementById("lb-right");
+        L.innerHTML=""; R.innerHTML="";
+
+        try{
+          const data = await PixelNet.getLeaderboard("cyber-python");
+          const rows = Array.isArray(data) ? data : (data?.scores || data?.leaderboard || []);
+          const top = rows.slice(0,10);
+
+          if(!top.length){ status.textContent="No scores yet."; return; }
+
+          top.forEach((row,i)=>{
+            const initials=(row.initials||row.name||"???").toString().toUpperCase();
+            const score=row.score ?? row.points ?? row.value ?? 0;
+
+            const li=document.createElement("li");
+            li.className="lb-item";
+            li.innerHTML=`<span class="lb-rank">${i+1}.</span><span>${initials}</span><span class="lb-score">${score}</span>`;
+            (i<5?L:R).appendChild(li);
+          });
+
+          status.textContent="Auto-refreshing…";
+        }catch(e){
+          console.error(e);
+          status.textContent="Failed to load leaderboard (backend sleeping?).";
+        }
+      }
+
+      renderLeaderboard();
+      setInterval(renderLeaderboard,15000);
+    })();
   </script>
 
-  <script src="../../js/engine.js"></script>
   <script src="../../js/games/cyber-python.js"></script>
 </body>
 </html>
