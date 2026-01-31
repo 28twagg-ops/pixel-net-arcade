@@ -9,20 +9,20 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css?v=100" />
+  <link rel="stylesheet" href="style.css?v=111" />
 </head>
 <body>
 
-<!-- ================= PLAYER BADGE (TOP RIGHT ONLY) ================= -->
-<button id="px-player-badge" class="px-badge" type="button">???</button>
+<!-- ================= PLAYER BADGE ================= -->
+<button id="px-player-badge" class="px-badge">???</button>
 
-<!-- ================= INITIALS MODAL (HIDDEN BY DEFAULT) ================= -->
-<section id="px-init-modal" hidden>
+<!-- ================= INITIALS MODAL ================= -->
+<section id="px-init-modal" class="px-init-modal hidden">
   <div class="px-init-backdrop"></div>
   <div class="px-init-card">
     <div class="px-init-header">
-      <span>PLAYER INITIALS</span>
-      <button id="px-init-close" aria-label="Close">×</button>
+      <span>ENTER INITIALS</span>
+      <button id="px-init-close">×</button>
     </div>
 
     <input
@@ -58,6 +58,7 @@
 
 <main class="wrap">
 
+  <!-- FEATURED -->
   <section id="featured-game" class="section">
     <div class="featured-card">
       <div class="featured-media">
@@ -72,6 +73,7 @@
     </div>
   </section>
 
+  <!-- LIBRARY -->
   <section id="game-library" class="section">
     <div class="section-head px-headrow">
       <div>
@@ -82,15 +84,15 @@
     </div>
 
     <div id="arcadeGrid" class="game-grid"></div>
-    <div id="px-empty" class="muted" hidden>No games match your search.</div>
+    <div id="px-empty" class="muted hidden">No games match your search.</div>
   </section>
 
+  <!-- LEADERBOARD PLACEHOLDER -->
   <section id="leaderboards" class="section">
     <div class="section-head">
       <h3>Leaderboards</h3>
-      <p class="muted">Top Dogs across all cabinets.</p>
+      <p class="muted">Coming back next.</p>
     </div>
-    <div id="topdogs-panel" class="px-board"></div>
   </section>
 
 </main>
@@ -117,20 +119,20 @@
   }
 
   badge.onclick = () => {
-    modal.hidden = false;
+    modal.classList.remove("hidden");
     input.value = localStorage.getItem(KEY) || "";
     input.focus();
   };
 
   document.getElementById("px-init-close").onclick = () => {
-    modal.hidden = true;
+    modal.classList.add("hidden");
   };
 
   document.getElementById("px-init-save").onclick = save;
 
   input.addEventListener("keydown", e => {
     if (e.key === "Enter") save();
-    if (e.key === "Escape") modal.hidden = true;
+    if (e.key === "Escape") modal.classList.add("hidden");
   });
 
   function save() {
@@ -138,24 +140,21 @@
     if (!v) return;
     localStorage.setItem(KEY, v);
     refresh();
-    modal.hidden = true;
+    modal.classList.add("hidden");
   }
 
   refresh();
 })();
 </script>
 
-<!-- ================= GAME LOADER (INLINE, FIXED) ================= -->
+<!-- ================= GAME LOADER ================= -->
 <script>
 async function loadGames() {
   const grid = document.getElementById("arcadeGrid");
   const empty = document.getElementById("px-empty");
 
   const res = await fetch("./games.json", { cache: "no-store" });
-  if (!res.ok) {
-    console.error("games.json failed to load");
-    return;
-  }
+  if (!res.ok) return;
 
   const games = await res.json();
   grid.innerHTML = "";
@@ -165,7 +164,7 @@ async function loadGames() {
     card.className = "game-card";
 
     const img = document.createElement("img");
-    img.src = g.thumb || "assets/millipede_thumb.png";
+    img.src = g.thumb;
     img.alt = g.name;
 
     const title = document.createElement("h4");
@@ -173,19 +172,18 @@ async function loadGames() {
 
     card.appendChild(img);
     card.appendChild(title);
-
     card.onclick = () => window.location.href = g.path;
+
     grid.appendChild(card);
   });
 
-  empty.hidden = games.length !== 0;
+  empty.classList.toggle("hidden", games.length !== 0);
 
-  // featured = first game
+  // Featured = first game
   if (games[0]) {
-    document.getElementById("featuredThumb").src = games[0].thumb;
-    document.getElementById("featuredTitle").textContent = games[0].name;
-    document.getElementById("featuredPlay").onclick = () =>
-      window.location.href = games[0].path;
+    featuredThumb.src = games[0].thumb;
+    featuredTitle.textContent = games[0].name;
+    featuredPlay.onclick = () => location.href = games[0].path;
   }
 
   document.getElementById("px-search").addEventListener("input", e => {
@@ -198,14 +196,12 @@ async function loadGames() {
       if (show) visible++;
     });
 
-    empty.hidden = visible !== 0;
+    empty.classList.toggle("hidden", visible !== 0);
   });
 }
 
 loadGames();
 </script>
-
-<script src="js/leaderboard.js"></script>
 
 </body>
 </html>
