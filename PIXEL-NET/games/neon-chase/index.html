@@ -3,24 +3,161 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Neon Chase</title>
+  <title>Neon Chase</title>
+
   <style>
-    body {
-      margin: 0;
-      background: #010012;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
+    :root{
+      --bg:#070812;
+      --text:#e9ecff;
+      --muted:#a7b0d6;
+      --stroke: rgba(255,255,255,.10);
+      --panel: rgba(15,19,36,.92);
+      --cyan:#00fff7;
+      --shadow: 0 14px 40px rgba(0,0,0,.35);
     }
-    canvas {
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(900px 600px at 20% 0%, rgba(0,255,247,.14), transparent 60%),
+        radial-gradient(900px 600px at 80% 10%, rgba(255,0,122,.12), transparent 60%),
+        linear-gradient(180deg, #050614, var(--bg));
+    }
+
+    /* Exit button */
+    .exit-btn{
+      position:fixed;
+      top:16px;
+      left:16px;
+      z-index:9999;
+      padding:10px 12px;
+      border-radius:12px;
+      background: rgba(0,0,0,.55);
+      border:1px solid rgba(255,255,255,.18);
+      color:#fff;
+      text-decoration:none;
+      font-weight:800;
+      letter-spacing:.5px;
+      box-shadow: var(--shadow);
+    }
+    .exit-btn:hover{
+      background: rgba(0,0,0,.75);
+      border-color: rgba(0,255,247,.45);
+    }
+
+    /* 3-column layout */
+    .play-grid{
+      display:grid;
+      grid-template-columns: 320px 1fr 320px;
+      gap:12px;
+      padding:72px 12px 12px;  /* room for exit button */
+      width:min(1400px, 96vw);
+      margin:0 auto;
+      min-height:100vh;
+    }
+
+    .panel{
+      background: var(--panel);
+      border:1px solid var(--stroke);
+      border-radius:16px;
+      padding:14px;
+      box-shadow: var(--shadow);
+    }
+
+    .muted{ color: var(--muted); }
+
+    .play-center{
+      background: rgba(0,0,0,.25);
+      border:1px solid var(--stroke);
+      border-radius:16px;
+      overflow:hidden;
+      display:grid;
+      place-items:center;
+      min-height:70vh;
+      padding:10px;
+      box-shadow: var(--shadow);
+    }
+
+    /* Keep your existing canvas working */
+    canvas{
       border: 2px solid #222;
+      max-width: 100%;
+      max-height: 100%;
+      display:block;
+    }
+
+    h3{ margin:0 0 10px; letter-spacing:.3px; }
+    .pill{
+      display:inline-block;
+      font-size:12px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.10);
+      color: var(--muted);
+      background: rgba(0,0,0,.18);
+      margin-bottom:10px;
+    }
+
+    .leaderboard ol{
+      margin:8px 0 0;
+      padding-left: 18px;
+    }
+    .leaderboard li{ margin:6px 0; }
+
+    @media (max-width:1100px){
+      .play-grid{
+        grid-template-columns: 1fr;
+        padding-top:72px;
+      }
+      .play-center{ min-height:50vh; }
     }
   </style>
 </head>
+
 <body>
-  <canvas id="gameCanvas"></canvas>
+  <a class="exit-btn" href="../../index.html">✕ EXIT</a>
+
+  <div class="play-grid">
+    <!-- LEFT: Instructions -->
+    <aside class="panel">
+      <div class="pill">HOW TO PLAY</div>
+      <h3>Neon Chase</h3>
+      <p class="muted" style="margin:0 0 10px;">
+        Move with <b>WASD</b> or <b>Arrow Keys</b>. Survive as long as possible.
+      </p>
+      <p class="muted" style="margin:0 0 10px;">
+        Tip: click the game area once so it captures keyboard input.
+      </p>
+      <p class="muted" style="margin:0;">
+        Player initials are saved on the main arcade page (top-right).
+      </p>
+    </aside>
+
+    <!-- CENTER: Game (UNCHANGED GAME ELEMENT) -->
+    <main class="play-center">
+      <canvas id="gameCanvas"></canvas>
+    </main>
+
+    <!-- RIGHT: Leaderboard (placeholder, safe) -->
+    <aside class="panel leaderboard">
+      <div class="pill">LEADERBOARD</div>
+      <h3>Neon Chase</h3>
+      <p class="muted" style="margin:0 0 10px;">
+        Online leaderboard sync will be wired back in next (this panel is safe + non-breaking).
+      </p>
+      <ol class="muted">
+        <li>---</li>
+        <li>---</li>
+        <li>---</li>
+      </ol>
+    </aside>
+  </div>
+
+  <!-- Existing scripts kept exactly (do not change) -->
   <script src="../../js/engine.js"></script>
   <script src="../../js/games/neon-chase.js"></script>
 </body>
