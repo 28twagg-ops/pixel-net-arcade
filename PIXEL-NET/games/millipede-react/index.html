@@ -5,159 +5,49 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>MILLIPEDE CHAOS</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+  <script type="module" crossorigin src="./assets/index-BTthQfIO.js"></script>
 
   <style>
-    :root{--text:#e9ecff;--muted:#a7b0d6;--card1:rgba(15,19,36,.72);--card2:rgba(10,12,26,.55);--stroke:rgba(255,255,255,.10);--shadow:0 14px 40px rgba(0,0,0,.35)}
-    *{box-sizing:border-box} html,body{height:100%}
-    body{margin:0;color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(1200px 700px at 20% 10%, rgba(255,0,122,.14), transparent 60%),radial-gradient(900px 500px at 85% 20%, rgba(0,255,247,.12), transparent 55%),linear-gradient(180deg,#050611 0%,#060716 100%);color-scheme:dark}
-    .topbar{width:min(1300px,94vw);margin:14px auto 10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-    .btn{height:38px;padding:0 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(10,12,26,.72);color:var(--text);font:700 13px/1 "Orbitron",system-ui,sans-serif;letter-spacing:.10em;cursor:pointer}
-    .badge{min-width:54px;display:inline-grid;place-items:center;height:38px;padding:0 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(10,12,26,.72);color:var(--text);font:700 13px/1 "Orbitron",system-ui,sans-serif;letter-spacing:.10em;cursor:pointer}
-    .layout{width:min(1300px,94vw);margin:0 auto 18px;display:grid;grid-template-columns:280px 1fr 320px;gap:14px;align-items:stretch}
-    @media (max-width:1100px){.layout{grid-template-columns:1fr}}
-    .panel{background:linear-gradient(180deg,var(--card1),var(--card2));border:1px solid var(--stroke);border-radius:18px;box-shadow:var(--shadow);padding:14px}
-    .title{font-family:"Orbitron",system-ui,sans-serif;letter-spacing:.10em;margin:0 0 10px;font-size:14px}
-    .muted{color:var(--muted)}
-    .gamebox{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.28);min-height:520px}
-    #root{width:100%;height:100%;min-height:520px}
-    .lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-    .lb-col{list-style:none;padding:0;margin:0}
-    .lb-item{display:flex;justify-content:space-between;gap:10px;padding:6px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);margin-bottom:8px;font-family:"Orbitron",system-ui,sans-serif;letter-spacing:.06em;font-size:12px}
-    .lb-rank{opacity:.85;min-width:22px}.lb-score{font-weight:800}
-    .lb-meta{color:var(--muted);font-size:11px;margin-top:10px}
-
-    /* Hide the in-game initials input (we auto-fill) */
-    input[maxlength="3"], input[maxLength="3"]{position:absolute;left:-9999px;opacity:0}
+    /* Minimal: do NOT hide the in-game Save UI; just style wrapper */
+    body{margin:0;background:#050611;color:#e9ecff;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    .topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 14px}
+    .btn{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(10,12,26,.72);color:#e9ecff;font-weight:700;letter-spacing:.08em;cursor:pointer}
+    .badge{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(10,12,26,.72);font-weight:800}
+    #root{width:100vw;height:calc(100vh - 60px)}
   </style>
-
-  <script type="module" crossorigin src="./assets/index-BTthQfIO.js"></script>
 </head>
 <body>
-
   <div class="topbar">
     <button class="btn" id="px-exit">EXIT</button>
-    <div class="badge" id="px-badge" title="Click to change initials on home page">???</div>
+    <div class="badge" id="px-badge">???</div>
   </div>
 
-  <div class="layout">
-    <aside class="panel">
-      <h3 class="title">HOW TO PLAY</h3>
-      <div class="muted">
-        <p><b>Move:</b> Arrow Keys / WASD</p>
-        <p><b>Shoot:</b> Space</p>
-        <p><b>Goal:</b> Clear the swarm, survive, score high.</p>
-      </div>
-      <div class="lb-meta">Initials are set on the homepage. Click the badge (top-right) to change.</div>
-    </aside>
-
-    <main class="panel">
-      <h3 class="title">MILLIPEDE CHAOS</h3>
-      <div class="gamebox">
-        <div id="root"></div>
-      </div>
-      <div class="muted">Leaderboard refreshes automatically.</div>
-    </main>
-
-    <aside class="panel">
-      <h3 class="title">LEADERBOARD</h3>
-      <div class="muted">Top 10</div>
-      <div class="lb-grid">
-        <ol class="lb-col" id="lb-left"></ol>
-        <ol class="lb-col" id="lb-right"></ol>
-      </div>
-      <div class="lb-meta" id="lb-status">Loading…</div>
-    </aside>
-  </div>
+  <div id="root"></div>
 
   <script src="../../js/engine.js"></script>
   <script>
     (function(){
-      const SLUG = "millipede-react";
-
-      // Sync initials from home storage into BOTH sessionStorage + the React localStorage keys
       const initials =
         (localStorage.getItem("px_player_initials") ||
          sessionStorage.getItem("playerInitials") ||
          "???").toString().toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,3) || "???";
 
+      // Keep storages in sync for React game + PixelNet
       sessionStorage.setItem("playerInitials", initials);
-
-      // React build expects these keys:
       try{
-        localStorage.setItem("n", initials);
-        localStorage.setItem("nm", initials);
         localStorage.setItem("p", initials);
         localStorage.setItem("u", initials);
+        localStorage.setItem("n", initials);
+        localStorage.setItem("nm", initials);
       }catch(_){}
 
       if(window.PixelNet && PixelNet.init) PixelNet.init();
 
-      const badge = document.getElementById("px-badge");
-      badge.textContent = initials || "???";
-      badge.onclick = () => location.href = "../../index.html";
+      document.getElementById("px-badge").textContent = initials || "???";
+      document.getElementById("px-badge").onclick = () => location.href = "../../index.html";
       document.getElementById("px-exit").onclick = () => location.href = "../../index.html";
 
-      async function renderLeaderboard(){
-        const status = document.getElementById("lb-status");
-        const L = document.getElementById("lb-left");
-        const R = document.getElementById("lb-right");
-        L.innerHTML=""; R.innerHTML="";
-
-        try{
-          const rows = await PixelNet.getLeaderboard(SLUG);
-          const top = (rows || []).slice(0,10);
-          if(!top.length){ status.textContent="No scores yet."; return; }
-
-          top.forEach((row,i)=>{
-            const ini=(row.initials||row.name||"???").toString().toUpperCase();
-            const sc=row.score ?? row.points ?? row.value ?? 0;
-            const li=document.createElement("li");
-            li.className="lb-item";
-            li.innerHTML=`<span class="lb-rank">${i+1}.</span><span>${ini}</span><span class="lb-score">${sc}</span>`;
-            (i<5?L:R).appendChild(li);
-          });
-
-          status.textContent="Auto-refreshing…";
-        }catch(e){
-          console.error(e);
-          status.textContent="Failed to load leaderboard (backend sleeping?).";
-        }
-      }
-      renderLeaderboard();
-      setInterval(renderLeaderboard,15000);
-
-      // Auto-fill any visible initials input + click SAVE once it appears
-      (function autoSaveInitials(){
-        let tries = 0;
-        const maxTries = 60; // ~30s
-        const tick = setInterval(() => {
-          tries++;
-          // If game over overlay is up, React likely rendered the input/button
-          const inputs = Array.from(document.querySelectorAll('input[maxlength="3"], input[maxLength="3"]'));
-          inputs.forEach(inp => {
-            try{
-              inp.value = initials;
-              inp.dispatchEvent(new Event("input", { bubbles:true }));
-              inp.dispatchEvent(new Event("change", { bubbles:true }));
-            }catch(_){}
-          });
-
-          const btn = Array.from(document.querySelectorAll("button"))
-            .find(b => (b.textContent || "").trim().toUpperCase() === "SAVE");
-          if (btn) {
-            try { btn.click(); } catch(_) {}
-            // also toast so user knows it happened (non-blocking)
-            if(window.PixelNet && PixelNet.toast) PixelNet.toast("Saved initials", "ok", 1200);
-            clearInterval(tick);
-          }
-
-          if (tries >= maxTries) clearInterval(tick);
-        }, 500);
-      })();
-
+      // IMPORTANT: no auto-click of SAVE (it was freezing). User can press SAVE normally.
     })();
   </script>
 </body>
