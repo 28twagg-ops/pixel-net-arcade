@@ -1,6 +1,7 @@
 /**
  * PIXEL-NET ENGINE
- * Connects the Frontend (GitHub) to the Backend (Render)
+ * Connects the Frontend (GitHub Pages) to the Backend (Render)
+ * Minimal, non-blocking, evidence-friendly submission.
  */
 
 const PixelNet = {
@@ -14,28 +15,36 @@ const PixelNet = {
   },
 
   init: function () {
-    // Preferred: sessionStorage (set during play flow)
-    let initials = sessionStorage.getItem("playerInitials");
-
-    // Fallback: localStorage (set on homepage badge modal)
-    if (!initials) {
-      initials = localStorage.getItem("px_player_initials");
-      if (initials) {
-        sessionStorage.setItem("playerInitials", initials);
-      }
+    // Keep player initials synced from sessionStorage (set by homepage / wrappers)
+    const storedInitials = sessionStorage.getItem("playerInitials");
+    if (storedInitials) {
+      this.player.initials = storedInitials;
     }
-
-    if (initials) {
-      this.player.initials = initials.toString().trim().toUpperCase();
-      console.log("Pixel-Net Linked. Player:", this.player.initials);
-    } else {
-      console.warn("Pixel-Net: No initials found (session/local). Using ???");
-    }
+    console.log("Pixel-Net Linked. Player:", this.player.initials);
   },
 
-  // --- SUBMIT SCORE TO RENDER ---
+  // Always get freshest initials at submit-time (prevents ??? submissions)
+  _getInitialsNow: function () {
+    const s =
+      sessionStorage.getItem("playerInitials") ||
+      localStorage.getItem("px_player_initials") ||
+      this.player.initials ||
+      "???";
+    return (s || "???")
+      .toString()
+      .trim()
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "")
+      .slice(0, 3) || "???";
+  },
+
+  // --- SUBMIT SCORE TO RENDER (non-blocking, no alerts) ---
   submitScore: async function (gameSlug, score) {
-    console.log(`Sending Score... Game: ${gameSlug}, Score: ${score}, Initials: ${this.player.initials}`);
+    const initials = this._getInitialsNow();
+    const safeScore = Number.isFinite(score) ? Math.floor(score) : 0;
+
+    // Helpful debug log (keeps your “evidence-based” requirement simple)
+    console.log("[PixelNet] submitScore()", { gameSlug, initials, score: safeScore });
 
     try {
       const response = await fetch(`${this.config.BACKEND_URL}/api/score`, {
@@ -43,37 +52,34 @@ const PixelNet = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           game_slug: gameSlug,
-          initials: this.player.initials,
-          score: score
+          initials,
+          score: safeScore
         })
       });
 
-      // Always read body (backend may return 200 with ok:false)
-      let data = null;
+      // Try to read response body (for DevTools evidence)
+      let bodyText = "";
       try {
-        data = await response.json();
-      } catch (_) {
-        // non-json response
-      }
+        bodyText = await response.text();
+      } catch (_) {}
 
       if (!response.ok) {
-        console.warn("Upload failed (HTTP).", response.status, data);
-        alert(`UPLOAD FAILED (HTTP ${response.status})\nCheck DevTools → Network → /api/score`);
-        return;
+        console.warn("[PixelNet] Score upload failed", {
+          status: response.status,
+          statusText: response.statusText,
+          body: bodyText
+        });
+        return { ok: false, status: response.status, body: bodyText };
       }
 
-      // Prefer backend truth if provided
-      if (data && data.ok === false) {
-        console.warn("Upload rejected by backend:", data);
-        alert(`UPLOAD REJECTED\n${data.error || "Backend returned ok:false"}\nCheck DevTools → Network → /api/score`);
-        return;
-      }
-
-      // Success
-      alert(`SCORE UPLOADED!\n${gameSlug.toUpperCase()}: ${score}`);
+      console.log("[PixelNet] Score uploaded OK", {
+        status: response.status,
+        body: bodyText
+      });
+      return { ok: true, status: response.status, body: bodyText };
     } catch (err) {
-      console.error("Network Error:", err);
-      alert("UPLOAD FAILED (NETWORK)\nCheck DevTools Console");
+      console.error("[PixelNet] Network error submitting score:", err);
+      return { ok: false, error: String(err) };
     }
   },
 
@@ -82,16 +88,9 @@ const PixelNet = {
     try {
       const response = await fetch(`${this.config.BACKEND_URL}/api/leaderboard/${gameSlug}`);
       const data = await response.json();
-
-      // Your backend returns { ok:true, game_slug, top10:[] }
-      if (data && Array.isArray(data.top10)) return data.top10;
-
-      // Back-compat if backend returns array directly
-      if (Array.isArray(data)) return data;
-
-      return [];
+      return data?.top10 || (Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error("Could not fetch leaderboard", err);
+      console.error("[PixelNet] Could not fetch leaderboard", err);
       return [];
     }
   },
@@ -118,4 +117,6 @@ const PixelNet = {
 // Start engine
 PixelNet.init();
 PixelNet.Input.startListening();
+
+// Expose globally (required for inline scripts + game files)
 window.PixelNet = PixelNet;

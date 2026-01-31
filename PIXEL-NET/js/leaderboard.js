@@ -1,4 +1,7 @@
-const BACKEND_BASE = "https://YOUR-REAL-RENDER-URL.onrender.com";
+// Use PixelNet's configured backend if available, otherwise fallback to the default
+const BACKEND_BASE =
+  (window.PixelNet && PixelNet.config && PixelNet.config.BACKEND_URL) ||
+  "https://pixel-net-backend.onrender.com";
 
 /**
  * Fetch Top 10 for a game

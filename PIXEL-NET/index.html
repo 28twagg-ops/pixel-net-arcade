@@ -90,8 +90,13 @@
   <section id="leaderboards" class="section">
     <div class="section-head">
       <h3>Leaderboards</h3>
-      <p class="muted">Coming next.</p>
+      <!-- Show a helpful message while the leaderboard loads -->
+      <p class="muted">Top performers updated automatically.</p>
     </div>
+    <!-- Container to display aggregated leaderboard data -->
+    <div id="leaderboards-content" class="lb-grid"></div>
+    <!-- Status element for messages like loading or empty leaderboard -->
+    <p id="leaderboards-status" class="muted">Loading…</p>
   </section>
 
 </main>
@@ -236,6 +241,17 @@ async function loadGames(){
 
 loadGames();
 </script>
+
+  <!-- Load leaderboard helper and render Top Dogs on the home page -->
+  <script src="js/leaderboard.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof renderTopDogs === 'function') {
+        // Populate the leaderboards section with top dog data
+        renderTopDogs('leaderboards-content');
+      }
+    });
+  </script>
 
 </body>
 </html>
