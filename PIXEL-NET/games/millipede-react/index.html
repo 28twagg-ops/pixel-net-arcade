@@ -30,14 +30,14 @@
     .lb-meta{color:var(--muted);font-size:11px;margin-top:10px}
   </style>
 
-  <!-- KEEP THIS (YOUR REACT BUILD) -->
+  <!-- YOUR REACT BUILD -->
   <script type="module" crossorigin src="./assets/index-BTthQfIO.js"></script>
 </head>
 <body>
 
   <div class="topbar">
     <button class="btn" id="px-exit">EXIT</button>
-    <div class="badge" id="px-badge" title="Initials (set on homepage)">???</div>
+    <div class="badge" id="px-badge" title="Initials are set on the homepage">???</div>
   </div>
 
   <div class="layout">
@@ -48,7 +48,7 @@
         <p><b>Shoot:</b> Space</p>
         <p><b>Goal:</b> Clear the swarm, survive, score high.</p>
       </div>
-      <div class="lb-meta">Initials are set on the homepage. This game auto-uses them.</div>
+      <div class="lb-meta">This page auto-uses your homepage initials and submits silently.</div>
     </aside>
 
     <main class="panel">
@@ -56,7 +56,7 @@
       <div class="gamebox">
         <div id="root"></div>
       </div>
-      <div class="muted">Scores auto-submit on game over.</div>
+      <div class="muted">No typing needed. Submission happens automatically on game over.</div>
     </main>
 
     <aside class="panel">
@@ -70,26 +70,40 @@
     </aside>
   </div>
 
+  <!-- PixelNet engine (Render backend helpers) -->
   <script src="../../js/engine.js"></script>
+
   <script>
     (function(){
-      const HOME_KEY = "px_player_initials";
       const SLUG = "millipede-react";
+      const HOME_KEY = "px_player_initials";
 
-      // 1) Force initials to come from homepage storage, and put into sessionStorage (what engine.js uses).
-      const ls = (localStorage.getItem(HOME_KEY) || "").toUpperCase().slice(0,3);
-      if (ls) sessionStorage.setItem("playerInitials", ls);
+      function getInitials(){
+        const candidates = [
+          sessionStorage.getItem("playerInitials"),
+          localStorage.getItem(HOME_KEY),
+          localStorage.getItem("playerInitials"),
+          localStorage.getItem("initials")
+        ].filter(Boolean);
 
-      // Init engine AFTER sessionStorage is set
+        const raw = (candidates[0] || "").toString().trim().toUpperCase();
+        const clean = raw.replace(/[^A-Z0-9]/g,"").slice(0,3);
+        return clean || "???";
+      }
+
+      const initials = getInitials();
+      if (initials !== "???") sessionStorage.setItem("playerInitials", initials);
+
+      // init PixelNet AFTER we force session initials
       if (window.PixelNet && PixelNet.init) PixelNet.init();
 
-      // UI badge shows initials but DOES NOT open an initials modal here
+      // badge + exit
       const badge = document.getElementById("px-badge");
-      badge.textContent = ls || "???";
+      badge.textContent = initials;
       badge.onclick = () => location.href = "../../index.html";
-
       document.getElementById("px-exit").onclick = () => location.href = "../../index.html";
 
+      // Render leaderboard panel (from your Render backend)
       async function renderLeaderboard(){
         const status = document.getElementById("lb-status");
         const L = document.getElementById("lb-left");
@@ -104,12 +118,12 @@
           if(!top.length){ status.textContent="No scores yet."; return; }
 
           top.forEach((row,i)=>{
-            const initials=(row.initials||row.name||"???").toString().toUpperCase();
+            const name=(row.initials||row.name||"???").toString().toUpperCase();
             const score=row.score ?? row.points ?? row.value ?? 0;
 
             const li=document.createElement("li");
             li.className="lb-item";
-            li.innerHTML=`<span class="lb-rank">${i+1}.</span><span>${initials}</span><span class="lb-score">${score}</span>`;
+            li.innerHTML=`<span class="lb-rank">${i+1}.</span><span>${name}</span><span class="lb-score">${score}</span>`;
             (i<5?L:R).appendChild(li);
           });
 
@@ -121,102 +135,80 @@
       }
 
       renderLeaderboard();
-      setInterval(renderLeaderboard,15000);
+      setInterval(renderLeaderboard, 15000);
 
-      // 2) Silent submit (NO alerts, avoids “freeze” feeling).
-      async function silentSubmit(score){
+      // ---- IMPORTANT PART ----
+      // 1) Auto-fill the React overlay initials so you never type
+      // 2) ALSO submit score to Render backend without touching React build
+      let lastSubmitted = null;
+
+      async function submitToRender(score){
         try{
-          if (!window.PixelNet) return;
-          const initials = (PixelNet.player?.initials || ls || "???").toUpperCase().slice(0,3);
-          if (!initials || initials === "???") return;
+          const init = getInitials();
+          if (!init || init === "???") return;
+          if (!Number.isFinite(score)) return;
+          if (lastSubmitted === score) return; // stop duplicates
+          lastSubmitted = score;
 
-          const resp = await fetch(`${PixelNet.config.BACKEND_URL}/api/score`, {
+          // Use your PixelNet backend directly, but silent (no alerts)
+          await fetch(`${PixelNet.config.BACKEND_URL}/api/score`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ game_slug: SLUG, initials, score })
+            body: JSON.stringify({ game_slug: SLUG, initials: init, score })
           });
 
-          // Read JSON if present (optional)
-          let j = null;
-          try { j = await resp.json(); } catch(_) {}
-          if (!resp.ok || (j && j.ok === false)) {
-            console.warn("Millipede silent submit rejected:", resp.status, j);
-          } else {
-            // Refresh leaderboard immediately on success
-            renderLeaderboard();
+          renderLeaderboard();
+        } catch (e) {
+          console.error("Render submit failed:", e);
+        }
+      }
+
+      // Throttled observer (won't freeze)
+      let scheduled = false;
+      function tick(){
+        scheduled = false;
+
+        // If React game-over overlay is present, it contains an input maxLength=3 and a SAVE button.
+        const input = document.querySelector('input[maxlength="3"]');
+        const saveBtn = Array.from(document.querySelectorAll("button"))
+          .find(b => (b.textContent||"").trim().toUpperCase() === "SAVE");
+
+        // If overlay exists, fill initials
+        if (input && initials !== "???") {
+          if (input.value !== initials) {
+            input.value = initials;
+            input.dispatchEvent(new Event("input", { bubbles:true }));
+            input.dispatchEvent(new Event("change", { bubbles:true }));
           }
-        }catch(err){
-          console.error("Millipede silent submit error:", err);
+        }
+
+        // Extract score from overlay text like: "SCORE: 123"
+        // (React literally renders "SCORE: " + number)
+        const overlayText = document.body.innerText || "";
+        const m = overlayText.match(/SCORE:\s*([0-9]{1,8})/i);
+        if (m) {
+          const score = parseInt(m[1], 10);
+          if (Number.isFinite(score)) submitToRender(score);
+        }
+
+        // OPTIONAL: auto-click Save to dismiss overlay (only once per score)
+        // If this causes issues on your machine, set AUTO_CLICK_SAVE = false.
+        const AUTO_CLICK_SAVE = true;
+        if (AUTO_CLICK_SAVE && saveBtn && m) {
+          const score = parseInt(m[1], 10);
+          if (Number.isFinite(score) && lastSubmitted === score) {
+            // click once after we've submitted to Render
+            saveBtn.click();
+          }
         }
       }
 
-      // 3) Auto-fill and auto-submit the React overlay so it NEVER asks.
-      // We detect the overlay input (maxlength=3 or placeholder containing "initial")
-      // and the Save/Submit button, set initials, then click it once.
-      let autoSubmittedForThisGameOver = false;
-
-      function tryAutoSubmitOverlay(){
-        if (autoSubmittedForThisGameOver) return;
-
-        // Find candidate initials input
-        const inputs = Array.from(document.querySelectorAll("input"));
-        const initInput = inputs.find(inp => {
-          const ml = parseInt(inp.getAttribute("maxlength") || "0", 10);
-          const ph = (inp.getAttribute("placeholder") || "").toLowerCase();
-          return ml === 3 || ph.includes("init");
-        });
-
-        // Find a Save/Submit button created by the React overlay
-        const buttons = Array.from(document.querySelectorAll("button"));
-        const saveBtn = buttons.find(b => {
-          const t = (b.textContent || "").trim().toLowerCase();
-          return t === "save" || t === "submit" || t === "ok";
-        });
-
-        if (!saveBtn) return;
-
-        // Extract score from the overlay area (best effort: nearest container text)
-        let score = 0;
-        const container = saveBtn.closest("div") || document.body;
-        const txt = (container.textContent || "");
-        const m = txt.match(/(\d+)/);
-        if (m) score = parseInt(m[1], 10);
-
-        // Fill initials if input exists; hide it so the user never sees it
-        if (initInput) {
-          initInput.value = ls || (PixelNet.player?.initials || "???");
-          initInput.dispatchEvent(new Event("input", { bubbles: true }));
-          initInput.dispatchEvent(new Event("change", { bubbles: true }));
-          // optional hide so it "never asks"
-          initInput.style.display = "none";
-        }
-
-        // Mark so we don't spam clicks
-        autoSubmittedForThisGameOver = true;
-
-        // 1) Submit to backend silently
-        silentSubmit(score);
-
-        // 2) Click the React Save button to let the game close its overlay normally
-        // Delay a tick so React has processed the input event first
-        setTimeout(() => {
-          try { saveBtn.click(); } catch(_) {}
-        }, 0);
-      }
-
-      // Observe DOM changes because React creates the overlay dynamically.
       const obs = new MutationObserver(() => {
-        // If overlay disappears later and reappears next game over, allow again:
-        // We reset when a new run starts; easiest heuristic: if a SAVE button is NOT present, reset flag.
-        const hasSave = Array.from(document.querySelectorAll("button")).some(b => {
-          const t = (b.textContent || "").trim().toLowerCase();
-          return t === "save" || t === "submit" || t === "ok";
-        });
-        if (!hasSave) autoSubmittedForThisGameOver = false;
-
-        tryAutoSubmitOverlay();
+        if (scheduled) return;
+        scheduled = true;
+        requestAnimationFrame(tick);
       });
-      obs.observe(document.body, { childList: true, subtree: true });
+      obs.observe(document.body, { childList:true, subtree:true, characterData:true });
 
     })();
   </script>
