@@ -1,11 +1,61 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="refresh" content="0; url=../PIXEL-NET/">
-  <title>Redirecting...</title>
+  <meta charset="UTF-8" />
+  <title>PIXEL-NET Arcade</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <p>Redirecting to <a href="../PIXEL-NET/">PIXEL-NET</a>...</p>
+
+  <h1>PIXEL-NET</h1>
+  <div id="arcadeGrid"></div>
+
+  <script>
+    async function loadGames() {
+      try {
+        const response = await fetch('./games.json');
+        if (!response.ok) {
+          throw new Error('Failed to load games.json');
+        }
+
+        const games = await response.json();
+        const grid = document.getElementById('arcadeGrid');
+        grid.innerHTML = '';
+
+        games.forEach(game => {
+          const card = document.createElement('div');
+          card.className = 'game-card';
+
+          const img = document.createElement('img');
+          img.src = game.thumb;
+          img.alt = game.name;
+
+          const title = document.createElement('h3');
+          title.textContent = game.name;
+
+          card.appendChild(img);
+          card.appendChild(title);
+
+          card.onclick = () => {
+            if (game.type === 'iframe') {
+              window.location.href = game.path;
+            } else if (game.script) {
+              const script = document.createElement('script');
+              script.src = game.script;
+              document.body.appendChild(script);
+            }
+          };
+
+          grid.appendChild(card);
+        });
+
+      } catch (err) {
+        console.error('ERROR loading games:', err);
+      }
+    }
+
+    loadGames();
+  </script>
+
 </body>
 </html>
