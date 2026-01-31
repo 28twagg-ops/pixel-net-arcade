@@ -95,13 +95,15 @@ a{ color:inherit; text-decoration:none; }
   overflow:hidden;
   border:1px solid rgba(255,255,255,.10);
   min-height: 240px;
+  background: rgba(0,0,0,.35);
 }
 .featured-media img{
   width:100%;
   height:100%;
-  object-fit: cover;
+  object-fit: contain;          /* show the whole thumbnail */
+  padding: 16px;                /* makes contain look intentional */
   display:block;
-  filter: saturate(.8) contrast(1.05);
+  filter: saturate(.9) contrast(1.05);
 }
 .featured-glow{
   position:absolute; inset:-40px;
@@ -169,7 +171,7 @@ a{ color:inherit; text-decoration:none; }
   border:1px solid rgba(255,255,255,.10);
   box-shadow: 0 14px 36px rgba(0,0,0,.30);
   cursor:pointer;
-  transition: transform .12s ease, border-color .12s ease, filter .12s ease;
+  transition: transform .12s ease, border-color .12s ease;
   overflow:hidden;
 }
 .game-card:hover{
@@ -178,11 +180,13 @@ a{ color:inherit; text-decoration:none; }
 }
 .game-card img{
   width:100%;
-  height:140px;
+  height:160px;                 /* a little taller so contain looks good */
   border-radius:12px;
-  object-fit:cover;
+  object-fit: contain;          /* show entire thumbnail */
+  background: rgba(0,0,0,.35);  /* cabinet screen */
+  padding: 10px;
   display:block;
-  filter: saturate(.8) contrast(1.05);
+  filter: saturate(.9) contrast(1.05);
   transition: filter .12s ease;
 }
 .game-card:hover img{ filter: saturate(1) contrast(1.05); }
@@ -192,30 +196,6 @@ a{ color:inherit; text-decoration:none; }
   letter-spacing:.06em;
   font-size:13px;
 }
-
-/* Top Dogs */
-.player-list{ list-style:none; padding:0; margin:0; display:grid; gap:10px; }
-.player-list li{
-  padding:12px;
-  border-radius:16px;
-  background: linear-gradient(180deg, rgba(15,19,36,.55), rgba(10,12,26,.35));
-  border:1px solid rgba(255,255,255,.10);
-}
-.player-name{
-  font-family:"Orbitron", system-ui, sans-serif;
-  letter-spacing:.10em;
-  font-weight:800;
-}
-.player-details{ display:flex; gap:8px; align-items:center; margin-top:8px; flex-wrap:wrap; }
-.pill{
-  padding:5px 9px;
-  border-radius:999px;
-  background: rgba(255,0,122,.10);
-  border:1px solid rgba(255,0,122,.16);
-  font-size:12px;
-}
-.score{ font-weight:800; }
-.held-time{ color:var(--muted); font-size:12px; }
 
 /* Footer */
 .footer{
@@ -230,9 +210,7 @@ a{ color:inherit; text-decoration:none; }
   margin-top: 20px;
 }
 
-/* =============== Initials UI (clean neon card) =============== */
-
-/* Always-visible top-right initials */
+/* Player badge */
 .px-badge{
   position:fixed; top:14px; right:14px; z-index:9999;
   display:inline-flex; align-items:center; justify-content:center;
@@ -253,7 +231,7 @@ a{ color:inherit; text-decoration:none; }
 }
 .px-badge:active{ transform: translateY(1px); }
 
-/* Small welcome card overlay (no dark background) */
+/* Initials welcome card (small, clean, neon) */
 .px-initcard{
   position:fixed;
   left:50%;
@@ -268,8 +246,6 @@ a{ color:inherit; text-decoration:none; }
   from{ opacity:0; transform: translateX(-50%) translateY(-6px); }
   to{ opacity:1; transform: translateX(-50%) translateY(0); }
 }
-
-/* Gradient neon border without looking messy */
 .px-initcard__inner{
   position:relative;
   border-radius:18px;
@@ -326,13 +302,11 @@ a{ color:inherit; text-decoration:none; }
   border-color: rgba(0,255,247,.35);
   background: rgba(255,255,255,.10);
 }
-
 .px-initcard__sub{
   color:var(--muted);
   font-size:13px;
   margin-bottom:10px;
 }
-
 .px-initcard__row{
   display:flex;
   gap:10px;
@@ -355,7 +329,6 @@ a{ color:inherit; text-decoration:none; }
   border-color: rgba(0,255,247,.45);
   box-shadow: 0 0 0 4px rgba(0,255,247,.12);
 }
-
 .px-initcard__btn{
   height:44px;
   padding:0 14px;
@@ -369,7 +342,6 @@ a{ color:inherit; text-decoration:none; }
 }
 .px-initcard__btn:hover{ border-color: rgba(0,255,247,.55); }
 .px-initcard__btn:active{ transform: translateY(1px); }
-
 .px-initcard__error{
   min-height:18px;
   margin-top:8px;
@@ -381,3 +353,43 @@ a{ color:inherit; text-decoration:none; }
   color:var(--muted);
   font-size:12px;
 }
+
+/* Search bar */
+.px-headrow{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+}
+.px-search{
+  width: min(320px, 46vw);
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+}
+.px-search:focus{
+  outline:none;
+  border-color: rgba(0,255,247,.45);
+  box-shadow: 0 0 0 4px rgba(0,255,247,.10);
+}
+.px-empty{
+  margin-top:10px;
+}
+
+/* Leaderboard panel placeholder */
+.px-board{
+  padding:14px;
+  border-radius:16px;
+  background: linear-gradient(180deg, rgba(15,19,36,.55), rgba(10,12,26,.35));
+  border:1px solid rgba(255,255,255,.10);
+}
+.px-board__title{
+  font-family:"Orbitron", system-ui, sans-serif;
+  letter-spacing:.08em;
+  font-weight:800;
+  margin-bottom:8px;
+}
+.px-board__text{ line-height:1.45; }
