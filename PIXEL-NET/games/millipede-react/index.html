@@ -28,8 +28,10 @@
     .lb-item{display:flex;justify-content:space-between;gap:10px;padding:6px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);margin-bottom:8px;font-family:"Orbitron",system-ui,sans-serif;letter-spacing:.06em;font-size:12px}
     .lb-rank{opacity:.85;min-width:22px}.lb-score{font-weight:800}
     .lb-meta{color:var(--muted);font-size:11px;margin-top:10px}
-      input[maxlength="3"], input[maxLength="3"]{display:none!important}
-</style>
+
+    /* Hide the in-game initials input (so it doesn't "ask") */
+    input[maxlength="3"], input[maxLength="3"]{display:none!important}
+  </style>
 
   <!-- KEEP THIS (YOUR REACT BUILD) -->
   <script type="module" crossorigin src="./assets/index-BTthQfIO.js"></script>
@@ -74,8 +76,11 @@
   <script src="../../js/engine.js"></script>
   <script>
     (function(){
+      const SLUG = "millipede-react";
+
       const ls = localStorage.getItem("px_player_initials") || "";
       if(ls) sessionStorage.setItem("playerInitials", ls);
+
       if(window.PixelNet && PixelNet.init) PixelNet.init();
 
       const badge = document.getElementById("px-badge");
@@ -91,7 +96,7 @@
         L.innerHTML=""; R.innerHTML="";
 
         try{
-          const data = await PixelNet.getLeaderboard("millipede-react");
+          const data = await PixelNet.getLeaderboard(SLUG);
           const rows = Array.isArray(data) ? data : (data?.scores || data?.leaderboard || []);
           const top = rows.slice(0,10);
 
@@ -117,55 +122,25 @@
       renderLeaderboard();
       setInterval(renderLeaderboard,15000);
 
-      // Auto-fill initials + auto-dismiss the built-in SAVE overlay (no MutationObserver, avoids freezes)
-      // Also submits to PixelNet backend for your unified leaderboard.
-      const OVERLAY_POLL_MS = 250;
-      let lastOverlayScore = null;
+      // ✅ FIXED: lightweight auto-dismiss (NO innerText scanning => no freeze)
+      (function autoDismissSave(){
+        let coolingDown = false;
 
-      function cleanInitials(s){
-        return (s||"").toString().trim().toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,3);
-      }
+        setInterval(() => {
+          if (coolingDown) return;
 
-      setInterval(() => {
-        try{
-          // Detect overlay by score text (React renders "SCORE: <number>")
-          const bodyText = document.body ? (document.body.innerText || "") : "";
-          const m = bodyText.match(/SCORE:\s*([0-9]{1,8})/i);
-          if(!m) return;
-
-          const score = parseInt(m[1], 10);
-          if(!Number.isFinite(score)) return;
-
-          // Only run once per game-over screen
-          if(lastOverlayScore === score) return;
-          lastOverlayScore = score;
-
-          // Ensure initials are from homepage
-          const init = cleanInitials(localStorage.getItem("px_player_initials")) || "AAA";
-
-          // Fill the overlay input if present (it is hidden by CSS, but still exists)
-          const inp = document.querySelector('input[maxlength="3"], input[maxLength="3"]');
-          if(inp){
-            inp.value = init;
-            inp.dispatchEvent(new Event("input", { bubbles:true }));
-            inp.dispatchEvent(new Event("change", { bubbles:true }));
-          }
-
-          // Submit to PixelNet backend (Render) for unified leaderboard
-          if(window.PixelNet && typeof PixelNet.submitScore === "function"){
-            PixelNet.submitScore(SLUG, score);
-          }
-
-          // Click SAVE to dismiss overlay and allow the game to proceed
           const btn = Array.from(document.querySelectorAll("button"))
             .find(b => (b.textContent || "").trim().toUpperCase() === "SAVE");
-          if(btn) btn.click();
 
-        }catch(err){
-          // Never crash the game due to wrapper logic
-          console.warn("Overlay auto-dismiss error:", err);
-        }
-      }, OVERLAY_POLL_MS);
+          if (!btn) return;
+
+          coolingDown = true;
+          try { btn.click(); } catch(_) {}
+
+          setTimeout(() => { coolingDown = false; }, 1200);
+        }, 350);
+      })();
+
     })();
   </script>
 </body>
