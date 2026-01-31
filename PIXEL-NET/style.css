@@ -20,6 +20,7 @@ body{
   background: radial-gradient(1200px 700px at 20% 10%, rgba(255,0,122,.14), transparent 60%),
               radial-gradient(900px 500px at 85% 20%, rgba(0,255,247,.12), transparent 55%),
               linear-gradient(180deg, #050611 0%, #060716 100%);
+  color-scheme: dark; /* prevents ugly default light inputs */
 }
 
 a{ color:inherit; text-decoration:none; }
@@ -95,13 +96,11 @@ a{ color:inherit; text-decoration:none; }
   overflow:hidden;
   border:1px solid rgba(255,255,255,.10);
   min-height: 240px;
-  background: rgba(0,0,0,.35);
 }
 .featured-media img{
   width:100%;
   height:100%;
-  object-fit: contain;          /* show the whole thumbnail */
-  padding: 16px;                /* makes contain look intentional */
+  object-fit: cover; /* featured should feel big + cinematic */
   display:block;
   filter: saturate(.9) contrast(1.05);
 }
@@ -178,18 +177,20 @@ a{ color:inherit; text-decoration:none; }
   transform: translateY(-2px);
   border-color: rgba(0,255,247,.18);
 }
+
+/* ✅ THUMBNAILS: show the whole thumbnail cleanly (no crop, no weird padding) */
 .game-card img{
   width:100%;
-  height:160px;                 /* a little taller so contain looks good */
+  aspect-ratio: 16 / 9;       /* consistent cabinet screen */
+  height:auto;
   border-radius:12px;
-  object-fit: contain;          /* show entire thumbnail */
-  background: rgba(0,0,0,.35);  /* cabinet screen */
-  padding: 10px;
+  object-fit: contain;        /* FULL thumbnail visible */
+  background: rgba(0,0,0,.28);/* subtle screen backing */
   display:block;
-  filter: saturate(.9) contrast(1.05);
-  transition: filter .12s ease;
+  filter: saturate(.92) contrast(1.05);
 }
-.game-card:hover img{ filter: saturate(1) contrast(1.05); }
+.game-card:hover img{ filter: saturate(1) contrast(1.06); }
+
 .game-card h4{
   margin:10px 2px 0;
   font-family:"Orbitron", system-ui, sans-serif;
@@ -231,7 +232,7 @@ a{ color:inherit; text-decoration:none; }
 }
 .px-badge:active{ transform: translateY(1px); }
 
-/* Initials welcome card (small, clean, neon) */
+/* Initials welcome card */
 .px-initcard{
   position:fixed;
   left:50%;
@@ -354,32 +355,49 @@ a{ color:inherit; text-decoration:none; }
   font-size:12px;
 }
 
-/* Search bar */
+/* ✅ SEARCH BAR: make it match the UI (no default white box) */
 .px-headrow{
   display:flex;
   align-items:flex-end;
   justify-content:space-between;
   gap:12px;
 }
+
 .px-search{
-  width: min(320px, 46vw);
-  height: 40px;
+  -webkit-appearance: none;
+  appearance: none;
+  width: min(340px, 46vw);
+  height: 42px;
   padding: 0 12px;
-  border-radius: 12px;
+  border-radius: 14px;
   border: 1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.06);
+  background: rgba(10,12,26,.70);
+  backdrop-filter: blur(8px);
   color: var(--text);
-}
-.px-search:focus{
-  outline:none;
-  border-color: rgba(0,255,247,.45);
-  box-shadow: 0 0 0 4px rgba(0,255,247,.10);
-}
-.px-empty{
-  margin-top:10px;
+  box-shadow: 0 10px 26px rgba(0,0,0,.28);
 }
 
-/* Leaderboard panel placeholder */
+.px-search::placeholder{
+  color: rgba(167,176,214,.75);
+}
+
+.px-search:focus{
+  outline:none;
+  border-color: rgba(0,255,247,.42);
+  box-shadow:
+    0 10px 26px rgba(0,0,0,.28),
+    0 0 0 4px rgba(0,255,247,.10);
+}
+
+/* Hide the ugly 'x' clear button in some browsers (optional) */
+.px-search::-webkit-search-cancel-button{
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.px-empty{ margin-top:10px; }
+
+/* Leaderboard placeholder box */
 .px-board{
   padding:14px;
   border-radius:16px;
