@@ -230,58 +230,115 @@ a{ color:inherit; text-decoration:none; }
   margin-top: 20px;
 }
 
-/* Player badge + initials modal */
+/* =============== Initials UI (clean neon card) =============== */
+
+/* Always-visible top-right initials */
 .px-badge{
   position:fixed; top:14px; right:14px; z-index:9999;
   display:inline-flex; align-items:center; justify-content:center;
   min-width:54px; height:38px; padding:0 12px;
   border-radius:12px;
-  border:1px solid var(--stroke);
-  background: rgba(10,12,26,.75);
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(10,12,26,.72);
+  backdrop-filter: blur(8px);
   color:var(--text);
   font:700 14px/1 "Orbitron", system-ui, sans-serif;
-  letter-spacing:.08em;
+  letter-spacing:.10em;
   cursor:pointer;
   box-shadow: 0 10px 30px rgba(0,0,0,.35);
 }
-.px-badge:hover{ border-color: rgba(0,255,247,.35); box-shadow: 0 12px 34px rgba(0,0,0,.45); }
+.px-badge:hover{
+  border-color: rgba(0,255,247,.40);
+  box-shadow: 0 12px 38px rgba(0,0,0,.45);
+}
 .px-badge:active{ transform: translateY(1px); }
 
-.px-modal{ position:fixed; inset:0; z-index:10000; display:none; }
-.px-modal.is-open{ display:block; }
-.px-modal__backdrop{
-  position:absolute; inset:0;
-  background: rgba(0,0,0,.62);
+/* Small welcome card overlay (no dark background) */
+.px-initcard{
+  position:fixed;
+  left:50%;
+  top: 94px;
+  transform: translateX(-50%);
+  z-index: 9000;
+  width: min(520px, 92vw);
+  display:none;
 }
-.px-modal__panel{
-  position:absolute; left:50%; top:50%;
-  transform: translate(-50%,-50%);
-  width:min(520px, 92vw);
-  background: linear-gradient(180deg, rgba(15,19,36,.98), rgba(10,12,26,.96));
-  border:1px solid rgba(255,255,255,.12);
+.px-initcard.is-open{ display:block; animation: pxpop .16s ease-out; }
+@keyframes pxpop{
+  from{ opacity:0; transform: translateX(-50%) translateY(-6px); }
+  to{ opacity:1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Gradient neon border without looking messy */
+.px-initcard__inner{
+  position:relative;
   border-radius:18px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.55);
-  padding:16px 16px 14px;
+  padding:14px 14px 12px;
+  background: rgba(10,12,26,.86);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 22px 70px rgba(0,0,0,.55);
+  overflow:hidden;
 }
-.px-modal__head{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
-.px-modal__head h2{
-  margin:0;
-  font:700 18px/1.2 "Orbitron", system-ui, sans-serif;
-  letter-spacing:.04em;
+.px-initcard__inner::before{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  border-radius:18px;
+  background: linear-gradient(135deg, rgba(0,255,247,.55), rgba(255,0,122,.45));
+  opacity:.55;
+  pointer-events:none;
 }
-.px-iconbtn{
-  width:36px; height:36px;
+.px-initcard__inner::after{
+  content:"";
+  position:absolute;
+  inset:1px;
+  border-radius:17px;
+  background: linear-gradient(180deg, rgba(15,19,36,.88), rgba(10,12,26,.86));
+  pointer-events:none;
+}
+.px-initcard__inner > *{ position:relative; z-index:1; }
+
+.px-initcard__top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:6px;
+}
+.px-initcard__title{
+  font-family:"Orbitron", system-ui, sans-serif;
+  font-weight:800;
+  letter-spacing:.10em;
+  font-size:14px;
+}
+.px-initcard__close{
+  width:34px;
+  height:34px;
   border-radius:12px;
   border:1px solid rgba(255,255,255,.14);
   background: rgba(255,255,255,.06);
   color:var(--text);
-  font-size:22px; line-height:1;
+  font-size:20px;
+  line-height:1;
   cursor:pointer;
 }
-.px-iconbtn:hover{ background: rgba(255,255,255,.10); border-color: rgba(0,255,247,.35); }
-.px-modal__sub{ margin:10px 0 12px; color:var(--muted); }
-.px-modal__row{ display:flex; gap:10px; align-items:center; }
-.px-input{
+.px-initcard__close:hover{
+  border-color: rgba(0,255,247,.35);
+  background: rgba(255,255,255,.10);
+}
+
+.px-initcard__sub{
+  color:var(--muted);
+  font-size:13px;
+  margin-bottom:10px;
+}
+
+.px-initcard__row{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.px-initcard__input{
   flex:1;
   height:44px;
   padding:0 12px;
@@ -289,22 +346,38 @@ a{ color:inherit; text-decoration:none; }
   border:1px solid rgba(255,255,255,.14);
   background: rgba(255,255,255,.06);
   color:var(--text);
-  font:700 16px/1 "Orbitron", system-ui, sans-serif;
-  letter-spacing:.10em;
+  font:800 16px/1 "Orbitron", system-ui, sans-serif;
+  letter-spacing:.14em;
   text-transform:uppercase;
 }
-.px-input:focus{ outline:none; border-color: rgba(0,255,247,.45); box-shadow: 0 0 0 4px rgba(0,255,247,.12); }
-.px-btn{
+.px-initcard__input:focus{
+  outline:none;
+  border-color: rgba(0,255,247,.45);
+  box-shadow: 0 0 0 4px rgba(0,255,247,.12);
+}
+
+.px-initcard__btn{
   height:44px;
   padding:0 14px;
   border-radius:12px;
   border:1px solid rgba(0,255,247,.35);
   background: linear-gradient(135deg, rgba(0,255,247,.22), rgba(255,0,122,.12));
   color:var(--text);
-  font-weight:800;
+  font-weight:900;
+  letter-spacing:.08em;
   cursor:pointer;
 }
-.px-btn:hover{ border-color: rgba(0,255,247,.55); }
-.px-btn:active{ transform: translateY(1px); }
-.px-modal__error{ min-height:18px; margin-top:8px; color:#ff7aa8; font-weight:700; }
-.px-modal__hint{ margin-top:8px; color:var(--muted); font-size:12px; }
+.px-initcard__btn:hover{ border-color: rgba(0,255,247,.55); }
+.px-initcard__btn:active{ transform: translateY(1px); }
+
+.px-initcard__error{
+  min-height:18px;
+  margin-top:8px;
+  color:#ff7aa8;
+  font-weight:800;
+}
+.px-initcard__hint{
+  margin-top:6px;
+  color:var(--muted);
+  font-size:12px;
+}
