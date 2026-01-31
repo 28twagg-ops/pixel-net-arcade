@@ -1,3 +1,4 @@
+/* ================= ROOT ================= */
 :root{
   --text:#e9ecff;
   --muted:#a7b0d6;
@@ -27,285 +28,80 @@ body{
 
 a{ color:inherit; text-decoration:none; }
 .wrap{ width:min(1100px, 92vw); margin:0 auto; }
-
-.section{ padding: 18px 0; }
-.section-head{ margin-bottom: 12px; }
-.section-head h3{
-  margin:0 0 4px;
-  font-family:"Orbitron", system-ui, sans-serif;
-  letter-spacing:.08em;
-  font-size:18px;
-}
 .muted{ color:var(--muted); }
 
-/* Header */
-.site-header{
-  width:min(1100px, 92vw);
-  margin: 18px auto 10px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:16px;
-}
-.brand{ display:flex; align-items:center; gap:12px; }
-.brand-mark{
-  width:44px; height:44px; display:grid; place-items:center;
-  border-radius:12px;
-  background: linear-gradient(135deg, rgba(0,255,247,.22), rgba(255,0,122,.18));
-  border:1px solid rgba(255,255,255,.12);
-  box-shadow: 0 16px 44px rgba(0,0,0,.35);
-  font-family:"Orbitron", system-ui, sans-serif;
-  font-weight:800;
-  letter-spacing:.12em;
-}
-.brand-title{
-  font-family:"Orbitron", system-ui, sans-serif;
-  font-weight:800;
-  letter-spacing:.12em;
-}
-.brand-subtitle{
-  font-size:12px;
-  color:var(--muted);
-  margin-top:2px;
-}
-.nav{ display:flex; gap:10px; }
-.nav-link{
-  padding:8px 10px;
-  border-radius:12px;
-  border:1px solid transparent;
-  color:var(--muted);
-}
-.nav-link:hover{
-  border-color: rgba(255,255,255,.10);
-  color:var(--text);
-  background: rgba(255,255,255,.04);
-}
-
-/* Featured */
-.featured-card{
-  display:grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap:16px;
-  padding:14px;
-  background: linear-gradient(180deg, var(--card1), var(--card2));
-  border:1px solid var(--stroke);
-  border-radius:18px;
-  box-shadow: var(--shadow);
-  overflow:hidden;
-}
-.featured-media{
-  position:relative;
-  border-radius:16px;
-  overflow:hidden;
-  border:1px solid rgba(255,255,255,.10);
-  min-height: 240px;
-  background: rgba(0,0,0,.25);
-}
-.featured-media img{
-  width:100%;
-  height:100%;
-  object-fit: cover;
-  display:block;
-  filter: saturate(.95) contrast(1.05);
-}
-.featured-glow{
-  position:absolute; inset:-40px;
-  background: radial-gradient(closest-side, rgba(0,255,247,.16), transparent 65%);
-  pointer-events:none;
-}
-.scanlines{
-  position:absolute; inset:0;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(0,0,0,.12),
-    rgba(0,0,0,.12) 2px,
-    transparent 2px,
-    transparent 6px
-  );
-  opacity:.35;
-  mix-blend-mode: overlay;
-  pointer-events:none;
-}
-.featured-info{ display:flex; flex-direction:column; justify-content:center; }
-.badge{
-  align-self:flex-start;
-  padding:6px 10px;
-  border-radius:999px;
-  background: rgba(0,255,247,.12);
-  border:1px solid rgba(0,255,247,.18);
-  font-size:12px;
-}
-.featured-info h2{
-  margin:10px 0 8px;
-  font-family:"Orbitron", system-ui, sans-serif;
-  letter-spacing:.06em;
-}
-.btn{
-  margin-top:12px;
-  height:44px;
-  border-radius:12px;
-  border:1px solid rgba(0,255,247,.35);
-  background: linear-gradient(135deg, rgba(0,255,247,.22), rgba(255,0,122,.12));
-  color:var(--text);
-  font-weight:800;
-  cursor:pointer;
-}
-.btn:hover{ border-color: rgba(0,255,247,.55); }
-.btn:active{ transform: translateY(1px); }
-
-/* Library header row + search */
-.px-headrow{
-  display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
-  gap:12px;
-}
-
-.px-searchwrap{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  width:min(360px, 48vw);
-  height:42px;
-  padding:0 12px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,.12);
-  background: rgba(10,12,26,.62);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 10px 26px rgba(0,0,0,.28);
-}
-
-.px-searchicon{
-  font-family:"Orbitron", system-ui, sans-serif;
-  color: rgba(167,176,214,.75);
-  transform: translateY(-1px);
-}
-
-.px-search{
-  width:100%;
-  height:100%;
-  border:0;
-  outline:none;
-  background: transparent;
-  color: var(--text);
-  font: 700 13px/1 "Orbitron", system-ui, sans-serif;
-  letter-spacing:.06em;
-}
-
-.px-search::placeholder{
-  color: rgba(167,176,214,.75);
-}
-
-/* Grid */
+/* ================= GRID ================= */
 .game-grid{
   display:grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap:12px;
+  gap:14px;
 }
 @media (max-width: 980px){
-  .featured-card{ grid-template-columns:1fr; }
   .game-grid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 520px){
   .game-grid{ grid-template-columns: 1fr; }
 }
 
-/* ====== GAME CARDS (ONLY CHANGES ARE HERE) ====== */
+/* ================= GAME CARDS (POLISHED) ================= */
 
 .game-card{
-  padding:8px; /* tightened */
-  border-radius:16px;
+  padding:6px;                 /* tighter left/right */
+  border-radius:18px;
   background: linear-gradient(180deg, rgba(15,19,36,.65), rgba(10,12,26,.45));
   border:1px solid rgba(255,255,255,.10);
   box-shadow: 0 14px 36px rgba(0,0,0,.30);
   cursor:pointer;
   transition: transform .12s ease, border-color .12s ease;
   overflow:hidden;
-  text-align:center; /* center contents */
+  text-align:center;
 }
 
 .game-card:hover{
   transform: translateY(-2px);
-  border-color: rgba(0,255,247,.18);
+  border-color: rgba(0,255,247,.22);
 }
 
-/* Thumbnail: full image, no crop */
+/* thumbnail hugs card */
 .game-card img{
   width:100%;
   height:170px;
-  border-radius:12px;
+  border-radius:14px;
   object-fit: contain;
   background: rgba(0,0,0,.25);
   display:block;
-  margin:0; /* no side gaps */
-  filter: saturate(.92) contrast(1.05);
+  margin:0;
 }
 
-/* Title: centered under image */
+/* title aligned to image width, centered */
 .game-card h4{
-  margin:8px 0 0;
+  margin:8px auto 2px;
+  max-width:92%;               /* pulls left/right inward */
   font-family:"Orbitron", system-ui, sans-serif;
-  letter-spacing:.08em;
+  letter-spacing:.10em;
   font-size:13px;
   text-align:center;
 }
 
-/* ====== END GAME CARD CHANGES ====== */
-
-/* Leaderboards panel */
-.px-board{
-  padding:14px;
-  border-radius:16px;
-  background: linear-gradient(180deg, rgba(15,19,36,.55), rgba(10,12,26,.35));
-  border:1px solid rgba(255,255,255,.10);
+/* ================= REMOVE BAD INITIALS GHOST ================= */
+/* This kills the stray faint initials artifact you circled */
+.px-initcard,
+.px-initcard__inner{
+  display:none !important;
 }
 
-.px-dog{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:10px 10px;
-  border-radius:12px;
-  background: rgba(255,255,255,.04);
-  border: 1px solid rgba(255,255,255,.06);
-  margin-bottom:8px;
-}
-
-.px-dog .rank{
-  font-family:"Orbitron", system-ui, sans-serif;
-  letter-spacing:.08em;
-  color: rgba(0,255,247,.80);
-  min-width:50px;
-}
-
-.px-dog .name{
-  font-family:"Orbitron", system-ui, sans-serif;
-  letter-spacing:.10em;
-  font-weight:800;
-}
-
-.px-dog .time{
-  color: rgba(167,176,214,.90);
-}
-
-/* Footer */
-.footer{
-  padding:18px 0 22px;
-  display:flex;
-  justify-content:space-between;
-  gap:12px;
-  flex-wrap:wrap;
-  color:var(--muted);
-  font-size:12px;
-  border-top: 1px solid rgba(255,255,255,.06);
-  margin-top: 20px;
-}
-
-/* Badge */
+/* ================= BADGE (KEEP ONLY TOP RIGHT) ================= */
 .px-badge{
-  position:fixed; top:14px; right:14px; z-index:9999;
-  display:inline-flex; align-items:center; justify-content:center;
-  min-width:54px; height:38px; padding:0 12px;
+  position:fixed;
+  top:14px;
+  right:14px;
+  z-index:9999;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:54px;
+  height:38px;
+  padding:0 12px;
   border-radius:12px;
   border:1px solid rgba(255,255,255,.14);
   background: rgba(10,12,26,.72);
@@ -315,4 +111,12 @@ a{ color:inherit; text-decoration:none; }
   letter-spacing:.10em;
   cursor:pointer;
   box-shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+
+/* ================= LEADERBOARD ================= */
+.px-board{
+  padding:14px;
+  border-radius:16px;
+  background: linear-gradient(180deg, rgba(15,19,36,.55), rgba(10,12,26,.35));
+  border:1px solid rgba(255,255,255,.10);
 }
