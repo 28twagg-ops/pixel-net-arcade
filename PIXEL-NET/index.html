@@ -9,40 +9,46 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="style.css" />
+  <!-- cache-busted -->
+  <link rel="stylesheet" href="style.css?v=8" />
 </head>
 <body>
 
-  <!-- Top-right initials badge (always visible) -->
-  <button id="px-player-badge" class="px-badge" type="button" aria-label="Player initials">???</button>
+  <!-- Top-right initials badge -->
+  <button id="px-player-badge" class="px-badge" type="button">???</button>
 
-  <!-- Clean initials card (small box, neon, Enter-to-save) -->
+  <!-- Initials entry card -->
   <section id="px-initials-card" class="px-initcard" aria-hidden="true">
     <div class="px-initcard__inner">
       <div class="px-initcard__top">
         <div class="px-initcard__title">WELCOME TO PIXEL-NET</div>
-        <button id="px-initcard-close" class="px-initcard__close" type="button" aria-label="Close">×</button>
+        <button id="px-initcard-close" class="px-initcard__close" type="button">×</button>
       </div>
 
-      <div class="px-initcard__sub">Enter your initials to tag scores across games.</div>
+      <div class="px-initcard__sub">
+        Enter your initials to tag scores across games.
+      </div>
 
       <div class="px-initcard__row">
-        <input id="px-initials-input" class="px-initcard__input"
+        <input id="px-initials-input"
+               class="px-initcard__input"
                type="text"
-               inputmode="text"
+               maxlength="3"
+               placeholder="TJW"
                autocomplete="off"
                autocapitalize="characters"
-               spellcheck="false"
-               maxlength="3"
-               placeholder="TJW" />
-        <button id="px-initials-save" class="px-initcard__btn" type="button">SAVE</button>
+               spellcheck="false" />
+        <button id="px-initials-save" class="px-initcard__btn">SAVE</button>
       </div>
 
-      <div id="px-initials-error" class="px-initcard__error" aria-live="polite"></div>
-      <div class="px-initcard__hint">Press <b>Enter</b> to save. Click your initials (top-right) anytime to change.</div>
+      <div id="px-initials-error" class="px-initcard__error"></div>
+      <div class="px-initcard__hint">
+        Press <b>Enter</b> to save. Click initials to change later.
+      </div>
     </div>
   </section>
 
+  <!-- HEADER -->
   <header class="site-header">
     <div class="brand">
       <div class="brand-mark">PX</div>
@@ -61,6 +67,7 @@
 
   <main class="wrap">
 
+    <!-- FEATURED -->
     <section id="featured-game" class="section">
       <div class="featured-card">
         <div class="featured-media">
@@ -72,251 +79,157 @@
         <div class="featured-info">
           <span class="badge">Game of the Week</span>
           <h2 id="featuredTitle">Loading…</h2>
-          <p id="featuredDesc">Pick a cabinet below. Leaderboards will populate once the score endpoint is finalized.</p>
+          <p class="muted">Play games. Set records. Become a Top Dog.</p>
           <button id="featuredPlay" class="btn">Play Featured</button>
         </div>
       </div>
     </section>
 
+    <!-- LIBRARY -->
     <section id="game-library" class="section">
       <div class="section-head px-headrow">
         <div>
           <h3>Arcade Floor</h3>
           <p class="muted">Pick a cabinet. Click to play.</p>
         </div>
-        <input id="px-search" class="px-search" type="search" placeholder="Search games…" autocomplete="off" />
+        <input id="px-search" class="px-search" type="search" placeholder="Search games…" />
       </div>
 
       <div id="arcadeGrid" class="game-grid"></div>
-      <div id="px-empty" class="px-empty muted" style="display:none;">No games match your search.</div>
+      <div id="px-empty" class="px-empty muted" style="display:none;">
+        No games match your search.
+      </div>
     </section>
 
+    <!-- LEADERBOARDS -->
     <section id="leaderboards" class="section">
       <div class="section-head">
-        <h3>Leaderboards</h3>
-        <p class="muted">Online score sync is in progress.</p>
+        <h3>Top Dogs</h3>
+        <p class="muted">Players holding #1 scores the longest.</p>
       </div>
 
-      <div class="px-board">
-        <div class="px-board__title">Top 10 (Coming Soon)</div>
-        <div class="px-board__text muted">
-          The previous “Top Dogs” list was placeholder content from an older project (Blackjack/Holdem).
-          This panel will populate automatically once the leaderboard endpoint is finalized and wired into each game.
-        </div>
-      </div>
+      <!-- THIS IS WHAT JS FILLS -->
+      <div id="topdogs-panel" class="px-board"></div>
     </section>
 
   </main>
 
   <footer class="footer wrap">
     <div class="muted">CREATED BY TYLER WAGGONER WITH THE USE OF AI</div>
-    <div class="muted">PIXEL-NET • Static GitHub Pages • v4</div>
+    <div class="muted">PIXEL-NET • Static GitHub Pages</div>
   </footer>
 
-  <!-- ===================== INITIALS LOGIC ===================== -->
+  <!-- ================= INITIALS LOGIC ================= -->
   <script>
     (function () {
-      const LS_KEY = "px_player_initials";
-      const SS_KEY = "playerInitials";
+      const LS = "px_player_initials";
+      const SS = "playerInitials";
 
-      const elBadge = () => document.getElementById("px-player-badge");
-      const elCard  = () => document.getElementById("px-initials-card");
-      const elInput = () => document.getElementById("px-initials-input");
-      const elErr   = () => document.getElementById("px-initials-error");
+      const badge = document.getElementById("px-player-badge");
+      const card = document.getElementById("px-initials-card");
+      const input = document.getElementById("px-initials-input");
+      const error = document.getElementById("px-initials-error");
 
-      function normalize(v) {
-        return String(v || "")
-          .toUpperCase()
-          .replace(/[^A-Z0-9]/g, "")
-          .slice(0, 3);
+      function norm(v) {
+        return (v || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3);
       }
-
-      function getInitials() {
-        return localStorage.getItem(LS_KEY) || sessionStorage.getItem(SS_KEY) || "";
+      function get() {
+        return localStorage.getItem(LS) || sessionStorage.getItem(SS) || "";
       }
-
-      function setInitials(v) {
-        localStorage.setItem(LS_KEY, v);
-        sessionStorage.setItem(SS_KEY, v);
+      function set(v) {
+        localStorage.setItem(LS, v);
+        sessionStorage.setItem(SS, v);
       }
-
-      function setError(msg) {
-        if (elErr()) elErr().textContent = msg || "";
+      function show() {
+        card.classList.add("is-open");
+        input.value = get();
+        input.focus();
+        input.select();
       }
-
-      function renderBadge() {
-        const b = elBadge();
-        if (!b) return;
-        const v = getInitials();
-        b.textContent = v || "???";
+      function hide() {
+        card.classList.remove("is-open");
+        error.textContent = "";
       }
-
-      function openCard() {
-        const c = elCard();
-        if (!c) return;
-        c.classList.add("is-open");
-        c.setAttribute("aria-hidden", "false");
-
-        const v = getInitials();
-        if (elInput()) {
-          elInput().value = v;
-          setTimeout(() => { elInput().focus(); elInput().select(); }, 0);
-        }
-        setError("");
-      }
-
-      function closeCard() {
-        const c = elCard();
-        if (!c) return;
-        c.classList.remove("is-open");
-        c.setAttribute("aria-hidden", "true");
-        setError("");
-      }
-
       function save() {
-        const v = normalize(elInput() ? elInput().value : "");
+        const v = norm(input.value);
         if (!v) {
-          setError("Enter 1–3 letters or numbers.");
-          if (elInput()) elInput().focus();
+          error.textContent = "Enter 1–3 characters.";
           return;
         }
-        setInitials(v);
-        renderBadge();
-        closeCard();
+        set(v);
+        badge.textContent = v;
+        hide();
       }
 
-      window.addEventListener("DOMContentLoaded", () => {
-        renderBadge();
+      badge.onclick = show;
+      document.getElementById("px-initcard-close").onclick = () => get() && hide();
+      document.getElementById("px-initials-save").onclick = save;
+      input.onkeydown = e => e.key === "Enter" && save();
 
-        // First visit: force initials card open until saved
-        if (!getInitials()) openCard();
-
-        // Click badge to edit
-        if (elBadge()) elBadge().addEventListener("click", openCard);
-
-        // Close only allowed if initials already exist
-        const closeBtn = document.getElementById("px-initcard-close");
-        if (closeBtn) closeBtn.addEventListener("click", () => {
-          if (!getInitials()) return;
-          closeCard();
-        });
-
-        // Save handlers
-        const saveBtn = document.getElementById("px-initials-save");
-        if (saveBtn) saveBtn.addEventListener("click", save);
-
-        if (elInput()) {
-          elInput().addEventListener("keydown", (e) => {
-            if (e.key === "Enter") save();
-            if (e.key === "Escape" && getInitials()) closeCard();
-          });
-
-          // sanitize input live
-          elInput().addEventListener("input", () => {
-            const before = elInput().value;
-            const after = normalize(before);
-            if (before !== after) elInput().value = after;
-            setError("");
-          });
-        }
-      });
+      const v = get();
+      badge.textContent = v || "???";
+      if (!v) show();
     })();
   </script>
 
-  <!-- ===================== GAMES LOADER + SEARCH ===================== -->
+  <!-- ================= GAMES LOADER ================= -->
   <script>
     function normalizeGame(g) {
-      const name  = g.name ?? g.title ?? g.game ?? g.id ?? "UNTITLED";
-      const thumb = g.thumb ?? g.image ?? g.thumbnail ?? "";
-      const path  = g.path ?? g.url ?? g.href ?? "";
-      const desc  = g.description ?? g.desc ?? "";
-      return { name, thumb, path, desc };
+      return {
+        name: g.name || g.title || "UNTITLED",
+        thumb: g.thumb || g.image || "assets/millipede_thumb.png",
+        path: g.path || g.url || ""
+      };
     }
 
-    function renderGrid(games) {
+    function renderGrid(list) {
       const grid = document.getElementById("arcadeGrid");
       const empty = document.getElementById("px-empty");
-      if (!grid) return;
-
       grid.innerHTML = "";
 
-      if (!games.length) {
-        if (empty) empty.style.display = "block";
+      if (!list.length) {
+        empty.style.display = "block";
         return;
       }
-      if (empty) empty.style.display = "none";
+      empty.style.display = "none";
 
-      games.forEach(game => {
+      list.forEach(g => {
         const card = document.createElement("div");
         card.className = "game-card";
-
-        const img = document.createElement("img");
-        img.src = game.thumb || "assets/millipede_thumb.png";
-        img.alt = game.name;
-
-        const title = document.createElement("h4");
-        title.textContent = game.name;
-
-        card.appendChild(img);
-        card.appendChild(title);
-
-        card.addEventListener("click", () => {
-          if (!game.path) return alert("Missing path for: " + game.name);
-          window.location.href = game.path;
-        });
-
+        card.innerHTML = `<img src="${g.thumb}"><h4>${g.name}</h4>`;
+        card.onclick = () => location.href = g.path;
         grid.appendChild(card);
       });
     }
 
-    async function loadGames() {
-      try {
-        const res = await fetch("./games.json", { cache: "no-store" });
-        if (!res.ok) throw new Error("games.json fetch failed");
-        const raw = await res.json();
+    fetch("./games.json", { cache: "no-store" })
+      .then(r => r.json())
+      .then(raw => {
+        const games = raw.map(normalizeGame);
 
-        const allGames = raw.map(normalizeGame);
-
-        // Featured = first entry
-        const featured = allGames[0];
-        if (featured) {
-          const ft = document.getElementById("featuredThumb");
-          const tt = document.getElementById("featuredTitle");
-          const play = document.getElementById("featuredPlay");
-
-          if (ft) ft.src = featured.thumb || "assets/millipede_thumb.png";
-          if (tt) tt.textContent = featured.name;
-
-          if (play) play.onclick = () => {
-            if (!featured.path) return alert("Missing path for featured game.");
-            window.location.href = featured.path;
-          };
+        const f = games[0];
+        if (f) {
+          document.getElementById("featuredThumb").src = f.thumb;
+          document.getElementById("featuredTitle").textContent = f.name;
+          document.getElementById("featuredPlay").onclick = () => location.href = f.path;
         }
 
-        // Render full list initially
-        renderGrid(allGames);
+        renderGrid(games);
 
-        // Wire search
-        const search = document.getElementById("px-search");
-        if (search) {
-          search.addEventListener("input", () => {
-            const q = (search.value || "").trim().toLowerCase();
-            if (!q) {
-              renderGrid(allGames);
-              return;
-            }
-            const filtered = allGames.filter(g => (g.name || "").toLowerCase().includes(q));
-            renderGrid(filtered);
-          });
-        }
+        document.getElementById("px-search").oninput = e => {
+          const q = e.target.value.toLowerCase();
+          renderGrid(games.filter(g => g.name.toLowerCase().includes(q)));
+        };
+      });
+  </script>
 
-      } catch (e) {
-        console.error(e);
-        alert("Loader error. Open DevTools Console for details.");
-      }
-    }
-
-    loadGames();
+  <!-- ================= LEADERBOARD WIRING ================= -->
+  <script src="js/leaderboard.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      renderTopDogs("topdogs-panel");
+      setInterval(() => renderTopDogs("topdogs-panel"), 30000);
+    });
   </script>
 
 </body>
