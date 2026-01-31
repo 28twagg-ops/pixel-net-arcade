@@ -28,6 +28,7 @@
     .lb-item{display:flex;justify-content:space-between;gap:10px;padding:6px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);margin-bottom:8px;font-family:"Orbitron",system-ui,sans-serif;letter-spacing:.06em;font-size:12px}
     .lb-rank{opacity:.85;min-width:22px}.lb-score{font-weight:800}
     .lb-meta{color:var(--muted);font-size:11px;margin-top:10px}
+    .hint{color:var(--muted);font-size:12px;margin-top:10px}
   </style>
 
   <!-- React build -->
@@ -48,7 +49,8 @@
         <p><b>Shoot:</b> Space</p>
         <p><b>Goal:</b> Clear the swarm, survive, score high.</p>
       </div>
-      <div class="lb-meta">Initials are set on the homepage. Click the badge (top-right) to change.</div>
+      <div class="hint">Initials are set on the homepage. Click the badge (top-right) to change.</div>
+      <div class="hint"><b>Game Over:</b> score auto-saves. Press <b>Enter</b> to restart.</div>
     </aside>
 
     <main class="panel">
@@ -94,6 +96,57 @@
       badge.onclick = () => location.href = "../../index.html";
       document.getElementById("px-exit").onclick = () => location.href = "../../index.html";
 
+      // ---- Block duplicate /api/score submissions (even if React game tries) ----
+      // We allow ONE real POST per page-load for this slug.
+      let sentOnce = false;
+
+      function shouldBlockScorePost(url, bodyText){
+        if(!url || typeof url !== "string") return false;
+        if(url.indexOf("/api/score") === -1) return false;
+        try{
+          const obj = bodyText ? JSON.parse(bodyText) : null;
+          const slug = obj && (obj.game_slug || obj.gameSlug);
+          if(slug && String(slug) !== SLUG) return false;
+        }catch(_){
+          // If we can't parse, still treat as score post and gate it.
+        }
+        if(sentOnce) return true;
+        sentOnce = true;
+        return false;
+      }
+
+      const _fetch = window.fetch ? window.fetch.bind(window) : null;
+      if(_fetch){
+        window.fetch = async function(input, init){
+          const url = (typeof input === "string") ? input : (input && input.url) || "";
+          const bodyText = init && init.body ? String(init.body) : "";
+          if(shouldBlockScorePost(url, bodyText)){
+            console.warn("[Millipede wrapper] blocked duplicate /api/score");
+            return new Response("", {status: 204});
+          }
+          return _fetch(input, init);
+        };
+      }
+
+      // XHR guard (some bundles still use it)
+      const _open = XMLHttpRequest.prototype.open;
+      const _send = XMLHttpRequest.prototype.send;
+      XMLHttpRequest.prototype.open = function(method, url){
+        this.__px_url = url;
+        this.__px_method = method;
+        return _open.apply(this, arguments);
+      };
+      XMLHttpRequest.prototype.send = function(body){
+        const url = this.__px_url || "";
+        const bodyText = body ? String(body) : "";
+        if(shouldBlockScorePost(url, bodyText)){
+          console.warn("[Millipede wrapper] blocked duplicate XHR /api/score");
+          try{ this.abort(); }catch(_){}
+          return;
+        }
+        return _send.apply(this, arguments);
+      };
+
       // ---- LEADERBOARD RENDER ----
       async function renderLeaderboard(){
         const status = document.getElementById("lb-status");
@@ -121,67 +174,87 @@
       renderLeaderboard();
       setInterval(renderLeaderboard, 6000);
 
-      // ---- SCORE SUBMIT (ONE TIME PER GAME OVER) ----
-      // Problem you reported: multiple submissions + freeze after SAVE.
-      // Fix: bind the SAVE button once; on click, submit score ONCE, then reload page to restart cleanly.
-      let submitting = false;
+      // ---- Auto-save on GAME OVER, remove SAVE UI, Enter to restart ----
+      let gameOverSeen = false;
+      let savedThisDeath = false;
+      let lastScoreSaved = -1;
 
       function readScoreNow(){
-        // The game-over overlay shows: "SCORE: 1,344"
-        // Find the largest number on-screen that looks like the score.
+        // Overlay shows "SCORE: 1,344"
         const txt = document.body.innerText || "";
         const m = txt.match(/SCORE:\s*([0-9][0-9,]*)/i);
         if(m && m[1]) return parseInt(m[1].replace(/,/g,""),10) || 0;
 
-        // Fallback: look for any 3-6 digit number near GAME OVER
         const overIdx = txt.toUpperCase().indexOf("GAME OVER");
-        const slice = overIdx>=0 ? txt.slice(overIdx, overIdx+200) : txt;
+        const slice = overIdx>=0 ? txt.slice(overIdx, overIdx+220) : txt;
         const m2 = slice.match(/([0-9][0-9,]{2,})/);
         return m2 ? (parseInt(m2[1].replace(/,/g,""),10) || 0) : 0;
       }
 
-      function bindSaveIfPresent(){
+      function hideSaveUI(){
+        // Hide any "SAVE" button + initials input if present.
         const buttons = Array.from(document.querySelectorAll("button"));
-        const saveBtn = buttons.find(b => (b.textContent||"").trim().toUpperCase() === "SAVE");
-        if(!saveBtn) return;
-
-        if(saveBtn.dataset.pxBound === "1") return;
-        saveBtn.dataset.pxBound = "1";
-
-        // Also prefill initials input if the overlay has one
-        const input = document.querySelector('input[maxlength="3"], input[maxlength="3"]');
-        if(input && !input.value){
-          input.value = initials;
-          input.dispatchEvent(new Event("input", {bubbles:true}));
-          input.dispatchEvent(new Event("change", {bubbles:true}));
-        }
-
-        saveBtn.addEventListener("click", async (e) => {
-          if(submitting){
-            e.preventDefault();
-            e.stopPropagation();
-            return;
+        buttons.forEach(b=>{
+          const t=(b.textContent||"").trim().toUpperCase();
+          if(t==="SAVE" || t==="ENTER INITIALS" || t==="SUBMIT" || t==="OK"){
+            b.style.display="none";
+            b.disabled = true;
           }
-          submitting = true;
-          try{
-            saveBtn.disabled = true;
-            const score = readScoreNow();
-            console.log("[Millipede wrapper] submit once", {slug: SLUG, initials, score});
-            if(window.PixelNet && PixelNet.submitScore){
-              await PixelNet.submitScore(SLUG, score);
-            }
-          }catch(err){
-            console.error("[Millipede wrapper] submit failed:", err);
-          }finally{
-            // Reload to guarantee we can play again (prevents stuck game-over overlay).
-            setTimeout(()=>location.reload(), 450);
+        });
+        const inputs = Array.from(document.querySelectorAll('input[maxlength="3"], input[type="text"], input'));
+        inputs.forEach(inp=>{
+          // Only hide likely initials field: maxlength 3 or placeholder underscores
+          const ml = inp.getAttribute("maxlength");
+          const ph = (inp.getAttribute("placeholder")||"").trim();
+          if(ml==="3" || ph.includes("_")){
+            inp.style.display="none";
+            inp.disabled=true;
           }
-        }, {capture:true});
+        });
       }
 
-      const obs = new MutationObserver(()=>bindSaveIfPresent());
-      obs.observe(document.body, {subtree:true, childList:true});
-      bindSaveIfPresent();
+      async function autoSaveIfGameOver(){
+        const txt = (document.body.innerText||"").toUpperCase();
+        const isOver = txt.includes("GAME OVER");
+        if(!isOver) return;
+
+        gameOverSeen = true;
+        hideSaveUI();
+
+        const score = readScoreNow();
+        if(savedThisDeath) return;
+
+        // Extra guard: prevent saving the same score repeatedly (some UIs keep rerendering).
+        if(score === lastScoreSaved) return;
+
+        savedThisDeath = true;
+        lastScoreSaved = score;
+
+        try{
+          console.log("[Millipede wrapper] auto-saving on death", {slug: SLUG, initials, score});
+          if(window.PixelNet && PixelNet.submitScore){
+            await PixelNet.submitScore(SLUG, score);
+          }
+          // Refresh leaderboard after save
+          setTimeout(renderLeaderboard, 600);
+        }catch(err){
+          console.error("[Millipede wrapper] auto-save failed:", err);
+        }
+      }
+
+      // Observe DOM changes so we catch the moment GAME OVER appears.
+      const obs = new MutationObserver(()=>autoSaveIfGameOver());
+      obs.observe(document.body, {subtree:true, childList:true, characterData:true});
+      autoSaveIfGameOver();
+
+      // Enter to restart once game over seen
+      window.addEventListener("keydown", (e)=>{
+        if((e.code==="Enter" || e.key==="Enter") && gameOverSeen){
+          e.preventDefault();
+          // Hard reset for a clean new run (prevents stuck overlay)
+          location.reload();
+        }
+      }, {capture:true});
     })();
   </script>
 </body>
