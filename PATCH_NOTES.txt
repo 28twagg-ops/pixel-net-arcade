@@ -1,0 +1,5 @@
+PIXEL-NET Patch (2026-01-30)
+- Fixes millipede-react launch by:
+  1) removing conflicting 'path' in PIXEL-NET/games.json and pointing to games/millipede-react/index.html
+  2) adding missing build asset at PIXEL-NET/games/millipede-react/assets/index-BTthQfIO.js
+No other files changed.

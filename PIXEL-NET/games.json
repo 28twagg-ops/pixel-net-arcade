@@ -11,10 +11,8 @@
     "title": "MILLIPEDE (React)",
     "type": "iframe",
     "url": "games/millipede-react/index.html",
-    "script": "js/games/index.html",
     "image": "assets/millipede_thumb.png",
-    "description": "Modern React remake of the classic.",
-    "path": "games/game-2/index.html"
+    "description": "Modern React remake of the classic."
   },
   {
     "id": "robo-arena",
