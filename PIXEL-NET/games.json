@@ -33,5 +33,12 @@
     "path": "games/cyber-python/index.html",
     "thumb": "assets/cyber-python_thumb.jpg",
     "description": "Classic snake, cyber style."
+  },
+  {
+    "name": "NEON MAZE CHASE",
+    "type": "iframe",
+    "path": "games/neon-maze-chase/index.html",
+    "thumb": "assets/neon-maze-chase_thumb.png",
+    "description": "Neon maze survival. Collect bits. Hack drones."
   }
 ]

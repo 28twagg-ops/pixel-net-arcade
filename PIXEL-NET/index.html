@@ -13,7 +13,6 @@
 </head>
 <body>
 
-<button id="px-player-badge" class="px-badge" type="button">???</button>
 
 <section id="px-init-modal" class="px-init-modal hidden" aria-hidden="true">
   <div class="px-init-backdrop"></div>
@@ -29,6 +28,7 @@
   </div>
 </section>
 
+<div class="header-wrap">
 <header class="site-header">
   <div class="brand">
     <div class="brand-mark">PX</div>
@@ -42,8 +42,11 @@
     <a class="nav-link" href="#featured-game">Featured</a>
     <a class="nav-link" href="#game-library">Library</a>
     <a class="nav-link" href="#leaderboards">Leaderboards</a>
-  </nav>
+  
+    <button id="px-player-badge" class="px-badge px-badge--nav" type="button">???</button>
+</nav>
 </header>
+</div>
 
 <main class="wrap">
 
@@ -82,7 +85,7 @@
       <p class="muted">Top Dogs = longest time held at #1.</p>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="lb-grid">
       <div class="panel" style="padding:14px;border-radius:18px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.18)">
         <div class="muted" style="font-family:Orbitron,system-ui,sans-serif;letter-spacing:.10em;font-size:12px">ALL‑TIME TOP DOGS</div>
         <div id="px-topdogs" style="margin-top:10px"></div>

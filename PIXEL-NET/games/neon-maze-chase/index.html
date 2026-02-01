@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>NEON MAZE CHASE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --text:#e9ecff; --muted:#a7b0d6;
+      --card1: rgba(15,19,36,.72); --card2: rgba(10,12,26,.55);
+      --stroke: rgba(255,255,255,.10);
+      --shadow: 0 14px 40px rgba(0,0,0,.35);
+      --cyan:#00f3ff; --pink:#ff00ff;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(255,0,122,.14), transparent 60%),
+        radial-gradient(900px 500px at 85% 20%, rgba(0,255,247,.12), transparent 55%),
+        linear-gradient(180deg, #050611 0%, #060716 100%);
+      color-scheme:dark;
+    }
+
+    .topbar{
+      width:min(1300px, 94vw);
+      margin:14px auto 10px;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px;
+    }
+    .btn{
+      height:38px; padding:0 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(10,12,26,.72);
+      color:var(--text);
+      font:700 13px/1 "Orbitron", system-ui, sans-serif;
+      letter-spacing:.10em;
+      cursor:pointer;
+    }
+    .btn:hover{ filter:brightness(1.08); }
+
+    .badge{
+      min-width:54px;
+      display:inline-grid; place-items:center;
+      height:38px; padding:0 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(10,12,26,.72);
+      color:var(--text);
+      font:700 13px/1 "Orbitron", system-ui, sans-serif;
+      letter-spacing:.10em;
+      cursor:pointer;
+    }
+
+    .layout{
+      width:min(1300px, 94vw);
+      margin:0 auto 18px;
+      display:grid;
+      grid-template-columns: 320px 1fr 320px;
+      gap:14px;
+      align-items:start;
+    }
+
+    .panel{
+      border-radius:22px;
+      border:1px solid var(--stroke);
+      background: linear-gradient(180deg, var(--card1), var(--card2));
+      box-shadow: var(--shadow);
+      padding:16px 16px 14px;
+      backdrop-filter: blur(10px);
+    }
+    .panel h2{
+      margin:0 0 10px;
+      font:700 14px/1 "Orbitron", system-ui, sans-serif;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:var(--text);
+    }
+    .muted{color:var(--muted)}
+    .howto p{margin:0 0 10px; color:var(--muted); line-height:1.45; font-size:13px}
+    .howto .row{display:flex; gap:10px; margin:10px 0 0; flex-wrap:wrap}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(10,12,26,.45);
+      font:700 12px/1 "Orbitron", system-ui, sans-serif;
+      letter-spacing:.08em;
+    }
+
+    .gamebox{
+      border-radius:22px;
+      border:1px solid var(--stroke);
+      background: rgba(0,0,0,.35);
+      box-shadow: var(--shadow);
+      padding:14px;
+      backdrop-filter: blur(8px);
+      position:relative;
+    }
+    .game-title{
+      font:700 14px/1 "Orbitron", system-ui, sans-serif;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      margin:2px 0 12px;
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+    }
+    .game-title .sub{font-weight:700; color:var(--muted); letter-spacing:.10em; font-size:12px}
+
+    /* --- game area --- */
+    #game-container{
+      position:relative;
+      margin:0 auto;
+      width:fit-content;
+      box-shadow: 0 0 30px rgba(0, 255, 65, 0.18);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      background: rgba(0,0,0,.55);
+      overflow:hidden;
+    }
+    canvas{display:block; background:#080808}
+
+    #ui-layer{
+      position:absolute; inset:0;
+      pointer-events:none;
+      display:flex; flex-direction:column; justify-content:space-between;
+    }
+    .hud-bar{
+      display:flex; justify-content:space-between;
+      padding:10px 12px;
+      font:700 12px/1 "Orbitron", system-ui, sans-serif;
+      letter-spacing:.10em;
+      text-transform:uppercase;
+      text-shadow: 0 0 8px rgba(0,243,255,.25);
+    }
+    #score-display span{color:var(--cyan)}
+    #lives-display span{color:#ff0055}
+    #level-display span{color:#00ff41}
+    #high-score span{color:#ffd34d}
+
+    #overlay{
+      position:absolute; inset:0;
+      background: rgba(5, 0, 16, 0.92);
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      z-index:20;
+      pointer-events:auto;
+      text-align:center;
+      padding:18px;
+    }
+    #overlay h1{
+      color: var(--cyan);
+      font:700 30px/1.2 "Orbitron", system-ui, sans-serif;
+      letter-spacing:.14em;
+      margin:0 0 14px;
+      text-shadow: 0 0 12px rgba(0,243,255,.35);
+    }
+    #overlay p{
+      margin:0 0 16px;
+      font-size:12px;
+      line-height:1.55;
+      color:var(--muted);
+      max-width: 420px;
+    }
+    #overlay button{
+      background: rgba(0,243,255,.12);
+      color: var(--cyan);
+      border: 1px solid rgba(0,243,255,.55);
+      padding: 12px 18px;
+      border-radius: 14px;
+      font:700 14px/1 "Orbitron", system-ui, sans-serif;
+      letter-spacing:.12em;
+      cursor:pointer;
+      box-shadow: 0 0 18px rgba(0,243,255,.16);
+      text-transform: uppercase;
+    }
+    #overlay button:hover{ filter:brightness(1.08); }
+
+    /* leaderboard list */
+    .lb-title{display:flex; align-items:center; justify-content:space-between; gap:10px}
+    .lb-status{font-size:12px; color:var(--muted)}
+    .lb-list{display:flex; flex-direction:column; gap:8px; margin-top:10px}
+    .lb-row{
+      display:grid;
+      grid-template-columns: 34px 1fr auto;
+      gap:10px;
+      align-items:center;
+      padding:8px 10px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(10,12,26,.45);
+      font:700 12px/1 "Orbitron", system-ui, sans-serif;
+      letter-spacing:.06em;
+    }
+    .lb-rank{color:var(--muted)}
+    .lb-name{color:var(--text)}
+    .lb-score{color:var(--cyan)}
+
+    @media (max-width: 1020px){
+      .layout{grid-template-columns: 1fr;}
+      .topbar{width:94vw}
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <button class="btn" id="px-exit">✕ EXIT</button>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <div class="btn" style="cursor:default; opacity:.9;">NEON MAZE CHASE</div>
+      <div class="badge" id="px-badge" title="Change initials on the homepage">???</div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <aside class="panel howto">
+      <h2>HOW TO PLAY</h2>
+      <p><b>Move:</b> Arrow Keys / Swipe</p>
+      <p><b>Goal:</b> Collect all Bits. Grab Power Orbs to hack drones.</p>
+      <p class="muted">Scores auto-save on GAME OVER using your PIXEL-NET initials.</p>
+      <div class="row">
+        <span class="pill">ARROWS / SWIPE</span>
+        <span class="pill">POWER ORB = DRONES VULNERABLE</span>
+      </div>
+    </aside>
+
+    <main class="gamebox">
+      <div class="game-title">
+        <div>NEON MAZE CHASE</div>
+        <div class="sub">PLAYER <span id="px-player">???</span></div>
+      </div>
+
+      <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+
+        <div id="ui-layer">
+          <div class="hud-bar">
+            <div id="score-display">BITS: <span id="score-val">0</span></div>
+            <div id="level-display">ZONE: <span id="level-val">1</span></div>
+            <div id="high-score">TOP: <span id="high-score-val">0</span></div>
+          </div>
+          <div class="hud-bar" style="justify-content:flex-end;">
+            <div id="lives-display">UNITS: <span id="lives-val">3</span></div>
+          </div>
+        </div>
+
+        <div id="overlay"></div>
+      </div>
+    </main>
+
+    <aside class="panel">
+      <div class="lb-title">
+        <h2 style="margin:0;">LEADERBOARD</h2>
+        <div class="lb-status" id="lb-status">Loading…</div>
+      </div>
+      <div class="lb-list" id="lb-list"></div>
+    </aside>
+  </div>
+
+  <script src="../../js/engine.js"></script>
+  <script>
+    // Sync homepage initials -> engine initials
+    (function(){
+      const ls = localStorage.getItem("px_player_initials") || "";
+      if(ls) sessionStorage.setItem("playerInitials", ls);
+      if(window.PixelNet && PixelNet.init) PixelNet.init();
+
+      const badge = document.getElementById("px-badge");
+      badge.textContent = ls || "???";
+      badge.onclick = () => location.href = "../../index.html";
+
+      document.getElementById("px-player").textContent = ls || "???";
+      document.getElementById("px-exit").onclick = () => location.href = "../../index.html";
+
+      async function renderLeaderboard(){
+        const status = document.getElementById("lb-status");
+        const list = document.getElementById("lb-list");
+        list.innerHTML = "";
+
+        try{
+          if(!window.PixelNet || !PixelNet.getLeaderboard){
+            status.textContent = "Leaderboard engine not loaded.";
+            return;
+          }
+          const rows = await PixelNet.getLeaderboard("neon-maze-chase");
+          const top = (Array.isArray(rows) ? rows : []).slice(0, 10);
+
+          if(!top.length){
+            status.textContent = "No scores yet.";
+            return;
+          }
+
+          status.textContent = "Top 10";
+          top.forEach((row, i) => {
+            const name = (row.initials || row.name || "???").toString().toUpperCase().slice(0,3);
+            const score = Number(row.score || 0);
+            const el = document.createElement("div");
+            el.className = "lb-row";
+            el.innerHTML = `
+              <div class="lb-rank">${i+1}.</div>
+              <div class="lb-name">${name}</div>
+              <div class="lb-score">${score.toLocaleString()}</div>
+            `;
+            list.appendChild(el);
+          });
+
+          // push top score into HUD
+          const best = Number(top[0]?.score || 0);
+          if(window.PX_setTopScore) window.PX_setTopScore(best);
+        } catch(e){
+          status.textContent = "Failed to load.";
+        }
+      }
+
+      window.PX_refreshLeaderboard = renderLeaderboard;
+      renderLeaderboard();
+      setInterval(renderLeaderboard, 15000);
+    })();
+  </script>
+
+  <script>
+
+/**
+ * AUDIO ENGINE
+ * Updated sounds for a "tech" feel
+ */
+const AudioEngine = (() => {
+  let ctx = null;
+  let enabled = false;
+
+  const init = () => {
+    if (!ctx) {
+      ctx = new (window.AudioContext || window.webkitAudioContext)();
+      enabled = true;
+    } else if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+  };
+
+  const playTone = (freq, type, duration, vol = 0.1) => {
+    if (!enabled || !ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + duration);
+  };
+
+  return {
+    init,
+    step: () => { if (!enabled) return; playTone(800, 'square', 0.05, 0.02); },
+    eatDrone: () => playTone(1200, 'sawtooth', 0.1, 0.1),
+    crash: () => {
+      if (!enabled) return;
+      for (let i = 0; i < 5; i++) {
+        setTimeout(() => playTone(100 - (i * 20), 'sawtooth', 0.2, 0.2), i * 50);
+      }
+    },
+    start: () => { if (!enabled) return; playTone(440, 'sine', 0.1, 0.1); setTimeout(() => playTone(880, 'sine', 0.3, 0.1), 150); }
+  };
+})();
+
+const TILE_SIZE = 24;
+const WALL_COLOR = '#00FF41'; // Matrix Green
+const GATE_COLOR = '#FF0055';
+
+// 0: Empty, 1: Wall, 2: Bit, 3: Power Up, 4: Drone Gate
+const MAP = [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,1],
+  [1,2,1,1,1,2,1,1,2,1,2,1,1,2,1,1,1,2,1],
+  [1,3,1,1,1,2,1,1,2,1,2,1,1,2,1,1,1,3,1],
+  [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+  [1,2,1,1,1,2,1,2,1,1,1,2,1,2,1,1,1,2,1],
+  [1,2,2,2,2,2,1,2,2,1,2,2,1,2,2,2,2,2,1],
+  [1,1,1,1,1,2,1,1,0,1,0,1,1,2,1,1,1,1,1],
+  [0,0,0,0,1,2,1,0,0,4,0,0,1,2,1,0,0,0,0],
+  [1,1,1,1,1,2,1,0,1,1,1,0,1,2,1,1,1,1,1],
+  [0,2,2,2,2,2,0,0,1,0,1,0,0,2,2,2,2,2,0],
+  [1,1,1,1,1,2,1,0,1,1,1,0,1,2,1,1,1,1,1],
+  [0,0,0,0,1,2,1,0,0,0,0,0,1,2,1,0,0,0,0],
+  [1,1,1,1,1,2,1,2,1,1,1,2,1,2,1,1,1,1,1],
+  [1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,1],
+  [1,2,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,2,1],
+  [1,3,2,1,2,2,2,2,2,0,2,2,2,2,2,1,2,3,1],
+  [1,1,2,1,2,1,2,1,1,1,1,1,2,1,2,1,2,1,1],
+  [1,2,2,2,2,1,2,2,2,1,2,2,2,1,2,2,2,2,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+];
+
+const COLS = MAP[0].length;
+const ROWS = MAP.length;
+
+// Game State
+let canvas, ctx;
+let gameInterval;
+let score = 0;
+let level = 1;
+let highScore = 0;
+let lives = 3;
+let gameState = 'START';
+let powerModeTime = 0;
+let flashTimer = 0;
+
+// Score submission guard
+let _pxSubmitted = false;
+let _pxFinalScore = null;
+
+// Entities
+let player = {};
+let drones = [];
+let particles = [];
+let bits = [];
+
+// Input
+let nextDir = { x: 0, y: 0 };
+let touchStartX = 0;
+let touchStartY = 0;
+
+class Entity {
+  constructor(x, y, color) {
+    this.x = x * TILE_SIZE + TILE_SIZE / 2;
+    this.y = y * TILE_SIZE + TILE_SIZE / 2;
+    this.color = color;
+    this.dir = { x: 0, y: 0 };
+    this.speed = 2;
+    this.radius = TILE_SIZE * 0.4;
+  }
+  getGridPos() { return { c: Math.floor(this.x / TILE_SIZE), r: Math.floor(this.y / TILE_SIZE) }; }
+  isCentered() {
+    const threshold = 1.0;
+    const p = this.getGridPos();
+    const centerX = (p.c * TILE_SIZE) + TILE_SIZE / 2;
+    const centerY = (p.r * TILE_SIZE) + TILE_SIZE / 2;
+    return Math.abs(this.x - centerX) < threshold && Math.abs(this.y - centerY) < threshold;
+  }
+  snapToGrid() {
+    const p = this.getGridPos();
+    this.x = p.c * TILE_SIZE + TILE_SIZE / 2;
+    this.y = p.r * TILE_SIZE + TILE_SIZE / 2;
+  }
+  canMove(dx, dy) {
+    const p = this.getGridPos();
+    const nextC = p.c + dx;
+    const nextR = p.r + dy;
+    if (nextC < 0 || nextC >= COLS) return true;
+    if (nextR >= 0 && nextR < ROWS) {
+      const tile = MAP[nextR][nextC];
+      return tile !== 1 && tile !== 4;
+    }
+    return false;
+  }
+  move() {
+    if (this.x < 0) this.x = canvas.width;
+    if (this.x > canvas.width) this.x = 0;
+    this.x += this.dir.x * this.speed;
+    this.y += this.dir.y * this.speed;
+  }
+}
+
+class Player extends Entity {
+  constructor(x, y) { super(x, y, '#00F0FF'); this.pulse = 0; }
+  update() {
+    if (this.isCentered()) {
+      if (nextDir.x !== 0 || nextDir.y !== 0) {
+        if (this.canMove(nextDir.x, nextDir.y)) {
+          this.snapToGrid();
+          this.dir = { ...nextDir };
+        }
+      }
+      if (!this.canMove(this.dir.x, this.dir.y)) {
+        this.snapToGrid();
+        this.dir = { x: 0, y: 0 };
+      }
+    }
+    this.move();
+
+    if ((this.dir.x !== 0 || this.dir.y !== 0) && Math.random() < 0.1) AudioEngine.step();
+
+    const p = this.getGridPos();
+    if (p.r >= 0 && p.r < ROWS && p.c >= 0 && p.c < COLS) {
+      const bitIndex = bits.findIndex(b => b.c === p.c && b.r === p.r);
+      if (bitIndex !== -1) {
+        const b = bits[bitIndex];
+        bits.splice(bitIndex, 1);
+        if (b.type === 2) score += 10;
+        else if (b.type === 3) { score += 50; activatePowerMode(); }
+        if (bits.length === 0) winGame();
+      }
+    }
+  }
+  draw() {
+    ctx.fillStyle = this.color;
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.radius * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  }
+}
+
+class Drone extends Entity {
+  constructor(x, y, color, type) {
+    super(x, y, color);
+    this.originalColor = color;
+    this.type = type;
+    let baseSpeed = 1.5;
+    if (level >= 2) baseSpeed = 2.0;
+    if (level >= 5) baseSpeed = 2.4;
+    this.speed = baseSpeed;
+    this.mode = 'SCATTER';
+    this.dir = { x: 0, y: 0 };
+    this.inHouse = true;
+  }
+  update() {
+    if (this.isCentered()) {
+      const options = [];
+      const dirs = [{ x: 0, y: -1 }, { x: 0, y: 1 }, { x: -1, y: 0 }, { x: 1, y: 0 }];
+      dirs.forEach(d => {
+        if (d.x === -this.dir.x && d.y === -this.dir.y && this.dir.x !== 0) return;
+        const p = this.getGridPos();
+        const nextC = p.c + d.x;
+        const nextR = p.r + d.y;
+        if (nextC >= 0 && nextC < COLS && nextR >= 0 && nextR < ROWS) {
+          const tile = MAP[nextR][nextC];
+          if (tile === 1) return;
+          if (tile === 4 && !this.inHouse) return;
+          options.push(d);
+        }
+      });
+      if (options.length > 0) {
+        if (this.mode === 'FRIGHTENED') {
+          this.dir = options[Math.floor(Math.random() * options.length)];
+        } else {
+          if (this.mode === 'CHASE' && Math.random() > 0.4) {
+            let bestDir = options[0];
+            let minDist = 999999;
+            options.forEach(opt => {
+              const tx = (this.getGridPos().c + opt.x) * TILE_SIZE;
+              const ty = (this.getGridPos().r + opt.y) * TILE_SIZE;
+              const dist = Math.hypot(tx - player.x, ty - player.y);
+              if (dist < minDist) { minDist = dist; bestDir = opt; }
+            });
+            this.dir = bestDir;
+          } else {
+            this.dir = options[Math.floor(Math.random() * options.length)];
+          }
+        }
+        this.snapToGrid();
+      } else {
+        this.dir = { x: -this.dir.x, y: -this.dir.y };
+      }
+    }
+    this.move();
+
+    const dist = Math.hypot(this.x - player.x, this.y - player.y);
+    if (dist < TILE_SIZE) {
+      if (this.mode === 'FRIGHTENED') {
+        AudioEngine.eatDrone();
+        this.reset();
+        score += 200;
+        createParticles(this.x, this.y, this.originalColor);
+      } else if (this.mode !== 'EATEN') {
+        killPlayer();
+      }
+    }
+  }
+  reset() {
+    this.x = 9 * TILE_SIZE + TILE_SIZE / 2;
+    this.y = 8 * TILE_SIZE + TILE_SIZE / 2;
+    this.mode = 'CHASE';
+    this.dir = { x: 0, y: -1 };
+    this.inHouse = true;
+    const releaseTime = Math.max(500, 2000 - (level * 200));
+    setTimeout(() => { this.inHouse = false; }, releaseTime);
+  }
+  draw() {
+    const color = (this.mode === 'FRIGHTENED') ?
+      ((flashTimer > 0 && Math.floor(Date.now() / 200) % 2 === 0) ? '#fff' : '#00f') :
+      this.originalColor;
+    ctx.fillStyle = color;
+    const r = this.radius;
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y - r);
+    ctx.lineTo(this.x + r, this.y + r);
+    ctx.lineTo(this.x - r, this.y + r);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, r / 3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function init() {
+  canvas = document.getElementById('gameCanvas');
+  ctx = canvas.getContext('2d');
+  canvas.width = COLS * TILE_SIZE;
+  canvas.height = ROWS * TILE_SIZE;
+
+  window.addEventListener('keydown', handleKey);
+  window.addEventListener('touchstart', handleTouchStart, { passive: false });
+  window.addEventListener('touchend', handleTouchEnd, { passive: false });
+
+  showStartScreen();
+  resetLevel();
+  draw();
+
+  if (window.PX_refreshLeaderboard) window.PX_refreshLeaderboard();
+}
+
+function showStartScreen() {
+  gameState = 'START';
+  const ov = document.getElementById('overlay');
+  ov.classList.remove('hidden');
+  ov.innerHTML = `
+    <h1>NEON MAZE</h1>
+    <p>ARROWS / SWIPE to Move<br>Collect Bits & Hack Drones</p>
+    <button onclick="startGame()">INITIATE</button>
+  `;
+}
+
+function resetLevel() {
+  bits = [];
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (MAP[r][c] === 2) bits.push({ c, r, type: 2 });
+      if (MAP[r][c] === 3) bits.push({ c, r, type: 3 });
+    }
+  }
+  resetEntities();
+}
+
+function resetEntities() {
+  player = new Player(9, 15);
+  drones = [
+    new Drone(9, 8, '#FF0055', 0),
+    new Drone(8, 9, '#FF9900', 1),
+    new Drone(10, 9, '#CC00FF', 2),
+    new Drone(9, 9, '#FFFF00', 3)
+  ];
+  drones[0].inHouse = false;
+  drones[0].dir = { x: -1, y: 0 };
+  nextDir = { x: 0, y: 0 };
+}
+
+function startGame() {
+  AudioEngine.init();
+  AudioEngine.start();
+  document.getElementById('overlay').classList.add('hidden');
+
+  score = 0;
+  lives = 3;
+  level = 1;
+  powerModeTime = 0;
+  flashTimer = 0;
+
+  _pxSubmitted = false;
+  _pxFinalScore = null;
+
+  updateUI();
+  gameState = 'PLAY';
+  resetLevel();
+  if (gameInterval) clearInterval(gameInterval);
+  gameInterval = setInterval(gameLoop, 1000 / 60);
+}
+
+function winGame() {
+  gameState = 'LEVEL_TRANSITION';
+  AudioEngine.start();
+  level++;
+
+  const ov = document.getElementById('overlay');
+  ov.classList.remove('hidden');
+  ov.innerHTML = `<h1>ZONE ${level}</h1><p>SYNCING...</p>`;
+
+  clearInterval(gameInterval);
+  setTimeout(() => {
+    ov.classList.add('hidden');
+    gameState = 'PLAY';
+    resetLevel();
+    gameInterval = setInterval(gameLoop, 1000 / 60);
+  }, 3000);
+}
+
+async function gameOver() {
+  gameState = 'GAMEOVER';
+  clearInterval(gameInterval);
+
+  if (!_pxSubmitted) {
+    _pxSubmitted = true;
+    _pxFinalScore = Number.isFinite(score) ? Math.floor(score) : 0;
+
+    try {
+      if (window.PixelNet && PixelNet.submitScore) {
+        await PixelNet.submitScore('neon-maze-chase', _pxFinalScore);
+      }
+    } catch (_) {}
+
+    if (window.PX_refreshLeaderboard) window.PX_refreshLeaderboard();
+  }
+
+  const ov = document.getElementById('overlay');
+  ov.classList.remove('hidden');
+  ov.innerHTML = `
+    <h1 style="color:#FF0055">SYSTEM FAILURE</h1>
+    <p>BITS: ${_pxFinalScore ?? score}</p>
+    <button onclick="showStartScreen()">REBOOT</button>
+  `;
+}
+
+function killPlayer() {
+  lives--;
+  updateUI();
+  AudioEngine.crash();
+  createParticles(player.x, player.y, '#00F0FF');
+  if (lives <= 0) {
+    gameOver();
+  } else {
+    resetEntities();
+  }
+}
+
+function activatePowerMode() {
+  const duration = Math.max(120, 600 - ((level - 1) * 60));
+  powerModeTime = duration;
+  flashTimer = 0;
+  drones.forEach(g => { if (g.mode !== 'EATEN') g.mode = 'FRIGHTENED'; });
+}
+
+function createParticles(x, y, color) {
+  for (let i = 0; i < 8; i++) {
+    particles.push({
+      x, y,
+      vx: (Math.random() - 0.5) * 5,
+      vy: (Math.random() - 0.5) * 5,
+      life: 30,
+      color
+    });
+  }
+}
+
+function updateUI() {
+  document.getElementById('score-val').textContent = score;
+  document.getElementById('high-score-val').textContent = highScore;
+  document.getElementById('lives-val').textContent = lives;
+  document.getElementById('level-val').textContent = level;
+}
+
+function gameLoop() {
+  if (gameState !== 'PLAY') return;
+
+  player.update();
+  drones.forEach(g => g.update());
+
+  if (powerModeTime > 0) {
+    powerModeTime--;
+    if (powerModeTime < 120) flashTimer++;
+    if (powerModeTime === 0) {
+      drones.forEach(g => { if (g.mode === 'FRIGHTENED') g.mode = 'CHASE'; });
+    }
+  }
+
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life--;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+
+  updateUI();
+  draw();
+}
+
+function draw() {
+  ctx.fillStyle = '#050010';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const x = c * TILE_SIZE;
+      const y = r * TILE_SIZE;
+      if (MAP[r][c] === 1) {
+        ctx.strokeStyle = WALL_COLOR;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x + 2, y + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+        ctx.shadowBlur = 5;
+        ctx.shadowColor = WALL_COLOR;
+        ctx.strokeRect(x + 4, y + 4, TILE_SIZE - 8, TILE_SIZE - 8);
+        ctx.shadowBlur = 0;
+      } else if (MAP[r][c] === 4) {
+        ctx.strokeStyle = GATE_COLOR;
+        ctx.beginPath();
+        ctx.moveTo(x, y + TILE_SIZE / 2);
+        ctx.lineTo(x + TILE_SIZE, y + TILE_SIZE / 2);
+        ctx.stroke();
+      }
+    }
+  }
+
+  bits.forEach(b => {
+    const x = b.c * TILE_SIZE + TILE_SIZE / 2;
+    const y = b.r * TILE_SIZE + TILE_SIZE / 2;
+    ctx.fillStyle = '#00F0FF';
+    if (b.type === 2) {
+      ctx.fillRect(x - 1, y - 1, 2, 2);
+    } else {
+      if (Math.floor(Date.now() / 100) % 2 === 0) {
+        ctx.beginPath();
+        ctx.arc(x, y, 5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  });
+
+  player.draw();
+  drones.forEach(g => g.draw());
+
+  particles.forEach(p => {
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x, p.y, 3, 3);
+  });
+}
+
+function handleKey(e) {
+  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].indexOf(e.code) > -1) e.preventDefault();
+  switch (e.code) {
+    case 'ArrowUp': nextDir = { x: 0, y: -1 }; break;
+    case 'ArrowDown': nextDir = { x: 0, y: 1 }; break;
+    case 'ArrowLeft': nextDir = { x: -1, y: 0 }; break;
+    case 'ArrowRight': nextDir = { x: 1, y: 0 }; break;
+  }
+}
+
+function handleTouchStart(e) {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}
+
+function handleTouchEnd(e) {
+  const touchEndX = e.changedTouches[0].clientX;
+  const touchEndY = e.changedTouches[0].clientY;
+  const dx = touchEndX - touchStartX;
+  const dy = touchEndY - touchStartY;
+  if (Math.abs(dx) > Math.abs(dy)) {
+    if (Math.abs(dx) > 30) nextDir = dx > 0 ? { x: 1, y: 0 } : { x: -1, y: 0 };
+  } else {
+    if (Math.abs(dy) > 30) nextDir = dy > 0 ? { x: 0, y: 1 } : { x: 0, y: -1 };
+  }
+}
+
+// allow wrapper to set HUD top score
+window.PX_setTopScore = function(s){
+  highScore = Number(s || 0);
+  updateUI();
+};
+
+init();
+
+  </script>
+</body>
+</html>

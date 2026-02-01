@@ -21,7 +21,7 @@
     .panel{background:linear-gradient(180deg,var(--card1),var(--card2));border:1px solid var(--stroke);border-radius:18px;box-shadow:var(--shadow);padding:14px}
     .title{font-family:"Orbitron",system-ui,sans-serif;letter-spacing:.10em;margin:0 0 10px;font-size:14px}
     .muted{color:var(--muted)}
-    .gamebox{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.28);min-height:520px;position:relative}
+    .gamebox{border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.28);min-height:520px}
     #root{width:100%;height:100%;min-height:520px}
     .lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
     .lb-col{list-style:none;padding:0;margin:0}
@@ -31,34 +31,27 @@
     .hint{color:var(--muted);font-size:12px;margin-top:10px}
   
     .play-again-wrap{
-      position:absolute;
+      position:fixed;
       inset:0;
       display:none;
-      z-index:60;
-      background:transparent;
-      pointer-events:none;
+      align-items:center;
+      justify-content:center;
+      pointer-events:auto;
+      z-index:9999;
+      background:rgba(0,0,0,.35);
     }
     .play-again-btn{
-      pointer-events:auto;
-      position:absolute;
-      left:50%;
-      top:62%;
-      transform:translate(-50%,-50%);
-      min-width:220px;
-      height:54px;
-      padding:0 26px;
-      border-radius:18px;
-      border:1px solid rgba(255,255,255,.16);
-      background:linear-gradient(180deg, rgba(10,12,26,.92), rgba(10,12,26,.70));
-      color:var(--text);
-      font:800 14px/1 "Orbitron",system-ui,sans-serif;
-      letter-spacing:.12em;
+      padding:16px 28px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.25);
+      background:rgba(10,12,26,.9);
+      color:#e9ecff;
+      font:800 16px/1 "Orbitron",system-ui,sans-serif;
+      letter-spacing:.14em;
       cursor:pointer;
-      box-shadow:0 10px 28px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.10);
     }
-    .play-again-btn:active{transform:translate(-50%,-50%) scale(.98)}
 
-</style>
+  </style>
 
   <!-- React build -->
   <script type="module" crossorigin src="./assets/index-BTthQfIO.js"></script>
@@ -86,9 +79,6 @@
       <h3 class="title">MILLIPEDE CHAOS</h3>
       <div class="gamebox">
         <div id="root"></div>
-        <div class="play-again-wrap" id="px-play-again">
-          <button class="play-again-btn">PLAY AGAIN</button>
-        </div>
       </div>
       <div class="muted">Leaderboard refreshes automatically.</div>
     </main>
@@ -231,6 +221,23 @@
           if(t==="SAVE" || t==="ENTER INITIALS" || t==="SUBMIT" || t==="OK"){
             b.style.display="none";
             b.disabled = true;
+        // Also hide any label text that tells the player to enter initials (we set initials on the home page).
+        const root = document.getElementById("root");
+        if(root){
+          const killRe = /(ENTER\s+YOUR?\s*INITIALS|TYPE\s+YOUR?\s*INITIALS|ENTER\s+INITIALS|YOUR\s+INITIALS)/i;
+          Array.from(root.querySelectorAll("*")).forEach(el=>{
+            if(!el) return;
+            if(el.childElementCount>0) return; // only leaf nodes
+            const txt = (el.textContent||"").trim();
+            if(!txt) return;
+            if(txt.length>40) return;
+            if(killRe.test(txt)){
+              el.style.display="none";
+              el.setAttribute("aria-hidden","true");
+            }
+          });
+        }
+
           }
         });
         const inputs = Array.from(document.querySelectorAll('input[maxlength="3"], input[type="text"], input'));
@@ -307,7 +314,9 @@
     })();
   </script>
 
-
+  <div class="play-again-wrap" id="px-play-again">
+    <button class="play-again-btn">PLAY AGAIN</button>
+  </div>
 
 </body>
 </html>

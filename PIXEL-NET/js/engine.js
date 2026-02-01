@@ -145,3 +145,114 @@ const PixelNet = {
 PixelNet.init();
 PixelNet.Input.startListening();
 window.PixelNet = PixelNet;
+
+
+/* ===== UI INITIALS (HOME + WRAPPERS) =====
+   - No alerts
+   - Auto-prompts on first visit (if initials missing)
+   - Badge opens modal to change initials
+*/
+PixelNet.uiInit = function(){
+  const KEY = "px_player_initials";
+  const modal = document.getElementById("px-init-modal");
+  const input = document.getElementById("px-init-input");
+  const btnSave = document.getElementById("px-init-save");
+  const btnClose = document.getElementById("px-init-close");
+  const backdrop = modal ? modal.querySelector(".px-init-backdrop") : null;
+
+  // Badge(s)
+  const badges = [
+    document.getElementById("px-player-badge"),
+    document.getElementById("px-badge"),
+  ].filter(Boolean);
+
+  const normalize = (s) => (s||"")
+    .toString()
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g,"")
+    .slice(0,3);
+
+  const getStored = () => normalize(
+    sessionStorage.getItem("playerInitials") ||
+    localStorage.getItem(KEY) ||
+    ""
+  );
+
+  const setStored = (s) => {
+    const v = normalize(s);
+    if(!v) return false;
+    sessionStorage.setItem("playerInitials", v);
+    localStorage.setItem(KEY, v);
+    PixelNet.player.initials = v;
+    badges.forEach(b=> b.textContent = v);
+    return true;
+  };
+
+  const openModal = () => {
+    if(!modal) return;
+    modal.classList.remove("hidden");
+    modal.setAttribute("aria-hidden","false");
+    if(input){
+      input.value = "";
+      setTimeout(()=>{ try{ input.focus(); }catch(_){} }, 50);
+    }
+  };
+
+  const closeModal = () => {
+    if(!modal) return;
+    modal.classList.add("hidden");
+    modal.setAttribute("aria-hidden","true");
+  };
+
+  // Update badges immediately
+  const current = getStored() || PixelNet._getInitialsNow();
+  if(current && current !== "???"){
+    badges.forEach(b=> b.textContent = current);
+  }
+
+  // Wire badge click -> open modal (only if modal exists on page)
+  if(modal){
+    badges.forEach(b=>{
+      b.style.cursor = "pointer";
+      b.addEventListener("click", (e)=>{ e.preventDefault(); openModal(); });
+    });
+    if(backdrop) backdrop.addEventListener("click", closeModal);
+    if(btnClose) btnClose.addEventListener("click", closeModal);
+
+    const doSave = () => {
+      const v = normalize(input ? input.value : "");
+      if(!v){
+        // tiny shake via class if present, otherwise just keep open
+        try{
+          modal.classList.add("px-init-shake");
+          setTimeout(()=>modal.classList.remove("px-init-shake"), 280);
+        }catch(_){}
+        return;
+      }
+      setStored(v);
+      closeModal();
+      PixelNet.toast && PixelNet.toast("Initials saved: " + v, 1400);
+    };
+
+    if(btnSave) btnSave.addEventListener("click", doSave);
+    if(input){
+      input.addEventListener("keydown", (e)=>{
+        if(e.key === "Enter"){ e.preventDefault(); doSave(); }
+        if(e.key === "Escape"){ e.preventDefault(); closeModal(); }
+      });
+      input.addEventListener("input", ()=>{ input.value = normalize(input.value); });
+    }
+
+    // Auto-prompt on first entry if initials missing
+    const stored = getStored();
+    if(!stored || stored === "???"){
+      // delay so layout paints first
+      setTimeout(openModal, 250);
+    }
+  }
+};
+
+document.addEventListener("DOMContentLoaded", ()=>{ 
+  try{ PixelNet.uiInit(); }catch(e){ console.warn("[PixelNet] uiInit failed", e); }
+});
