@@ -100,8 +100,9 @@
       background: rgba(0,0,0,.28);
       display:grid;
       place-items:center;
-      min-height:520px;
-      height:min(72vh, 560px);
+      /* Desktop keeps a nice tall cabinet; mobile uses viewport height */
+      min-height:min(60vh, 520px);
+      touch-action:none; /* block scroll only inside the game */
     }
 
     canvas#gameCanvas{
@@ -111,9 +112,13 @@
       touch-action:none;
     }
 
-    /* Phones: keep the game fully visible and let panels scroll below */
     @media (max-width: 700px){
-      .gamebox{ height:70vh; min-height:360px; }
+      .layout{ grid-template-columns: 1fr; }
+      .gamebox{ min-height: 68vh; }
+    }
+
+    @media (max-width:700px){
+      .gamebox{ min-height: 64vh; }
     }
 
     .lb-grid{

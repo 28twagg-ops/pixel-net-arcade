@@ -123,8 +123,16 @@
       border-radius: 14px;
       background: rgba(0,0,0,.55);
       overflow:hidden;
+      max-width:100%;
+      touch-action:none; /* block scroll only inside the game */
     }
-    canvas{display:block; background:#080808; touch-action:none}
+    canvas{
+      display:block;
+      background:#080808;
+      max-width:100%;
+      height:auto;
+      touch-action:none;
+    }
 
     #ui-layer{
       position:absolute; inset:0;
@@ -628,11 +636,7 @@ function init() {
   canvas.height = ROWS * TILE_SIZE;
 
   window.addEventListener('keydown', handleKey);
-  // Mobile: capture swipe controls only on the canvas so the page can
-  // still scroll when the user swipes outside the game area.
-  ["touchstart","touchmove","touchend"].forEach(evt => {
-    canvas.addEventListener(evt, (e) => e.preventDefault(), { passive: false });
-  });
+  /* Mobile: capture gestures ONLY inside the canvas so the page can scroll elsewhere */
   canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
   canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
 

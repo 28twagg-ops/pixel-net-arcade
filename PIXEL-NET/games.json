@@ -42,10 +42,10 @@
     "description": "Neon maze survival. Collect bits. Hack drones."
   },
   {
-    "thumb": "assets/caked-up-cats_thumb.png",
     "name": "CAKED UP CATS",
     "type": "iframe",
     "path": "games/caked-up-cats/index.html",
-    "description": "Maze mayhem with the cakiest cats in town."
+    "thumb": "assets/caked-up-cats_thumb.png",
+    "description": "Garden maze mayhem. Sneak past dogs. Bank bonuses."
   }
 ]

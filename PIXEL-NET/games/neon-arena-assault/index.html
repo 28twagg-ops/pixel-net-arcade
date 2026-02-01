@@ -90,12 +90,19 @@
       background: rgba(0,0,0,.28);
       display:grid;
       place-items:center;
-      min-height:520px;
+      min-height:min(60vh, 520px);
+      touch-action:none; /* block scroll only inside the game */
     }
     canvas#gameCanvas{
       width:100%;
       height:100%;
       display:block;
+      touch-action:none;
+    }
+
+    @media (max-width: 700px){
+      .layout{ grid-template-columns: 1fr; }
+      .gamebox{ min-height: 68vh; }
     }
     .lb-grid{
       display:grid;
@@ -119,47 +126,16 @@
     .lb-name{ opacity:.95; }
     .lb-score{ font-weight:800; }
     .lb-meta{ color:var(--muted); font-size:11px; margin-top:10px; }
-  
-    /* Mobile tabs (GAME / HOW / BOARD) */
-    .mobile-tabs{ display:none; width:min(1200px, 92vw); margin:0 auto 10px; gap:10px; }
-    .tabbtn{
-      flex:1;
-      font-family:"Orbitron", system-ui, sans-serif;
-      letter-spacing:.10em;
-      text-transform:uppercase;
-      border:1px solid rgba(0,255,247,.35);
-      background: rgba(0,255,247,.10);
-      color:#00f3ff;
-      padding:10px 12px;
-      border-radius:14px;
-      cursor:pointer;
-    }
-    .tabbtn.is-active{ background: rgba(0,255,247,.18); box-shadow:0 0 14px rgba(0,243,255,.20); }
-
-    @media (max-width: 900px){
-      body{ overflow:hidden !important; }
-      .mobile-tabs{ display:flex; }
-      .layout, .play-grid{ grid-template-columns: 1fr !important; height: calc(100vh - 132px) !important; min-height:0 !important; }
-      .panel{ display:none !important; overflow:auto !important; max-height:none !important; }
-      .panel.px-panel--active{ display:block !important; }
-    }
-
   </style>
 </head>
 <body>
   <div class="topbar">
     <button class="btn" id="px-exit">EXIT</button>
     <div class="badge" id="px-badge" title="Click to change initials on home page">???</div>
-  
-  <div class="mobile-tabs" id="px-tabs">
-    <button class="tabbtn is-active" data-view="game">GAME</button>
-    <button class="tabbtn" data-view="how">HOW</button>
-    <button class="tabbtn" data-view="board">BOARD</button>
   </div>
-</div>
   <div class="layout">
     <!-- HOW TO PLAY -->
-    <aside class="panel px-panel" id="px-how">
+    <aside class="panel">
       <h3 class="title">HOW TO PLAY</h3>
       <div class="muted">
         <p><b>Move:</b> WASD keys</p>
@@ -170,7 +146,7 @@
       <div class="lb-meta">Initials are set on the homepage. Click the badge (top-right) to change.</div>
     </aside>
     <!-- CENTER GAME -->
-    <main class="panel gamewrap px-panel px-panel--active" id="px-gamepanel">
+    <main class="panel gamewrap">
       <h3 class="title">NEON ARENA ASSAULT</h3>
       <div class="gamebox">
         <canvas id="gameCanvas"></canvas>

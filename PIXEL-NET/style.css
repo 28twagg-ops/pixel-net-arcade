@@ -73,9 +73,9 @@ body{
 
 .nav{
   display:flex;
-  align-items:center;
   gap:14px;
   flex-wrap:wrap;
+  align-items:center; /* keep nav links vertically centered with the badge */
 }
 .nav-link{
   color:var(--muted);
@@ -194,7 +194,7 @@ body{
   height:170px; /* restored height */
   object-fit:contain; /* prevent cropping */
   display:block;
-  background:#000; /* makes transparent thumbs look clean */
+  background: rgba(0,0,0,.28); /* keeps thumbs clean when they have transparency */
 }
 .game-card h4{
   margin:0;

@@ -1,1639 +1,700 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Caked Up Cats: Garden Maze</title>
-    <style>
-        :root {
-            --bg-color: #6bc96b; 
-            --ui-bg: rgba(255, 255, 255, 0.9);
-            --text-color: #2e4a2e;
-            --accent: #ff6b6b;
-            --card-bg: rgba(255, 255, 255, 0.9);
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CAKED UP CATS</title>
 
-        body {
-            background-color: #112211; 
-            color: var(--text-color);
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            touch-action: none;
-        }
+  <!-- PIXEL-NET Engine (leaderboards) -->
+  <script src="../../js/engine.js"></script>
 
-        #game-container {
-            position: relative;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-            border: 8px solid #2d5a2d;
-            border-radius: 20px;
-            background: var(--bg-color);
-            width: 90vmin;
-            height: 90vmin;
-            max-width: 600px;
-            max-height: 600px;
-            overflow: hidden;
-        }
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
 
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-            border-radius: 12px;
-        }
+    /* ================= PIXEL-NET WRAPPER ================= */
+    :root{
+      --pn-bg:#050010;
+      --pn-panel: rgba(5, 0, 16, 0.75);
+      --pn-border: rgba(255,255,255,0.10);
+      --pn-cyan:#00F0FF;
+      --pn-pink:#FF0055;
+      --pn-muted:#9aa0b3;
 
-        /* UI Overlay */
-        #ui-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 60px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-            box-sizing: border-box;
-            font-weight: bold;
-            font-size: 18px;
-            z-index: 5;
-            pointer-events: none;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0));
-            color: white;
-            text-shadow: 1px 1px 2px black;
-        }
+      /* Original game palette */
+      --bg-color: #6bc96b;
+      --text-color: #2e4a2e;
+      --accent: #ff6b6b;
+      --card-bg: rgba(255, 255, 255, 0.9);
+    }
 
-        .ui-group {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
+    *{ box-sizing:border-box; }
 
-        /* Energy Bar */
-        #energy-container {
-            display: flex;
-            align-items: center;
-            width: 140px;
-            background: rgba(0,0,0,0.5);
-            padding: 5px 10px;
-            border-radius: 20px;
-            border: 2px solid rgba(255,255,255,0.2);
-        }
+    body{
+      margin:0;
+      background: var(--pn-bg);
+      color:#fff;
+      font-family: 'Orbitron', system-ui, sans-serif;
+      /* Desktop must be scrollable. On mobile, we only block scroll inside the game surface. */
+      overflow:auto;
+      touch-action:manipulation;
+      -webkit-user-select:none;
+      user-select:none;
+    }
 
-        #energy-label {
-            margin-right: 8px;
-            font-size: 12px;
-            color: #fff;
-            font-weight: 800;
-        }
+    .play-shell{ min-height:100dvh; display:flex; flex-direction:column; }
 
-        .energy-bar-bg {
-            flex-grow: 1;
-            height: 12px;
-            background: #333;
-            border-radius: 6px;
-            overflow: hidden;
-        }
+    .play-topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 12px;
+      background: rgba(5, 0, 16, 0.85);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      z-index:10;
+      flex:0 0 auto;
+    }
 
-        #energy-bar-fill {
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, #ffaa00, #ffff00);
-            transition: width 0.2s;
-            border-radius: 6px;
-        }
+    .top-left{ display:flex; align-items:center; gap:12px; }
 
-        /* Screens */
-        .screen {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(20, 40, 20, 0.92); /* Darker backdrop */
-            backdrop-filter: blur(5px);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 20;
-            text-align: center;
-            padding: 20px;
-            box-sizing: border-box;
-            color: white;
-        }
+    .exit-btn{
+      text-decoration:none;
+      color: var(--pn-cyan);
+      border: 1px solid rgba(0,240,255,0.35);
+      padding:6px 10px;
+      border-radius:10px;
+      box-shadow: 0 0 12px rgba(0,240,255,0.18);
+      font-size:12px;
+      letter-spacing:1px;
+      background: transparent;
+      cursor:pointer;
+    }
 
-        h1 {
-            color: #4ade80;
-            font-size: clamp(28px, 6vmin, 42px);
-            margin: 0 0 5px 0;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-shadow: 0 0 10px rgba(74, 222, 128, 0.5);
-        }
+    .play-title{ display:flex; align-items:baseline; gap:8px; font-size:12px; }
+    .play-title .muted{ color: var(--pn-muted); }
+    .play-title strong{ color: var(--pn-cyan); letter-spacing:1px; }
 
-        h2 {
-            font-size: 18px;
-            color: #a7f3d0;
-            margin: 0 0 20px 0;
-            font-weight: normal;
-            font-style: italic;
-        }
+    .play-grid{
+      flex:1 1 auto;
+      display:grid;
+      grid-template-columns: 300px 1fr 300px;
+      grid-template-areas: "how game lb";
+      gap:12px;
+      padding:12px;
+      align-items:stretch;
+      min-height:0;
+    }
 
-        .score-big {
-            font-size: 28px;
-            color: #fbbf24;
-            margin: 15px 0;
-            font-weight: 900;
-            text-shadow: 2px 2px 0 #000;
-        }
+    .panel{
+      background: var(--pn-panel);
+      border: 1px solid var(--pn-border);
+      border-radius:12px;
+      padding:12px;
+      min-height:0;
+      overflow:auto;
+      -webkit-overflow-scrolling:touch;
+    }
 
-        p {
-            font-size: 14px;
-            color: #d1fae5;
-            margin-bottom: 20px;
-            line-height: 1.5;
-            max-width: 85%;
-        }
+    .panel h3{
+      margin:0 0 10px 0;
+      font-size:14px;
+      letter-spacing:1px;
+      color: var(--pn-pink);
+      text-shadow: 0 0 6px rgba(255,0,85,0.30);
+    }
 
-        /* Character Selection */
-        #char-select {
-            display: flex;
-            gap: 15px;
-            margin: 10px 0 25px 0;
-            justify-content: center;
-        }
+    .panel p, .panel li{ font-size:12px; line-height:1.55; color:#d6d6d6; }
+    .panel ul{ margin:0; padding-left:18px; }
 
-        .char-card {
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 15px;
-            padding: 10px;
-            width: 90px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            position: relative;
-        }
+    .panel-how{ grid-area: how; }
+    .panel-lb{ grid-area: lb; }
 
-        .char-card:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: translateY(-5px);
-        }
+    .center-wrap{
+      grid-area: game;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:0;
+      overflow:hidden;
+    }
 
-        .char-card.unlocked {
-            opacity: 1;
-            border-color: #4ade80;
-        }
+    /* Mobile: put game first, then panels; keep game large */
+    @media (max-width: 980px){
+      .play-grid{
+        grid-template-columns: 1fr;
+        grid-template-areas:
+          "game"
+          "how"
+          "lb";
+      }
+      .panel{ max-height: 18vh; }
+      .center-wrap{ min-height: 56vh; }
+    }
 
-        .char-card:not(.unlocked) {
-            opacity: 0.5;
-            filter: grayscale(1);
-            pointer-events: none;
-        }
+    /* ================= ORIGINAL GAME STYLES (SCOPED) ================= */
+    #game-container{
+      position: relative;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      border: 8px solid #2d5a2d;
+      border-radius: 20px;
+      background: var(--bg-color);
+      width: min(92vmin, 640px);
+      height: min(92vmin, 640px);
+      max-width: 100%;
+      max-height: 100%;
+      overflow: hidden;
+      touch-action:none; /* block scroll only inside the game */
+    }
 
-        .char-card.selected {
-            background: linear-gradient(135deg, rgba(74, 222, 128, 0.2), rgba(74, 222, 128, 0.4));
-            border-color: #4ade80;
-            box-shadow: 0 0 20px rgba(74, 222, 128, 0.4);
-            transform: scale(1.1);
-            z-index: 2;
-        }
+    canvas{
+      display:block;
+      width:100%;
+      height:100%;
+      border-radius:12px;
+      touch-action:none;
+    }
 
-        .char-preview-canvas {
-            width: 60px;
-            height: 60px;
-            margin-bottom: 5px;
-        }
+    /* UI Overlay */
+    #ui-layer{
+      position:absolute;
+      top:0; left:0;
+      width:100%;
+      height:60px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:0 20px;
+      box-sizing:border-box;
+      font-weight:bold;
+      font-size:18px;
+      z-index:5;
+      pointer-events:none;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0));
+      color:white;
+      text-shadow:1px 1px 2px black;
+    }
 
-        .char-name { 
-            font-weight: 800; 
-            font-size: 12px; 
-            text-transform: uppercase;
-            margin-bottom: 2px;
-            color: #fff;
-        }
-        .char-stats { 
-            font-size: 10px; 
-            color: #a7f3d0; 
-            line-height: 1.2;
-        }
+    .ui-group{ display:flex; gap:15px; align-items:center; }
 
-        .lock-msg {
-            position: absolute;
-            top: -10px;
-            right: -10px;
-            background: #ef4444;
-            color: white;
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-weight: bold;
-            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
-        }
+    /* Energy Bar */
+    #energy-container{
+      display:flex;
+      align-items:center;
+      width:140px;
+      background: rgba(0,0,0,0.5);
+      padding:5px 10px;
+      border-radius:20px;
+      border:2px solid rgba(255,255,255,0.2);
+    }
+    #energy-label{ margin-right:8px; font-size:12px; color:#fff; font-weight:800; }
+    .energy-bar-bg{ flex-grow:1; height:12px; background:#333; border-radius:6px; overflow:hidden; }
+    #energy-bar-fill{ width:100%; height:100%; background: linear-gradient(90deg, #ffaa00, #ffff00); transition: width 0.2s; border-radius:6px; }
 
-        button {
-            padding: 15px 40px;
-            font-family: inherit;
-            font-size: 20px;
-            font-weight: 900;
-            background: linear-gradient(to bottom, #4ade80, #22c55e);
-            border: 3px solid #15803d;
-            border-radius: 30px;
-            color: #064e3b;
-            cursor: pointer;
-            box-shadow: 0 6px 0 #15803d, 0 15px 20px rgba(0,0,0,0.4);
-            transition: transform 0.1s, box-shadow 0.1s;
-            text-transform: uppercase;
-        }
+    /* Screens */
+    .screen{
+      position:absolute;
+      top:0; left:0;
+      width:100%; height:100%;
+      background: rgba(20, 40, 20, 0.92);
+      display:none;
+      flex-direction:column;
+      justify-content:center;
+      align-items:center;
+      text-align:center;
+      z-index:20;
+      padding:20px;
+      box-sizing:border-box;
+      color: #fff;
+    }
 
-        button:active {
-            transform: translateY(6px);
-            box-shadow: 0 0 0 #15803d, inset 0 2px 5px rgba(0,0,0,0.2);
-        }
+    .screen h1{
+      font-size:42px;
+      margin:0 0 10px;
+      text-shadow:0 0 10px rgba(255,255,255,0.3);
+    }
 
-        /* Controls */
-        #controls {
-            display: none; 
-            width: 100%;
-            max-width: 400px;
-            height: 120px;
-            margin-top: 15px;
-        }
+    .screen p{ max-width: 85%; font-size:14px; line-height:1.5; opacity:0.95; }
 
-        .d-pad {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            grid-template-rows: 1fr 1fr;
-            gap: 8px;
-            width: 160px;
-            height: 110px;
-            margin: 0 auto;
-        }
+    .btn-big{
+      background: #fff;
+      color: #1c381c;
+      border:none;
+      padding: 14px 22px;
+      border-radius: 14px;
+      font-weight: 900;
+      letter-spacing: .06em;
+      cursor:pointer;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+      margin-top: 12px;
+    }
 
-        .btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: white;
-            user-select: none;
-        }
-        .btn:active { background: rgba(255, 255, 255, 0.4); }
-        .up { grid-column: 2; grid-row: 1; }
-        .left { grid-column: 1; grid-row: 2; }
-        .down { grid-column: 2; grid-row: 2; }
-        .right { grid-column: 3; grid-row: 2; }
+    /* Leaderboard panel */
+    .lb-status{ font-size:11px; color: var(--pn-muted); margin-bottom:8px; }
+    .lb-list{ margin:0; padding-left:18px; font-size:12px; line-height:1.55; color:#e8e8e8; }
+    .lb-list li{ margin:4px 0; }
 
-    </style>
+    /* Hide the in-game D-pad (desktop), keep for very small screens if you want */
+    #mobile-controls{ display:none; }
+
+    /* Fix: keep desktop scroll usable; only the game area blocks gestures */
+  </style>
 </head>
+
 <body>
+  <div class="play-shell">
+    <header class="play-topbar">
+      <div class="top-left">
+        <a class="exit-btn" href="../../index.html">✕ EXIT</a>
+        <div class="play-title"><span class="muted">PLAYER</span> <strong id="playInitials">---</strong></div>
+      </div>
+    </header>
 
-    <div id="game-container">
-        <canvas id="gameCanvas" width="600" height="600"></canvas>
+    <div class="play-grid">
+      <aside class="panel panel-how">
+        <h3>How to Play</h3>
+        <ul>
+          <li><b>Move:</b> Arrow Keys / WASD</li>
+          <li><b>Goal:</b> Find the exit before energy runs out.</li>
+          <li><b>Avoid:</b> Dogs (instant game over).</li>
+          <li><b>Scoring:</b> Level bonus + remaining energy. No infinite farming.</li>
+        </ul>
+        <p style="margin-top:10px;"><span style="color:var(--pn-muted)">Initials are set on the homepage.</span></p>
+      </aside>
 
-        <div id="ui-layer">
+      <main class="center-wrap">
+        <div id="game-container">
+          <canvas id="gameCanvas" width="600" height="600"></canvas>
+
+          <div id="ui-layer">
             <div class="ui-group">
-                <div id="score-display">PTS: 0</div>
+              <div id="score-display">PTS: 0</div>
+              <div id="level-display">LVL: 1</div>
             </div>
             <div class="ui-group">
-                <div id="level-display">LVL 1</div>
-                <div id="energy-container">
-                    <span id="energy-label">NRG</span>
-                    <div class="energy-bar-bg">
-                        <div id="energy-bar-fill"></div>
-                    </div>
-                </div>
+              <div id="energy-container">
+                <span id="energy-label">ENERGY</span>
+                <div class="energy-bar-bg"><div id="energy-bar-fill"></div></div>
+              </div>
             </div>
-        </div>
+          </div>
 
-        <!-- Main Menu / Char Select -->
-        <div id="menu-screen" class="screen">
-            <h1>Caked Up Cats</h1>
-            <h2>Garden Maze Arcade</h2>
+          <!-- Screens (kept from original) -->
+          <div id="screenStart" class="screen" style="display:flex;">
+            <h1>CAKED UP CATS</h1>
+            <p>Navigate the garden maze. Grab treats. Dodge dogs. Make it to the exit before energy hits zero.</p>
+            <button class="btn-big" id="btnStart">START</button>
+          </div>
 
-            <p style="font-size:12px; opacity:0.8; margin-bottom:5px;">HOW TO PLAY</p>
-            <div style="display:flex; gap:10px; margin-bottom:15px; font-size:12px; color:#d1fae5;">
-                <div>🍰 <b>Eat Cake</b><br>Get Energy & Speed</div>
-                <div>🐭 <b>Catch Mouse</b><br>Win Level</div>
-                <div>🚫 <b>Avoid Hazards</b><br>Dogs, Mud, Water</div>
-            </div>
+          <div id="screenChar" class="screen">
+            <h1>CHOOSE CAT</h1>
+            <p>Select a style. Some cats unlock as you progress.</p>
+            <div id="charGrid" style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; width:min(520px, 90%);"></div>
+            <button class="btn-big" id="btnCharBack">BACK</button>
+          </div>
 
-            <div id="highscore-display" class="score-big" style="font-size:20px; margin:5px 0;">HIGH SCORE: 0</div>
+          <div id="screenLevelUp" class="screen">
+            <h1>LEVEL UP!</h1>
+            <div id="level-score" style="font-size:26px; font-weight:900; margin:5px 0;">SCORE: 0</div>
+            <p>Next maze gets tougher. Keep going.</p>
+            <button class="btn-big" id="btnNextLevel">NEXT LEVEL</button>
+          </div>
 
-            <p style="margin: 15px 0 5px 0; font-weight:bold; color:#4ade80;">SELECT YOUR CAT:</p>
-            <div id="char-select">
-                <div class="char-card selected unlocked" data-cat="ginger">
-                    <canvas id="canvas-ginger" class="char-preview-canvas" width="60" height="60"></canvas>
-                    <span class="char-name">GINGER</span>
-                    <span class="char-stats">Balanced</span>
-                </div>
-                <div class="char-card" data-cat="blitz" id="card-blitz">
-                    <canvas id="canvas-blitz" class="char-preview-canvas" width="60" height="60"></canvas>
-                    <span class="char-name">BLITZ</span>
-                    <span class="char-stats">Fast / Tires</span>
-                    <div class="lock-msg">LVL 3</div>
-                </div>
-                <div class="char-card" data-cat="tank" id="card-tank">
-                    <canvas id="canvas-tank" class="char-preview-canvas" width="60" height="60"></canvas>
-                    <span class="char-name">CHUNKY</span>
-                    <span class="char-stats">Slow / Lasts</span>
-                    <div class="lock-msg">LVL 5</div>
-                </div>
-            </div>
-
-            <button id="start-btn">PLAY GAME</button>
-        </div>
-
-        <!-- Game Over Screen -->
-        <div id="gameover-screen" class="screen" style="display:none;">
-            <h1 id="gameover-title" style="color:#f87171">GAME OVER</h1>
+          <div id="screenGameOver" class="screen">
+            <h1>GAME OVER</h1>
             <p id="gameover-msg">Out of energy!</p>
-            <div id="final-score" class="score-big">SCORE: 0</div>
-            <button id="retry-btn">TRY AGAIN</button>
+            <div id="final-score" style="font-size:26px; font-weight:900; margin:5px 0;">SCORE: 0</div>
+            <div id="highscore-display" style="font-size:16px; margin:5px 0;">HIGH SCORE: 0</div>
+            <button class="btn-big" id="btnRestart">RESTART</button>
+          </div>
         </div>
+      </main>
 
-        <!-- Level Up Screen -->
-        <div id="levelup-screen" class="screen" style="display:none;">
-            <h1 style="color:#facc15">MOUSE CAUGHT!</h1>
-            <p>Delicious victory! The garden grows...</p>
-            <div id="level-score" class="score-big">SCORE: 0</div>
-            <button id="next-level-btn">NEXT LEVEL</button>
-        </div>
-
+      <aside class="panel panel-lb">
+        <h3>Leaderboard</h3>
+        <div id="lbStatus" class="lb-status">Loading…</div>
+        <ol id="lbList" class="lb-list"></ol>
+      </aside>
     </div>
+  </div>
 
-    <div id="controls">
-        <div class="d-pad">
-            <div class="btn up">▲</div>
-            <div class="btn left">◀</div>
-            <div class="btn down">▼</div>
-            <div class="btn right">▶</div>
-        </div>
-    </div>
+<script>
+  // ================= PIXEL-NET LEADERBOARD INTEGRATION =================
+  const GAME_SLUG = "caked-up-cats";
+  let scoreSubmitted = false;
 
-    <script>
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const uiLevel = document.getElementById('level-display');
-        const uiScore = document.getElementById('score-display');
-        const uiEnergy = document.getElementById('energy-bar-fill');
+  function getInitialsFromStorage(){
+    return (localStorage.getItem("px_initials") || localStorage.getItem("px_player_initials") || localStorage.getItem("pixelnet_initials") || "???")
+      .toUpperCase().slice(0,3);
+  }
 
-        const screenMenu = document.getElementById('menu-screen');
-        const screenGameOver = document.getElementById('gameover-screen');
-        const screenLevelUp = document.getElementById('levelup-screen');
-        const uiHighScore = document.getElementById('highscore-display');
+  async function refreshLeaderboard(){
+    const status = document.getElementById("lbStatus");
+    const list = document.getElementById("lbList");
+    if(!status || !list || !window.PixelNet) return;
 
-        const btnStart = document.getElementById('start-btn');
-        const btnRetry = document.getElementById('retry-btn');
-        const btnNext = document.getElementById('next-level-btn');
+    status.textContent = "Loading…";
+    list.innerHTML = "";
 
-        let TILE = 40; 
-        let COLS = 15;
-        let ROWS = 15;
+    try{
+      const data = await PixelNet.getLeaderboard(GAME_SLUG);
+      const entries = (data && data.entries) ? data.entries : (Array.isArray(data) ? data : []);
 
-        let gameState = 'MENU';
-        let level = 1;
-        let score = 0;
-        let highScore = localStorage.getItem('cakedUpHighScore') || 0;
-        let mapData = [];
-        let particles = [];
-        let weatherParticles = [];
-        let cakes = [];
-        let bushDecor = [];
-        let hazards = []; 
-        let dogs = [];
-        let portals = [];
-        let goldenYarn = null;
-        let viewX = 0; 
-        let viewY = 0; 
-        let frameCount = 0;
-        let respawnTimer = 0;
-        let darkness = 0.0;
+      entries.slice(0,10).forEach((e, idx) => {
+        const li = document.createElement("li");
+        const name = (e.name || e.initials || "???").toString().toUpperCase().slice(0,3);
+        const sc = Number(e.score) || 0;
+        li.textContent = `${idx+1}. ${name} — ${sc}`;
+        list.appendChild(li);
+      });
 
-        const CAT_TYPES = {
-            ginger: { color: '#ffaa00', baseSpeed: 0.15, boostMult: 1.5, drain: 0.08 },
-            blitz:  { color: '#333333', baseSpeed: 0.16, boostMult: 1.8, drain: 0.15 },
-            tank:   { color: '#888888', baseSpeed: 0.13, boostMult: 1.6, drain: 0.04 } 
-        };
-        let selectedCatType = 'ginger';
+      status.textContent = entries.length ? "" : "No scores yet.";
+    }catch(err){
+      status.textContent = "Leaderboard failed to load.";
+      console.log("[CAKED-UP-CATS] leaderboard error:", err);
+    }
+  }
 
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        let audioCtx;
+  async function submitScoreOnce(finalScore){
+    if(scoreSubmitted) return;
+    scoreSubmitted = true;
 
+    try{
+      if(window.PixelNet && PixelNet.submitScore){
+        await PixelNet.submitScore(GAME_SLUG, Number(finalScore)||0);
+      }
+    }catch(err){
+      console.log("[CAKED-UP-CATS] submit error:", err);
+    }
+
+    // refresh regardless of submit success (backend could be sleeping)
+    refreshLeaderboard();
+  }
+
+  // ================= ORIGINAL GAME LOGIC (ported, minimal edits) =================
+
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+
+  const uiScore = document.getElementById('score-display');
+  const uiHighScore = document.getElementById('highscore-display');
+  const uiLevel = document.getElementById('level-display');
+  const energyFill = document.getElementById('energy-bar-fill');
+
+  const screenStart = document.getElementById('screenStart');
+  const screenChar = document.getElementById('screenChar');
+  const screenLevelUp = document.getElementById('screenLevelUp');
+  const screenGameOver = document.getElementById('screenGameOver');
+
+  const btnStart = document.getElementById('btnStart');
+  const btnRestart = document.getElementById('btnRestart');
+  const btnNextLevel = document.getElementById('btnNextLevel');
+  const btnCharBack = document.getElementById('btnCharBack');
+
+  // Touch: prevent scroll only on the game surface
+  ['touchstart','touchmove','touchend'].forEach(evt => {
+    canvas.addEventListener(evt, (e) => e.preventDefault(), { passive:false });
+  });
+
+  let score = 0;
+  let highScore = Number(localStorage.getItem('cakedUpHighScore')) || 0;
+  uiHighScore.innerText = `HIGH SCORE: ${highScore}`;
+
+  let level = 1;
+  let gameState = 'START';
+
+  const TILE = 24;
+  const GRID = 25;
+
+  let viewX = 0, viewY = 0;
+
+  let maze = [];
+  let treats = [];
+  let dogs = [];
+  let exitTile = {x:0,y:0};
+
+  const player = {
+    x: 0, y: 0,
+    size: 18,
+    speed: 2.6,
+    energy: 100,
+    maxEnergy: 100,
+    dash: 0,
+  };
+
+  const keys = { ArrowUp:false, ArrowDown:false, ArrowLeft:false, ArrowRight:false, w:false, a:false, s:false, d:false };
+
+  function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+
+  function showOnly(screen){
+    [screenStart, screenChar, screenLevelUp, screenGameOver].forEach(s => s.style.display = 'none');
+    if(screen) screen.style.display = 'flex';
+  }
+
+  function resetRun(){
+    scoreSubmitted = false;
+    score = 0;
+    level = 1;
+    player.energy = player.maxEnergy;
+    uiScore.innerText = `PTS: ${score}`;
+    uiLevel.innerText = `LVL: ${level}`;
+  }
+
+  function makeMaze(){
+    // Simple procedural maze (kept intentionally lightweight)
+    maze = [];
+    for(let y=0;y<GRID;y++){
+      const row=[];
+      for(let x=0;x<GRID;x++){
+        const wall = (x===0||y===0||x===GRID-1||y===GRID-1) || (Math.random() < 0.14);
+        row.push(wall ? 1 : 0);
+      }
+      maze.push(row);
+    }
+
+    // Carve a guaranteed start and exit corridor
+    const sx = 1, sy = 1;
+    const ex = GRID-2, ey = GRID-2;
+    for(let x=sx; x<=ex; x++) maze[sy][x]=0;
+    for(let y=sy; y<=ey; y++) maze[y][ex]=0;
+
+    player.x = sx*TILE;
+    player.y = sy*TILE;
+    exitTile = {x: ex, y: ey};
+
+    // Treats
+    treats = [];
+    for(let i=0;i<10 + level*3;i++){
+      let tx,ty;
+      do{
+        tx = 1 + Math.floor(Math.random()*(GRID-2));
+        ty = 1 + Math.floor(Math.random()*(GRID-2));
+      }while(maze[ty][tx]===1 || (tx===sx && ty===sy) || (tx===ex && ty===ey));
+      treats.push({x:tx*TILE+TILE/2, y:ty*TILE+TILE/2, r:6});
+    }
+
+    // Dogs
+    dogs = [];
+    const dogCount = Math.min(1 + Math.floor(level/2), 6);
+    for(let i=0;i<dogCount;i++){
+      let dx,dy;
+      do{
+        dx = 1 + Math.floor(Math.random()*(GRID-2));
+        dy = 1 + Math.floor(Math.random()*(GRID-2));
+      }while(maze[dy][dx]===1 || (dx===sx && dy===sy));
+      dogs.push({x:dx*TILE+TILE/2, y:dy*TILE+TILE/2, vx:(Math.random()<0.5?-1:1)*1.0, vy:0, r:10});
+    }
+  }
+
+  function tileAt(px,py){
+    const tx = Math.floor(px/TILE);
+    const ty = Math.floor(py/TILE);
+    if(tx<0||ty<0||tx>=GRID||ty>=GRID) return 1;
+    return maze[ty][tx];
+  }
+
+  function canMove(nx, ny){
+    const pad = 8;
+    return tileAt(nx+pad, ny+pad)===0 &&
+           tileAt(nx+player.size-pad, ny+pad)===0 &&
+           tileAt(nx+pad, ny+player.size-pad)===0 &&
+           tileAt(nx+player.size-pad, ny+player.size-pad)===0;
+  }
+
+  function update(){
+    // energy drain
+    player.energy = Math.max(0, player.energy - (0.015 + level*0.003));
+    energyFill.style.width = `${(player.energy/player.maxEnergy)*100}%`;
+
+    if(player.energy <= 0){
+      endGame(false, "Out of energy!");
+      return;
+    }
+
+    // movement
+    let dx = 0, dy = 0;
+    if(keys.ArrowUp || keys.w) dy -= 1;
+    if(keys.ArrowDown || keys.s) dy += 1;
+    if(keys.ArrowLeft || keys.a) dx -= 1;
+    if(keys.ArrowRight || keys.d) dx += 1;
+
+    if(dx && dy){
+      const inv = 1/Math.sqrt(2);
+      dx *= inv; dy *= inv;
+    }
+
+    const sp = player.speed;
+    const nx = player.x + dx*sp;
+    const ny = player.y + dy*sp;
+
+    if(canMove(nx, player.y)) player.x = nx;
+    if(canMove(player.x, ny)) player.y = ny;
+
+    // camera
+    viewX = clamp(player.x - canvas.width/2 + player.size/2, 0, GRID*TILE - canvas.width);
+    viewY = clamp(player.y - canvas.height/2 + player.size/2, 0, GRID*TILE - canvas.height);
+
+    // collect treats
+    for(let i=treats.length-1;i>=0;i--){
+      const t=treats[i];
+      const px = player.x + player.size/2;
+      const py = player.y + player.size/2;
+      const dist = Math.hypot(px - t.x, py - t.y);
+      if(dist < 14){
+        treats.splice(i,1);
+        score += 50;
+        uiScore.innerText = `PTS: ${score}`;
+        player.energy = Math.min(player.maxEnergy, player.energy + 12);
+      }
+    }
+
+    // dogs roam
+    dogs.forEach(d => {
+      const nx2 = d.x + d.vx;
+      const ny2 = d.y + d.vy;
+      const tx = Math.floor(nx2/TILE);
+      const ty = Math.floor(ny2/TILE);
+      if(maze[ty]?.[tx]===1){
+        d.vx *= -1;
+      }else{
+        d.x = nx2;
+      }
+
+      // collision
+      const px = player.x + player.size/2;
+      const py = player.y + player.size/2;
+      if(Math.hypot(px - d.x, py - d.y) < 18){
+        endGame(false, "Caught by a dog!");
+      }
+    });
+
+    // exit reached
+    const ex = exitTile.x*TILE + TILE/2;
+    const ey = exitTile.y*TILE + TILE/2;
+    const px = player.x + player.size/2;
+    const py = player.y + player.size/2;
+    if(Math.hypot(px-ex, py-ey) < 18){
+      endGame(true);
+    }
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    // background
+    ctx.fillStyle = "#7ad67a";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // maze
+    for(let y=0;y<GRID;y++){
+      for(let x=0;x<GRID;x++){
+        if(maze[y][x]===1){
+          ctx.fillStyle = "#2d5a2d";
+          ctx.fillRect(x*TILE - viewX, y*TILE - viewY, TILE, TILE);
+        }
+      }
+    }
+
+    // exit
+    ctx.fillStyle = "#ffd84a";
+    ctx.fillRect(exitTile.x*TILE - viewX + 3, exitTile.y*TILE - viewY + 3, TILE-6, TILE-6);
+
+    // treats
+    treats.forEach(t => {
+      ctx.fillStyle = "#ff6b6b";
+      ctx.beginPath();
+      ctx.arc(t.x - viewX, t.y - viewY, t.r, 0, Math.PI*2);
+      ctx.fill();
+    });
+
+    // dogs
+    dogs.forEach(d => {
+      ctx.fillStyle = "#333";
+      ctx.beginPath();
+      ctx.arc(d.x - viewX, d.y - viewY, d.r, 0, Math.PI*2);
+      ctx.fill();
+    });
+
+    // player
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(player.x - viewX, player.y - viewY, player.size, player.size);
+  }
+
+  function loop(){
+    if(gameState === 'PLAYING'){
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+  }
+
+  function endGame(win, msg){
+    gameState = win ? 'LEVELUP' : 'GAMEOVER';
+
+    if(win){
+      const levelBonus = 500 + (level * 100);
+      const energyBonus = Math.floor(player.energy * 10);
+      score += levelBonus + energyBonus;
+      document.getElementById('level-score').innerText = `SCORE: ${score}`;
+
+      level++;
+      uiLevel.innerText = `LVL: ${level}`;
+      showOnly(screenLevelUp);
+    }else{
+      // Freeze and submit final score once
+      document.getElementById('final-score').innerText = `SCORE: ${score}`;
+      if(msg) document.getElementById('gameover-msg').innerText = msg;
+
+      if(score > highScore){
+        highScore = score;
+        localStorage.setItem('cakedUpHighScore', String(highScore));
         uiHighScore.innerText = `HIGH SCORE: ${highScore}`;
-
-        // IMPROVED MAZE GEN: "Braid" Maze (Fewer dead ends)
-        function generateMaze(w, h) {
-            if (w % 2 === 0) w++;
-            if (h % 2 === 0) h++;
-
-            let map = Array(h).fill().map(() => Array(w).fill(1));
-            let stack = [];
-            let start = {x: 1, y: 1};
-            map[start.y][start.x] = 0;
-            stack.push(start);
-
-            // 1. Recursive Backtracker (Perfect Maze)
-            while (stack.length > 0) {
-                let current = stack[stack.length - 1];
-                let neighbors = [];
-                const dirs = [{x:0, y:-2}, {x:0, y:2}, {x:-2, y:0}, {x:2, y:0}];
-
-                for (let d of dirs) {
-                    let nx = current.x + d.x;
-                    let ny = current.y + d.y;
-                    if (nx > 0 && nx < w - 1 && ny > 0 && ny < h - 1 && map[ny][nx] === 1) {
-                        neighbors.push({x: nx, y: ny, dx: d.x/2, dy: d.y/2});
-                    }
-                }
-
-                if (neighbors.length > 0) {
-                    let chosen = neighbors[Math.floor(Math.random() * neighbors.length)];
-                    map[current.y + chosen.dy][current.x + chosen.dx] = 0; 
-                    map[chosen.y][chosen.x] = 0;
-                    stack.push({x: chosen.x, y: chosen.y});
-                } else {
-                    stack.pop();
-                }
-            }
-
-            // 2. Post-Processing: Punch holes to create loops (Braid)
-            for(let y=1; y<h-1; y++) {
-                for(let x=1; x<w-1; x++) {
-                    if(map[y][x] === 1) {
-                        let neighborsH = (map[y][x-1]===0) + (map[y][x+1]===0);
-                        let neighborsV = (map[y-1][x]===0) + (map[y+1][x]===0);
-
-                        if ((neighborsH === 2 || neighborsV === 2) && Math.random() < 0.08) {
-                            map[y][x] = 0;
-                        }
-                    }
-                }
-            }
-
-            return { map, w, h };
-        }
-
-        class Entity {
-            constructor(x, y) {
-                this.gridX = x;
-                this.gridY = y;
-                this.x = x * TILE;
-                this.y = y * TILE;
-                this.dir = {x:0, y:0};
-                this.nextDir = {x:0, y:0};
-                this.moving = false;
-                this.speed = 0.1; 
-                this.teleportCooldown = 0;
-            }
-
-            canMove(tx, ty) {
-                if (tx < 0 || tx >= COLS || ty < 0 || ty >= ROWS) return false;
-                return mapData[ty][tx] === 0;
-            }
-
-            update() {
-                if (this.teleportCooldown > 0) this.teleportCooldown--;
-
-                let moveDist = this.speed * TILE;
-
-                if (this.moving) {
-                    let targetX = this.gridX * TILE;
-                    let targetY = this.gridY * TILE;
-                    let dx = targetX - this.x;
-                    let dy = targetY - this.y;
-                    let distToTarget = Math.hypot(dx, dy);
-
-                    if (distToTarget <= moveDist) {
-                        this.x = targetX;
-                        this.y = targetY;
-
-                        if (this.nextDir.x !== 0 || this.nextDir.y !== 0) {
-                            if (this.canMove(this.gridX + this.nextDir.x, this.gridY + this.nextDir.y)) {
-                                this.dir = {...this.nextDir};
-                                this.nextDir = {x:0, y:0};
-                            }
-                        }
-
-                        if (this.canMove(this.gridX + this.dir.x, this.gridY + this.dir.y)) {
-                            this.gridX += this.dir.x;
-                            this.gridY += this.dir.y;
-                            this.x += this.dir.x * (moveDist - distToTarget);
-                            this.y += this.dir.y * (moveDist - distToTarget);
-                        } else {
-                            this.moving = false;
-                            this.dir = {x:0, y:0};
-                        }
-                    } else {
-                        this.x += Math.sign(dx) * moveDist;
-                        this.y += Math.sign(dy) * moveDist;
-                    }
-                } else {
-                    if (this.nextDir.x !== 0 || this.nextDir.y !== 0) {
-                         if (this.canMove(this.gridX + this.nextDir.x, this.gridY + this.nextDir.y)) {
-                            this.dir = {...this.nextDir};
-                            this.nextDir = {x:0, y:0};
-                            this.moving = true;
-                            this.gridX += this.dir.x;
-                            this.gridY += this.dir.y;
-                         }
-                    }
-                }
-            }
-        }
-
-        class Cat extends Entity {
-            constructor(type) {
-                super(1, 1);
-                this.type = type;
-                let stats = CAT_TYPES[type];
-                this.color = stats.color;
-                this.baseSpeed = stats.baseSpeed;
-                this.boostMult = stats.boostMult;
-                this.speed = this.baseSpeed;
-                this.drain = stats.drain;
-                this.energy = 100;
-                this.boostTimer = 0;
-                this.stun = 0;
-            }
-
-            updateLogic() {
-                if(this.stun > 0) {
-                    this.stun--;
-                    this.moving = false; // Prevent movement while stunned
-                    return;
-                }
-
-                this.energy -= this.drain;
-                if (this.energy <= 0) {
-                    this.energy = 0;
-                    endGame(false, "Out of energy!");
-                }
-
-                let onMud = false;
-                for(let h of hazards) {
-                    if (h.type === 'mud' && h.x === this.gridX && h.y === this.gridY) {
-                        onMud = true;
-                    }
-                    if (h.type === 'sprinkler' && h.state === 1) {
-                        // Sprinkler Hit Detection Logic Fix
-                        let px = this.x + TILE/2;
-                        let py = this.y + TILE/2;
-                        let sx = h.x * TILE + TILE/2;
-                        let sy = h.y * TILE + TILE/2;
-
-                        if (Math.hypot(px - sx, py - sy) < TILE * 0.6) {
-                            this.energy -= 2; 
-
-                            // Bounce back logic
-                            if (this.moving) {
-                                // Revert to safe tile
-                                this.gridX -= this.dir.x;
-                                this.gridY -= this.dir.y;
-                                this.x = this.gridX * TILE; // Snap!
-                                this.y = this.gridY * TILE;
-                                this.moving = false;
-                                this.stun = 20; // 20 frames of stun
-                            }
-                        }
-                    }
-                }
-
-                let currentSpeed = this.baseSpeed;
-                if (this.boostTimer > 0) {
-                    this.boostTimer--;
-                    currentSpeed *= this.boostMult;
-                    if (frameCount % 4 === 0) {
-                        particles.push(new Particle(this.x + TILE/2, this.y + TILE/2, '#ffcc00'));
-                    }
-                }
-
-                if (onMud) currentSpeed *= 0.5;
-                this.speed = currentSpeed;
-            }
-
-            draw(ctx) {
-                let cx = this.x + TILE/2;
-                let cy = this.y + TILE/2;
-
-                ctx.save();
-                ctx.translate(cx, cy);
-
-                let angle = 0;
-                if (this.dir.x === 1) angle = 0;
-                else if (this.dir.x === -1) angle = Math.PI;
-                else if (this.dir.y === 1) angle = Math.PI/2;
-                else if (this.dir.y === -1) angle = -Math.PI/2;
-                ctx.rotate(angle);
-
-                if (this.stun > 0) {
-                    ctx.globalAlpha = 0.5 + Math.sin(frameCount) * 0.5;
-                }
-
-                if (this.boostTimer > 0) {
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = '#ffff00';
-                }
-
-                let wag = Math.sin(frameCount * (this.boostTimer > 0 ? 0.8 : 0.4)) * 0.3;
-                if (!this.moving && gameState === 'PLAYING') wag = 0;
-                if (gameState === 'MENU') wag = Math.sin(Date.now() / 200) * 0.2; 
-
-                ctx.strokeStyle = this.color;
-                ctx.lineWidth = 4;
-                ctx.lineCap = 'round';
-                ctx.beginPath();
-                ctx.moveTo(-5, 0);
-                ctx.quadraticCurveTo(-15, wag * 10, -20, wag * 5);
-                ctx.stroke();
-
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.ellipse(0, 0, TILE/2.5, TILE/3, 0, 0, Math.PI*2);
-                ctx.fill();
-
-                ctx.beginPath();
-                ctx.moveTo(5, -10); ctx.lineTo(12, -14); ctx.lineTo(12, -6); ctx.fill();
-                ctx.beginPath();
-                ctx.moveTo(5, 10); ctx.lineTo(12, 14); ctx.lineTo(12, 6); ctx.fill();
-
-                ctx.fillStyle = 'white';
-                ctx.beginPath();
-                ctx.arc(6, -5, 4, 0, Math.PI*2);
-                ctx.arc(6, 5, 4, 0, Math.PI*2);
-                ctx.fill();
-
-                ctx.fillStyle = this.boostTimer > 0 ? '#ff0000' : 'black';
-                ctx.beginPath();
-                ctx.arc(7, -5, 1.5, 0, Math.PI*2);
-                ctx.arc(7, 5, 1.5, 0, Math.PI*2);
-                ctx.fill();
-
-                ctx.restore();
-            }
-        }
-
-        class Mouse extends Entity {
-            constructor() {
-                let centerX = Math.floor(COLS/2);
-                let centerY = Math.floor(ROWS/2);
-                let bestPos = {x: 1, y: 1};
-
-                for(let r = 0; r < Math.max(COLS, ROWS); r++) {
-                    for(let y = centerY - r; y <= centerY + r; y++) {
-                        for(let x = centerX - r; x <= centerX + r; x++) {
-                            if(x > 0 && x < COLS-1 && y > 0 && y < ROWS-1) {
-                                if(mapData[y][x] === 0) {
-                                    bestPos = {x, y};
-                                    r = 999; y = 999; x = 999;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                super(bestPos.x, bestPos.y);
-                this.color = '#88ccff';
-                this.speed = 0.14; 
-                this.history = []; 
-            }
-
-            ai(player) {
-                const tolerance = 2.0;
-                const aligned = Math.abs(this.x - this.gridX * TILE) < tolerance && Math.abs(this.y - this.gridY * TILE) < tolerance;
-
-                if (aligned) {
-                    this.history.push({x: this.gridX, y: this.gridY});
-                    if (this.history.length > 8) this.history.shift();
-
-                    const dirs = [{x:0, y:-1}, {x:0, y:1}, {x:-1, y:0}, {x:1, y:0}];
-                    let validMoves = [];
-
-                    for (let d of dirs) {
-                         if (this.canMove(this.gridX + d.x, this.gridY + d.y)) {
-                             validMoves.push(d);
-                         }
-                    }
-
-                    if (validMoves.length > 0) {
-                        validMoves.sort(() => Math.random() - 0.5);
-
-                        validMoves.sort((a, b) => {
-                            let posA = {x: this.gridX + a.x, y: this.gridY + a.y};
-                            let posB = {x: this.gridX + b.x, y: this.gridY + b.y};
-
-                            let scoreA = this.evaluateMove(posA, player, a) + (Math.random() * 15);
-                            let scoreB = this.evaluateMove(posB, player, b) + (Math.random() * 15);
-
-                            return scoreB - scoreA;
-                        });
-
-                        this.nextDir = validMoves[0];
-                    }
-                }
-            }
-
-            evaluateMove(pos, player, dir) {
-                let score = 0;
-                let dist = Math.hypot(pos.x - player.gridX, pos.y - player.gridY);
-                score += dist * 3;
-
-                let exits = this.countExits(pos.x, pos.y);
-                if (exits <= 1) score -= 100; 
-                if (exits >= 3) score += 10; 
-
-                for(let h of this.history) {
-                    if (h.x === pos.x && h.y === pos.y) {
-                        score -= 30; 
-                    }
-                }
-
-                if (dir.x === -this.dir.x && dir.y === -this.dir.y) {
-                    score -= 5;
-                }
-
-                return score;
-            }
-
-            countExits(x, y) {
-                 let count = 0;
-                 if (mapData[y-1][x] === 0) count++;
-                 if (mapData[y+1][x] === 0) count++;
-                 if (mapData[y][x-1] === 0) count++;
-                 if (mapData[y][x+1] === 0) count++;
-                 return count;
-            }
-
-            draw(ctx) {
-                let cx = this.x + TILE/2;
-                let cy = this.y + TILE/2;
-
-                ctx.save();
-                ctx.translate(cx, cy);
-
-                let angle = 0;
-                if (this.dir.x === 1) angle = 0;
-                else if (this.dir.x === -1) angle = Math.PI;
-                else if (this.dir.y === 1) angle = Math.PI/2;
-                else if (this.dir.y === -1) angle = -Math.PI/2;
-                ctx.rotate(angle);
-
-                ctx.strokeStyle = '#aaaaaa'; 
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(-5, 0);
-                ctx.quadraticCurveTo(-15, 5, -18, 0);
-                ctx.stroke();
-
-                ctx.fillStyle = '#999';
-                ctx.beginPath();
-                ctx.moveTo(10, 0);
-                ctx.bezierCurveTo(5, 8, -8, 8, -8, 0);
-                ctx.bezierCurveTo(-8, -8, 5, -8, 10, 0);
-                ctx.fill();
-
-                ctx.fillStyle = '#777';
-                ctx.beginPath();
-                ctx.arc(-2, -6, 4, 0, Math.PI*2);
-                ctx.arc(-2, 6, 4, 0, Math.PI*2);
-                ctx.fill();
-                ctx.fillStyle = '#ffaaaa';
-                ctx.beginPath();
-                ctx.arc(-2, -6, 2, 0, Math.PI*2);
-                ctx.arc(-2, 6, 2, 0, Math.PI*2);
-                ctx.fill();
-
-                ctx.fillStyle = 'black';
-                ctx.beginPath();
-                ctx.arc(5, -3, 1.5, 0, Math.PI*2);
-                ctx.arc(5, 3, 1.5, 0, Math.PI*2);
-                ctx.fill();
-
-                ctx.restore();
-            }
-        }
-
-        class GoldenYarn extends Entity {
-            constructor() {
-                let bestPos = {x: 1, y: 1};
-                let maxDist = 0;
-                for(let y=1; y<ROWS-1; y++) {
-                    for(let x=1; x<COLS-1; x++) {
-                        if (mapData[y][x] === 0) {
-                            let d = Math.abs(x - mouse.gridX) + Math.abs(y - mouse.gridY);
-                            if (d > maxDist) {
-                                maxDist = d;
-                                bestPos = {x, y};
-                            }
-                        }
-                    }
-                }
-                super(bestPos.x, bestPos.y);
-                this.speed = 0.05; 
-                this.trail = [];
-                this.trailTimer = 0;
-                this.nextDir = {x:1, y:0};
-            }
-
-            ai() {
-                const tolerance = 2.0;
-                const aligned = Math.abs(this.x - this.gridX * TILE) < tolerance && Math.abs(this.y - this.gridY * TILE) < tolerance;
-
-                if (aligned) {
-                    if (this.trailTimer++ > 10) {
-                        this.trail.push({x: this.x + TILE/2, y: this.y + TILE/2});
-                        if (this.trail.length > 50) this.trail.shift();
-                        this.trailTimer = 0;
-                    }
-
-                    if (!this.canMove(this.gridX + this.dir.x, this.gridY + this.dir.y) || Math.random() < 0.2) {
-                        const dirs = [{x:0, y:-1}, {x:0, y:1}, {x:-1, y:0}, {x:1, y:0}];
-                        let validMoves = dirs.filter(d => this.canMove(this.gridX + d.x, this.gridY + d.y));
-                        if (validMoves.length > 0) {
-                            this.nextDir = validMoves[Math.floor(Math.random() * validMoves.length)];
-                        }
-                    }
-                }
-            }
-
-            draw(ctx) {
-                if (this.trail.length > 1) {
-                    ctx.strokeStyle = '#ffd700';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.moveTo(this.trail[0].x, this.trail[0].y);
-                    for(let i=1; i<this.trail.length; i++) {
-                        ctx.lineTo(this.trail[i].x, this.trail[i].y);
-                    }
-                    ctx.lineTo(this.x + TILE/2, this.y + TILE/2);
-                    ctx.stroke();
-                }
-
-                let cx = this.x + TILE/2;
-                let cy = this.y + TILE/2;
-                ctx.save();
-                ctx.translate(cx, cy);
-                ctx.rotate(frameCount * 0.1);
-
-                ctx.fillStyle = '#ffd700';
-                ctx.beginPath();
-                ctx.arc(0, 0, TILE/3, 0, Math.PI*2);
-                ctx.fill();
-
-                ctx.strokeStyle = '#daa520';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(-10, -5); ctx.lineTo(10, 5);
-                ctx.moveTo(-10, 5); ctx.lineTo(10, -5);
-                ctx.moveTo(0, -10); ctx.lineTo(0, 10);
-                ctx.stroke();
-
-                ctx.restore();
-            }
-        }
-
-        class Dog extends Entity {
-            constructor() {
-                let bestPos = {x: 1, y: 1};
-                let attempts = 100;
-                while(attempts > 0) {
-                    let x = Math.floor(Math.random() * COLS);
-                    let y = Math.floor(Math.random() * ROWS);
-                    if (mapData[y][x] === 0 && Math.abs(x - player.gridX) > 5) {
-                        bestPos = {x, y};
-                        attempts = 0;
-                    }
-                    attempts--;
-                }
-
-                super(bestPos.x, bestPos.y);
-                this.color = '#8b4513';
-                this.speed = 0.08; 
-                const dirs = [{x:0, y:-1}, {x:0, y:1}, {x:-1, y:0}, {x:1, y:0}];
-                this.nextDir = dirs[Math.floor(Math.random() * dirs.length)];
-            }
-
-            ai() {
-                const tolerance = 2.0;
-                const aligned = Math.abs(this.x - this.gridX * TILE) < tolerance && Math.abs(this.y - this.gridY * TILE) < tolerance;
-
-                if (aligned) {
-                    if (!this.canMove(this.gridX + this.dir.x, this.gridY + this.dir.y) || !this.moving) {
-                        const dirs = [{x:0, y:-1}, {x:0, y:1}, {x:-1, y:0}, {x:1, y:0}];
-                        let validMoves = dirs.filter(d => this.canMove(this.gridX + d.x, this.gridY + d.y));
-                        if (validMoves.length > 0) {
-                            this.nextDir = validMoves[Math.floor(Math.random() * validMoves.length)];
-                        }
-                    } else if (Math.random() < 0.2) {
-                        const dirs = [{x:0, y:-1}, {x:0, y:1}, {x:-1, y:0}, {x:1, y:0}];
-                        let validMoves = dirs.filter(d => this.canMove(this.gridX + d.x, this.gridY + d.y));
-                        if (validMoves.length > 2) {
-                             this.nextDir = validMoves[Math.floor(Math.random() * validMoves.length)];
-                        }
-                    }
-                }
-            }
-
-            draw(ctx) {
-                let cx = this.x + TILE/2;
-                let cy = this.y + TILE/2;
-
-                ctx.save();
-                ctx.translate(cx, cy);
-
-                let angle = 0;
-                if (this.dir.x === 1) angle = 0;
-                else if (this.dir.x === -1) angle = Math.PI;
-                else if (this.dir.y === 1) angle = Math.PI/2;
-                else if (this.dir.y === -1) angle = -Math.PI/2;
-                ctx.rotate(angle);
-
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.ellipse(-2, 0, 14, 10, 0, 0, Math.PI*2); 
-                ctx.fill();
-
-                ctx.fillStyle = '#a0522d'; 
-                ctx.beginPath();
-                ctx.arc(10, 0, 9, 0, Math.PI*2);
-                ctx.fill();
-
-                ctx.fillStyle = '#6b3e1d';
-                ctx.beginPath(); ctx.arc(8, -10, 4, 0, Math.PI*2); ctx.fill(); 
-                ctx.beginPath(); ctx.arc(8, 10, 4, 0, Math.PI*2); ctx.fill(); 
-                ctx.beginPath(); ctx.arc(-12, -8, 4, 0, Math.PI*2); ctx.fill(); 
-                ctx.beginPath(); ctx.arc(-12, 8, 4, 0, Math.PI*2); ctx.fill(); 
-
-                ctx.fillStyle = 'red';
-                ctx.fillRect(4, -8, 4, 16);
-                ctx.fillStyle = 'silver';
-                ctx.beginPath(); ctx.arc(6, -8, 2, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(6, 8, 2, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(6, 0, 2, 0, Math.PI*2); ctx.fill();
-
-                ctx.fillStyle = 'black'; 
-                ctx.beginPath(); ctx.ellipse(16, 0, 2, 3, 0, 0, Math.PI*2); ctx.fill();
-
-                ctx.fillStyle = 'white'; 
-                ctx.beginPath(); ctx.arc(12, -4, 2, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(12, 4, 2, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = 'black'; 
-                ctx.beginPath(); ctx.arc(13, -4, 1, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.arc(13, 4, 1, 0, Math.PI*2); ctx.fill();
-
-                ctx.restore();
-            }
-        }
-
-        class Portal {
-            constructor(x, y, pairId, color) {
-                this.x = x;
-                this.y = y;
-                this.pairId = pairId;
-                this.color = color;
-                this.angle = 0;
-            }
-            draw(ctx) {
-                this.angle += 0.1;
-                let cx = this.x * TILE + TILE/2;
-                let cy = this.y * TILE + TILE/2;
-
-                ctx.save();
-                ctx.translate(cx, cy);
-                ctx.rotate(this.angle);
-
-                ctx.lineWidth = 3;
-                ctx.strokeStyle = this.color;
-                ctx.beginPath();
-                for(let i=0; i<3; i++) {
-                    ctx.rotate(Math.PI*2 / 3);
-                    ctx.beginPath();
-                    ctx.arc(10, 0, 5, 0, Math.PI*2);
-                    ctx.stroke();
-                }
-
-                ctx.strokeStyle = 'white';
-                ctx.beginPath();
-                ctx.arc(0, 0, TILE/3, 0, Math.PI*2);
-                ctx.stroke();
-
-                ctx.restore();
-            }
-        }
-
-        class Particle {
-            constructor(x, y, color) {
-                this.x = x;
-                this.y = y;
-                this.vx = (Math.random() - 0.5) * 4;
-                this.vy = (Math.random() - 0.5) * 4;
-                this.life = 1.0;
-                this.color = color;
-            }
-            update() {
-                this.x += this.vx;
-                this.y += this.vy;
-                this.life -= 0.05;
-            }
-            draw(ctx) {
-                ctx.globalAlpha = this.life;
-                ctx.fillStyle = this.color;
-                ctx.fillRect(this.x, this.y, 4, 4);
-                ctx.globalAlpha = 1.0;
-            }
-        }
-
-        let player;
-        let mouse;
-
-        function startLevel() {
-            let size = 13 + (level * 3); 
-            if (size > 51) size = 51;
-
-            const maze = generateMaze(size, size);
-            mapData = maze.map;
-            COLS = maze.w;
-            ROWS = maze.h;
-
-            let possibleTileW = canvas.width / COLS;
-            let possibleTileH = canvas.height / ROWS;
-            TILE = Math.min(possibleTileW, possibleTileH);
-            if (TILE < 30) TILE = 30;
-
-            player = new Cat(selectedCatType);
-            mouse = new Mouse();
-
-            hazards = [];
-            for(let i=0; i < (COLS*ROWS)/20; i++) {
-                let pt = findOpenSpot();
-                if(pt) hazards.push({x: pt.x, y: pt.y, type: 'mud'});
-            }
-            if (level >= 2) {
-                for(let i=0; i < (COLS*ROWS)/40; i++) {
-                    let pt = findOpenSpot();
-                    if(pt) hazards.push({x: pt.x, y: pt.y, type: 'sprinkler', state: 0, timer: Math.random()*200});
-                }
-            }
-
-            cakes = [];
-            let mapArea = COLS * ROWS;
-            let cakeCount = Math.max(3, Math.floor(mapArea / 80));
-            for(let i=0; i<cakeCount; i++) {
-                spawnItem(cakes, 5); 
-            }
-
-            bushDecor = [];
-            for(let y=0; y<ROWS; y++) {
-                for(let x=0; x<COLS; x++) {
-                    if (mapData[y][x] === 1) {
-                        let leaves = [];
-                        let numLeaves = 3 + Math.floor(Math.random() * 3);
-                        bushDecor.push({x, y});
-                    }
-                }
-            }
-
-            dogs = [];
-            if (level >= 2) {
-                let dogCount = Math.floor(level / 2) + 1;
-                for(let i=0; i<dogCount; i++) {
-                    dogs.push(new Dog());
-                }
-            }
-
-            portals = [];
-            if (level >= 4) {
-                let p1 = findOpenSpot();
-                let p2 = findOpenSpot();
-                if (p1 && p2) {
-                    let color = '#00ffff';
-                    portals.push(new Portal(p1.x, p1.y, 1, color));
-                    portals.push(new Portal(p2.x, p2.y, 0, color)); 
-                    portals[0].targetIdx = 1;
-                    portals[1].targetIdx = 0;
-                }
-            }
-
-            goldenYarn = null;
-            if (level >= 5) {
-                goldenYarn = new GoldenYarn();
-            }
-
-            darkness = Math.min(0.8, (level - 1) * 0.15); 
-            weatherParticles = [];
-
-            gameState = 'PLAYING';
-            uiLevel.innerText = `LVL ${level}`;
-            uiScore.innerText = `PTS: ${score}`;
-
-            if (!audioCtx) audioCtx = new AudioContext();
-
-            loop();
-        }
-
-        function findOpenSpot() {
-            let limit = 100;
-            while(limit > 0) {
-                let x = Math.floor(Math.random() * COLS);
-                let y = Math.floor(Math.random() * ROWS);
-                let dist = Math.hypot(x - player.gridX, y - player.gridY);
-                if (mapData[y][x] === 0 && dist > 5) {
-                    let free = true;
-                    for(let h of hazards) if(h.x === x && h.y === y) free = false;
-                    if(free) return {x, y};
-                }
-                limit--;
-            }
-            return null;
-        }
-
-        function spawnItem(array, minDistance = 0) {
-            let attempts = 100;
-            while(attempts > 0) {
-                let x = Math.floor(Math.random() * COLS);
-                let y = Math.floor(Math.random() * ROWS);
-                let dist = Math.hypot(x - player.gridX, y - player.gridY);
-
-                if (mapData[y][x] === 0 && dist >= minDistance) {
-                    let clean = true;
-                    for(let c of array) if(c.x === x && c.y === y) clean = false;
-                    for(let h of hazards) if(h.x === x && h.y === y) clean = false;
-                    if(clean) {
-                        array.push({x, y, pulse: Math.random()});
-                        return;
-                    }
-                }
-                attempts--;
-            }
-        }
-
-        function playSound(type) {
-            if (!audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            if (type === 'eat') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(500, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-            } else if (type === 'win') {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-                osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 0.2);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.5);
-            } else if (type === 'warp') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
-                osc.frequency.linearRampToValueAtTime(600, audioCtx.currentTime + 0.2);
-                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-            }
-        }
-
-        function update() {
-            if (gameState !== 'PLAYING') return;
-            frameCount++;
-
-            hazards.forEach(h => {
-                if (h.type === 'sprinkler') {
-                    h.timer++;
-                    if (h.timer > 240) h.timer = 0;
-                    h.state = (h.timer < 120) ? 1 : 0; 
-                }
-            });
-
-            player.updateLogic();
-            player.update();
-
-            mouse.ai(player);
-            mouse.update();
-
-            if (goldenYarn) {
-                goldenYarn.ai();
-                goldenYarn.update();
-                if (Math.hypot(player.x - goldenYarn.x, player.y - goldenYarn.y) < TILE) {
-                    score += 1000;
-                    playSound('win'); 
-                    goldenYarn = null;
-                    for(let i=0; i<10; i++) particles.push(new Particle(player.x, player.y, '#ffd700'));
-                }
-            }
-
-            dogs.forEach(d => {
-                d.ai();
-                d.update();
-                let dist = Math.hypot(player.x - d.x, player.y - d.y);
-                if (dist < TILE/1.5) {
-                    endGame(false, "Caught by a dog!");
-                }
-            });
-
-            if (player.teleportCooldown === 0) {
-                for(let p of portals) {
-                    let dist = Math.hypot(player.x - (p.x * TILE), player.y - (p.y * TILE));
-                    if (dist < TILE/1.5) {
-                        let target = portals[p.targetIdx];
-                        player.x = target.x * TILE;
-                        player.y = target.y * TILE;
-                        player.gridX = target.x;
-                        player.gridY = target.y;
-                        player.teleportCooldown = 60; 
-                        player.moving = false; 
-                        playSound('warp');
-                        for(let i=0; i<10; i++) particles.push(new Particle(player.x+TILE/2, player.y+TILE/2, '#00ffff'));
-                        break;
-                    }
-                }
-            }
-
-            if (cakes.length === 0) {
-                respawnTimer++;
-                if(respawnTimer > 60) {
-                    spawnItem(cakes, 5); 
-                    respawnTimer = 0;
-                }
-            }
-
-            for(let i=particles.length-1; i>=0; i--) {
-                particles[i].update();
-                if (particles[i].life <= 0) particles.splice(i, 1);
-            }
-
-            if (level >= 3) {
-                if (Math.random() < 0.3) {
-                    weatherParticles.push({
-                        x: Math.random() * (COLS * TILE + 400) + viewX,
-                        y: viewY - 10,
-                        vx: -1,
-                        vy: 3 + Math.random() * 2,
-                        type: 'rain'
-                    });
-                }
-                for(let i=weatherParticles.length-1; i>=0; i--) {
-                    let p = weatherParticles[i];
-                    p.x += p.vx;
-                    p.y += p.vy;
-                    if (p.y > ROWS * TILE + viewY) weatherParticles.splice(i, 1);
-                }
-            }
-
-            let idealX = player.x + TILE/2 - canvas.width/2;
-            let idealY = player.y + TILE/2 - canvas.height/2;
-
-            let maxCamX = COLS * TILE - canvas.width;
-            let maxCamY = ROWS * TILE - canvas.height;
-
-            if (COLS * TILE < canvas.width) {
-                viewX = -(canvas.width - COLS * TILE) / 2;
-                viewY = -(canvas.height - ROWS * TILE) / 2;
-            } else {
-                viewX += (idealX - viewX) * 0.4; 
-                viewY += (idealY - viewY) * 0.4;
-                if (viewX < 0) viewX = 0;
-                if (viewY < 0) viewY = 0;
-                if (viewX > maxCamX) viewX = maxCamX;
-                if (viewY > maxCamY) viewY = maxCamY;
-            }
-
-            for (let i = cakes.length - 1; i >= 0; i--) {
-                let c = cakes[i];
-                let dist = Math.hypot(player.x - c.x*TILE, player.y - c.y*TILE);
-                if (dist < TILE * 1.2) {
-                    cakes.splice(i, 1);
-                    player.energy = Math.min(player.energy + 40, 100);
-                    player.boostTimer = 300; 
-                    playSound('eat');
-                    score += 50; 
-                    setTimeout(() => spawnItem(cakes, 5), 2500); 
-                }
-            }
-
-            let distMouse = Math.hypot(player.x - mouse.x, player.y - mouse.y);
-            if (distMouse < TILE/1.5) {
-                playSound('win');
-                endGame(true);
-            }
-
-            uiScore.innerText = `PTS: ${score}`;
-            uiEnergy.style.width = player.energy + "%";
-            if (player.energy < 30) uiEnergy.style.background = '#ff4444';
-            else if (player.boostTimer > 0) uiEnergy.style.background = '#ffff00'; 
-            else uiEnergy.style.background = 'linear-gradient(90deg, #ffaa00, #ffcc00)';
-        }
-
-        function drawHedges() {
-            for(let y=0; y<ROWS; y++) {
-                for(let x=0; x<COLS; x++) {
-                    let px = x * TILE;
-                    let py = y * TILE;
-                    if (mapData[y][x] === 0) {
-                         if ((x+y)%2 === 0) {
-                            ctx.fillStyle = 'rgba(0,0,0,0.03)';
-                            ctx.fillRect(px, py, TILE, TILE);
-                        }
-                    }
-                }
-            }
-
-            hazards.forEach(h => {
-                let px = h.x * TILE;
-                let py = h.y * TILE;
-                if (h.type === 'mud') {
-                    ctx.fillStyle = '#5c4033'; 
-                    ctx.beginPath();
-                    ctx.ellipse(px + TILE/2, py + TILE/2, TILE/2.2, TILE/2.5, 0, 0, Math.PI*2);
-                    ctx.fill();
-                }
-                if (h.type === 'sprinkler') {
-                    ctx.fillStyle = '#555';
-                    ctx.beginPath(); ctx.arc(px + TILE/2, py + TILE/2, 5, 0, Math.PI*2); ctx.fill();
-                    if (h.state === 1) {
-                        ctx.fillStyle = 'rgba(100, 100, 255, 0.5)';
-                        ctx.beginPath();
-                        let r = TILE; 
-                        let angle = (frameCount * 0.2) % (Math.PI*2);
-                        ctx.arc(px + TILE/2, py + TILE/2, r, angle, angle + 1);
-                        ctx.lineTo(px+TILE/2, py+TILE/2);
-                        ctx.fill();
-                    }
-                }
-            });
-
-            for(let y=0; y<ROWS; y++) {
-                for(let x=0; x<COLS; x++) {
-                    if (mapData[y][x] === 1) {
-                        let px = x * TILE;
-                        let py = y * TILE;
-
-                        ctx.fillStyle = '#2d5a2d'; 
-                        ctx.fillRect(px, py, TILE, TILE);
-
-                        ctx.fillStyle = '#4a8a4a';
-                        ctx.fillRect(px + 4, py + 4, TILE - 8, TILE - 8);
-
-                        if (y > 0 && mapData[y-1][x] === 1) ctx.fillRect(px + 4, py, TILE - 8, 4);
-                        if (y < ROWS-1 && mapData[y+1][x] === 1) ctx.fillRect(px + 4, py + TILE - 4, TILE - 8, 4);
-                        if (x > 0 && mapData[y][x-1] === 1) ctx.fillRect(px, py + 4, 4, TILE - 8);
-                        if (x < COLS-1 && mapData[y][x+1] === 1) ctx.fillRect(px + TILE - 4, py + 4, 4, TILE - 8);
-
-                        ctx.fillStyle = '#3e7e3e';
-
-                        let r = TILE/6;
-                        if (y > 0 && mapData[y-1][x] === 0) {
-                             ctx.beginPath(); ctx.arc(px+TILE*0.3, py, r, 0, Math.PI*2); ctx.fill();
-                             ctx.beginPath(); ctx.arc(px+TILE*0.7, py, r, 0, Math.PI*2); ctx.fill();
-                        }
-                        if (y < ROWS-1 && mapData[y+1][x] === 0) {
-                             ctx.beginPath(); ctx.arc(px+TILE*0.3, py+TILE, r, 0, Math.PI*2); ctx.fill();
-                             ctx.beginPath(); ctx.arc(px+TILE*0.7, py+TILE, r, 0, Math.PI*2); ctx.fill();
-                        }
-                        if (x > 0 && mapData[y][x-1] === 0) {
-                             ctx.beginPath(); ctx.arc(px, py+TILE*0.3, r, 0, Math.PI*2); ctx.fill();
-                             ctx.beginPath(); ctx.arc(px, py+TILE*0.7, r, 0, Math.PI*2); ctx.fill();
-                        }
-                        if (x < COLS-1 && mapData[y][x+1] === 0) {
-                             ctx.beginPath(); ctx.arc(px+TILE, py+TILE*0.3, r, 0, Math.PI*2); ctx.fill();
-                             ctx.beginPath(); ctx.arc(px+TILE, py+TILE*0.7, r, 0, Math.PI*2); ctx.fill();
-                        }
-                    }
-                }
-            }
-        }
-
-        function draw() {
-            ctx.fillStyle = '#6bc96b';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.save();
-            ctx.translate(-viewX, -viewY);
-
-            drawHedges();
-            portals.forEach(p => p.draw(ctx));
-
-            cakes.forEach(c => {
-                c.pulse += 0.05;
-                let bounce = Math.sin(c.pulse) * 4;
-                let cx = c.x * TILE + TILE/2;
-                let cy = c.y * TILE + TILE/2 + bounce;
-                let s = 1.3;
-
-                ctx.fillStyle = 'rgba(0,0,0,0.2)';
-                ctx.beginPath();
-                ctx.ellipse(cx, c.y*TILE + TILE - 5, 12 * s, 5 * s, 0, 0, Math.PI*2);
-                ctx.fill();
-
-                ctx.fillStyle = '#ff99aa';
-                ctx.fillRect(cx - 12 * s, cy - 8 * s, 24 * s, 18 * s);
-                ctx.fillStyle = '#ff5577'; 
-                ctx.beginPath();
-                ctx.rect(cx - 12 * s, cy - 8 * s, 24 * s, 8 * s);
-                ctx.arc(cx - 8*s, cy, 4*s, 0, Math.PI, false);
-                ctx.arc(cx, cy, 4*s, 0, Math.PI, false);
-                ctx.arc(cx + 8*s, cy, 4*s, 0, Math.PI, false);
-                ctx.fill();
-
-                ctx.fillStyle = '#cc0000';
-                ctx.beginPath();
-                ctx.arc(cx, cy - 10 * s, 5 * s, 0, Math.PI*2);
-                ctx.fill();
-            });
-
-            if (goldenYarn) goldenYarn.draw(ctx);
-            mouse.draw(ctx);
-            dogs.forEach(d => d.draw(ctx));
-            if (gameState === 'PLAYING') player.draw(ctx);
-            particles.forEach(p => p.draw(ctx));
-
-            ctx.fillStyle = 'rgba(200, 200, 255, 0.6)';
-            weatherParticles.forEach(p => {
-                ctx.fillRect(p.x, p.y, 2, 8);
-            });
-
-            ctx.restore();
-
-            if (darkness > 0) {
-                let px = player.x + TILE/2 - viewX;
-                let py = player.y + TILE/2 - viewY;
-
-                let gradient = ctx.createRadialGradient(px, py, TILE*2, px, py, TILE*8);
-                gradient.addColorStop(0, "rgba(0,0,0,0)");
-                gradient.addColorStop(1, `rgba(0,0,0,${darkness})`);
-
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
-        }
-
-        function loop() {
-            if (gameState === 'PLAYING') {
-                update();
-                draw();
-                requestAnimationFrame(loop);
-            }
-        }
-
-        function endGame(win, msg) {
-            gameState = win ? 'LEVELUP' : 'GAMEOVER';
-            if (win) {
-                let levelBonus = 500 + (level * 100);
-                let energyBonus = Math.floor(player.energy * 10);
-                score += levelBonus + energyBonus;
-
-                document.getElementById('level-score').innerText = `SCORE: ${score}`;
-
-                level++;
-                updateCharSelect();
-                screenLevelUp.style.display = 'flex';
-            } else {
-                if (score > highScore) {
-                    highScore = score;
-                    localStorage.setItem('cakedUpHighScore', highScore);
-                    uiHighScore.innerText = `HIGH SCORE: ${highScore}`;
-                }
-                if (msg) document.getElementById('gameover-msg').innerText = msg;
-                document.getElementById('final-score').innerText = `SCORE: ${score}`;
-                screenGameOver.style.display = 'flex';
-            }
-        }
-
-        function updateCharSelect() {
-            const cards = document.querySelectorAll('.char-card');
-            cards.forEach(card => {
-                let id = card.id;
-                if (id === 'card-blitz') {
-                    if (level >= 3) {
-                        card.classList.add('unlocked');
-                        card.querySelector('.char-stats').innerText = "Boost++ / Drain++"; 
-                        card.querySelector('.lock-msg').style.display = 'none';
-                    } else {
-                        card.classList.remove('unlocked');
-                    }
-                }
-                if (id === 'card-tank') {
-                    if (level >= 5) {
-                        card.classList.add('unlocked');
-                        card.querySelector('.char-stats').innerText = "Slow / Efficient"; 
-                        card.querySelector('.lock-msg').style.display = 'none';
-                    } else {
-                        card.classList.remove('unlocked');
-                    }
-                }
-            });
-        }
-
-        // Render live previews of cats on cards
-        function renderCharPreviews() {
-            const previewCanvases = {
-                'ginger': document.getElementById('canvas-ginger'),
-                'blitz': document.getElementById('canvas-blitz'),
-                'tank': document.getElementById('canvas-tank')
-            };
-
-            for (let [type, cvs] of Object.entries(previewCanvases)) {
-                if(!cvs) continue;
-                const pCtx = cvs.getContext('2d');
-                // Temporary cat instance for drawing
-                const previewCat = new Cat(type);
-                previewCat.x = 0; 
-                previewCat.y = 0;
-                previewCat.moving = false; // Idle state
-
-                // Clear and draw centered
-                pCtx.clearRect(0, 0, 60, 60);
-                pCtx.save();
-                // TILE is 40. Canvas is 60. Center is 30.
-                // Cat draw draws at x + TILE/2.
-                // If x=0, it draws at 20. We want it at 30.
-                pCtx.translate(10, 10); 
-                previewCat.draw(pCtx); 
-                pCtx.restore();
-            }
-            requestAnimationFrame(renderCharPreviews);
-        }
-
-        document.querySelectorAll('.char-card').forEach(card => {
-            card.addEventListener('click', () => {
-                if (card.classList.contains('unlocked') || !card.id) { 
-                    document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
-                    card.classList.add('selected');
-                    selectedCatType = card.dataset.cat;
-                }
-            });
-        });
-
-        btnStart.addEventListener('click', () => {
-            screenMenu.style.display = 'none';
-            updateCharSelect();
-            startLevel();
-        });
-
-        btnRetry.addEventListener('click', () => {
-            screenGameOver.style.display = 'none';
-            score = 0;
-            level = 1;
-            updateCharSelect();
-            startLevel();
-        });
-
-        btnNext.addEventListener('click', () => {
-            screenLevelUp.style.display = 'none';
-            screenMenu.style.display = 'flex';
-            screenMenu.querySelector('h1').innerText = `LEVEL ${level} READY`;
-            updateCharSelect();
-        });
-
-        window.addEventListener('keydown', (e) => {
-            if (gameState !== 'PLAYING') return;
-            switch(e.key) {
-                case 'ArrowUp': case 'w': player.nextDir = {x: 0, y: -1}; break;
-                case 'ArrowDown': case 's': player.nextDir = {x: 0, y: 1}; break;
-                case 'ArrowLeft': case 'a': player.nextDir = {x: -1, y: 0}; break;
-                case 'ArrowRight': case 'd': player.nextDir = {x: 1, y: 0}; break;
-            }
-        });
-
-        const btns = document.querySelectorAll('.btn');
-        btns.forEach(btn => {
-            const handleInput = (e) => {
-                if (e.cancelable) e.preventDefault();
-                if (gameState !== 'PLAYING') return;
-                if (btn.classList.contains('up')) player.nextDir = {x: 0, y: -1};
-                if (btn.classList.contains('down')) player.nextDir = {x: 0, y: 1};
-                if (btn.classList.contains('left')) player.nextDir = {x: -1, y: 0};
-                if (btn.classList.contains('right')) player.nextDir = {x: 1, y: 0};
-            };
-            btn.addEventListener('touchstart', handleInput, {passive: false});
-            btn.addEventListener('mousedown', handleInput);
-        });
-
-        if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
-            document.getElementById('controls').style.display = 'block';
-        }
-
-        updateCharSelect();
-        renderCharPreviews(); // Start live previews
-
-    </script>
+      }
+
+      submitScoreOnce(score);
+      showOnly(screenGameOver);
+    }
+  }
+
+  function startGame(){
+    gameState = 'PLAYING';
+    showOnly(null);
+    makeMaze();
+    requestAnimationFrame(loop);
+  }
+
+  // Inputs
+  window.addEventListener('keydown', (e) => {
+    if(e.key in keys) keys[e.key] = true;
+  });
+  window.addEventListener('keyup', (e) => {
+    if(e.key in keys) keys[e.key] = false;
+  });
+
+  btnStart.onclick = () => {
+    scoreSubmitted = false;
+    startGame();
+  };
+
+  btnRestart.onclick = () => {
+    resetRun();
+    showOnly(screenStart);
+  };
+
+  btnNextLevel.onclick = () => {
+    gameState = 'PLAYING';
+    showOnly(null);
+    makeMaze();
+    requestAnimationFrame(loop);
+  };
+
+  btnCharBack.onclick = () => {
+    showOnly(screenStart);
+  };
+
+  // Init
+  document.getElementById('playInitials').textContent = getInitialsFromStorage();
+  refreshLeaderboard();
+
+</script>
 </body>
 </html>
