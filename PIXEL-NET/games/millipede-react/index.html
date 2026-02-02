@@ -16,7 +16,7 @@ html,body{height:100%}
 body{
   margin:0;
   height:100vh;
-  overflow:auto;
+  overflow:hidden;
   display:flex;
   flex-direction:column;
   padding:10px 0 10px;
@@ -79,7 +79,7 @@ main.panel{display:flex;flex-direction:column;min-height:0}
 .gamebox{
   position:relative;
   border-radius:16px;
-  overflow:auto;
+  overflow:hidden;
   border:1px solid rgba(255,255,255,.10);
   background:rgba(0,0,0,.28);
   min-height:0;
@@ -103,54 +103,31 @@ main.panel{display:flex;flex-direction:column;min-height:0}
   main.panel .gamebox{flex:1 1 auto}
 }
   
-/* ===== Focus Mode (mobile-first) ===== */
-.btnrow{display:flex;gap:8px;align-items:center}
-@media (max-width:900px){
-  .btnrow{gap:6px}
-  #px-fullscreen{display:none} /* still available via long-press? keep simple on small */
+/* VERSION BANNER */
+#pn-version-banner{
+  position:fixed;
+  left:0; right:0; top:0;
+  z-index:999999;
+  font:12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  padding:6px 10px;
+  background:rgba(0,0,0,0.78);
+  color:#e9ecff;
+  border-bottom:1px solid rgba(255,255,255,0.15);
+  pointer-events:none;
 }
-body{overflow:auto}
-.focus-on{overflow:hidden}
-.focus-on .topbar{
-  position:fixed;top:0;left:0;right:0;z-index:9999;
-  background:rgba(0,0,0,.85);
-  backdrop-filter: blur(8px);
-}
-.focus-on .layout{
-  position:fixed;inset:0;
-  padding:64px 10px 10px;
-  grid-template-columns:1fr !important;
-}
-.focus-on .layout > aside{display:none !important}
-.focus-on main.panel{
-  padding:0 !important;
-  background:transparent !important;
-  border:none !important;
-  box-shadow:none !important;
-}
-.focus-on main.panel .title,
-.focus-on main.panel .muted{display:none !important}
-.focus-on .gamebox{
-  height:calc(100dvh - 64px - 10px) !important;
-  min-height:0 !important;
-}
-.focus-on .gamebox, .focus-on .gamebox *{
-  touch-action:none;
-}
-
+body{ padding-top:28px; }
 </style>
 
   <!-- React build -->
   <script type="module" crossorigin src="./assets/index-BTthQfIO.js"></script>
 </head>
 <body>
+<!-- PATCH_VERSION:MILLIPede_WRAPPER_v2026-02-02_1420cst -->
+<div id="pn-version-banner">PIXEL-NET · Millipede wrapper · <strong>MILLIPede_WRAPPER_v2026-02-02_1420cst</strong></div>
+
 
   <div class="topbar">
     <button class="btn" id="px-exit">EXIT</button>
-    <div class="btnrow">
-      <button class="btn" id="px-focus" type="button">FOCUS</button>
-      <button class="btn" id="px-fullscreen" type="button">FULLSCREEN</button>
-    </div>
     <div class="badge" id="px-badge" title="Click to change initials on home page">???</div>
   </div>
 
@@ -214,50 +191,6 @@ body{overflow:auto}
       badge.textContent = initials || "???";
       badge.onclick = () => location.href = "../../index.html";
       document.getElementById("px-exit").onclick = () => location.href = "../../index.html";
-
-      // ---- Focus / Fullscreen controls ----
-      const focusBtn = document.getElementById("px-focus");
-      const fsBtn = document.getElementById("px-fullscreen");
-      let focusOn = false;
-
-      function preventTouchScroll(e){
-        if(document.body.classList.contains("focus-on")) e.preventDefault();
-      }
-
-      function setFocus(on){
-        focusOn = !!on;
-        document.body.classList.toggle("focus-on", focusOn);
-        if(focusBtn) focusBtn.textContent = focusOn ? "EXIT FOCUS" : "FOCUS";
-
-        // Only lock scroll/touch while focused
-        if(focusOn){
-          document.addEventListener("touchmove", preventTouchScroll, {passive:false});
-        } else {
-          document.removeEventListener("touchmove", preventTouchScroll, {passive:false});
-        }
-
-        // Nudge canvas/game to rescale
-        window.dispatchEvent(new Event("resize"));
-        setTimeout(()=>window.dispatchEvent(new Event("resize")), 150);
-      }
-
-      if(focusBtn){
-        focusBtn.onclick = () => setFocus(!focusOn);
-      }
-
-      if(fsBtn){
-        fsBtn.onclick = async () => {
-          // Always enter Focus Mode (works everywhere), then attempt real fullscreen (best-effort)
-          setFocus(true);
-          const el = document.querySelector(".gamebox") || document.documentElement;
-          try{
-            if(!document.fullscreenElement && el.requestFullscreen){
-              await el.requestFullscreen();
-            }
-          }catch(_e){}
-        };
-      }
-
 
       // ---- Block duplicate /api/score submissions (even if React game tries) ----
       // We allow ONE real POST per page-load for this slug.
