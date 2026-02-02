@@ -10,137 +10,99 @@
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
 
   <style>
-    :root{--text:#e9ecff;--muted:#a7b0d6;--card1:rgba(15,19,36,.72);--card2:rgba(10,12,26,.55);--stroke:rgba(255,255,255,.10);--shadow:0 14px 40px rgba(0,0,0,.35)}
-    *{box-sizing:border-box} html,body{height:100%}
-    /*
-      IMPORTANT:
-      - Do NOT lock scrolling for desktop users.
-      - On mobile (single-column layout), users must be able to scroll to see the full game + panels.
-      - We prevent scroll-g gestures ONLY on the game surface.
-    */
-    body{margin:0;overflow:auto;color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(1200px 700px at 20% 10%, rgba(255,0,122,.14), transparent 60%),radial-gradient(900px 500px at 85% 20%, rgba(0,255,247,.12), transparent 55%),linear-gradient(180deg,#050611 0%,#060716 100%);color-scheme:dark;touch-action:pan-y}
-    .topbar{width:min(1300px,94vw);margin:14px auto 10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-    .btn{height:38px;padding:0 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(10,12,26,.72);color:var(--text);font:700 13px/1 "Orbitron",system-ui,sans-serif;letter-spacing:.10em;cursor:pointer}
-    .badge{min-width:54px;display:inline-grid;place-items:center;height:38px;padding:0 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(10,12,26,.72);color:var(--text);font:700 13px/1 "Orbitron",system-ui,sans-serif;letter-spacing:.10em;cursor:pointer}
-    .layout{width:min(1300px,94vw);margin:0 auto 18px;display:grid;grid-template-columns:280px 1fr 320px;gap:14px;align-items:stretch}
-    @media (max-width:1100px){.layout{grid-template-columns:1fr}}
-    .panel{background:linear-gradient(180deg,var(--card1),var(--card2));border:1px solid var(--stroke);border-radius:18px;box-shadow:var(--shadow);padding:14px;min-height:0}
-    .title{font-family:"Orbitron",system-ui,sans-serif;letter-spacing:.10em;margin:0 0 10px;font-size:14px}
-    .muted{color:var(--muted)}
-    .gamebox{position:relative;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.28);min-height:0;touch-action:none}
-    /* Let the game take the available vertical space instead of clipping */
-    .panel main, main.panel{display:flex;flex-direction:column;min-height:0}
-    @media (max-width:1100px){
-      .topbar{position:sticky;top:0;z-index:50}
-      .layout{grid-template-columns:1fr}
-      main.panel{min-height:0}
-      .gamebox{height:min(72vh,720px)}
-    }
-    #root{width:100%;height:100%;min-height:0}
-    .lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-    .lb-col{list-style:none;padding:0;margin:0}
-    .lb-item{display:flex;justify-content:space-between;gap:10px;padding:6px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);margin-bottom:8px;font-family:"Orbitron",system-ui,sans-serif;letter-spacing:.06em;font-size:12px}
-    .lb-rank{opacity:.85;min-width:22px}.lb-score{font-weight:800}
-    .lb-meta{color:var(--muted);font-size:11px;margin-top:10px}
-    .hint{color:var(--muted);font-size:12px;margin-top:10px}
-  
-    .play-again-wrap{
-      position:absolute;
-      inset:0;
-      display:none;
-      align-items:flex-end;
-      justify-content:center;
-      padding-bottom:120px;
-      pointer-events:auto;
-      z-index:9999;
-      background:rgba(0,0,0,.35);
-    }
-    .play-again{
-      padding:16px 28px;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.25);
-      background:rgba(10,12,26,.9);
-      color:#e9ecff;
-      font:800 16px/1 "Orbitron",system-ui,sans-serif;
-      letter-spacing:.14em;
-      cursor:pointer;
-    }
-
-  
-    :root{--text:#e9ecff;--muted:#a7b0d6;--card1:rgba(15,19,36,.72);--card2:rgba(10,12,26,.55);--stroke:rgba(255,255,255,.10);--shadow:0 14px 40px rgba(0,0,0,.35)}
-    *{box-sizing:border-box} html,body{height:100%}
-    /*
-      IMPORTANT:
-      - Do NOT lock scrolling for desktop users.
-      - On mobile (single-column layout), users must be able to scroll to see the full game + panels.
-      - We prevent scroll-g gestures ONLY on the game surface.
-    */
-    body{margin:0;overflow:auto;color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(1200px 700px at 20% 10%, rgba(255,0,122,.14), transparent 60%),radial-gradient(900px 500px at 85% 20%, rgba(0,255,247,.12), transparent 55%),linear-gradient(180deg,#050611 0%,#060716 100%);color-scheme:dark;touch-action:pan-y}
-    .topbar{width:min(1300px,94vw);margin:14px auto 10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
-    .btn{height:38px;padding:0 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(10,12,26,.72);color:var(--text);font:700 13px/1 "Orbitron",system-ui,sans-serif;letter-spacing:.10em;cursor:pointer}
-    .badge{min-width:54px;display:inline-grid;place-items:center;height:38px;padding:0 12px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(10,12,26,.72);color:var(--text);font:700 13px/1 "Orbitron",system-ui,sans-serif;letter-spacing:.10em;cursor:pointer}
-    .layout{width:min(1300px,94vw);margin:0 auto 18px;display:grid;grid-template-columns:280px 1fr 320px;gap:14px;align-items:stretch}
-    @media (max-width:1100px){.layout{grid-template-columns:1fr}}
-    .panel{background:linear-gradient(180deg,var(--card1),var(--card2));border:1px solid var(--stroke);border-radius:18px;box-shadow:var(--shadow);padding:14px;min-height:0}
-    .title{font-family:"Orbitron",system-ui,sans-serif;letter-spacing:.10em;margin:0 0 10px;font-size:14px}
-    .muted{color:var(--muted)}
-    .gamebox{position:relative;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.28);min-height:0;touch-action:none}
-    /* Let the game take the available vertical space instead of clipping */
-    .panel main, main.panel{display:flex;flex-direction:column;min-height:0}
-    @media (max-width:1100px){
-      .topbar{position:sticky;top:0;z-index:50}
-      .layout{grid-template-columns:1fr}
-      main.panel{min-height:0}
-      .gamebox{height:min(72vh,720px)}
-    }
-    #root{width:100%;height:100%;min-height:0}
-    .lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-    .lb-col{list-style:none;padding:0;margin:0}
-    .lb-item{display:flex;justify-content:space-between;gap:10px;padding:6px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);margin-bottom:8px;font-family:"Orbitron",system-ui,sans-serif;letter-spacing:.06em;font-size:12px}
-    .lb-rank{opacity:.85;min-width:22px}.lb-score{font-weight:800}
-    .lb-meta{color:var(--muted);font-size:11px;margin-top:10px}
-    .hint{color:var(--muted);font-size:12px;margin-top:10px}
-  
-    .play-again-wrap{
-      position:absolute;
-      inset:0;
-      display:none;
-      align-items:flex-end;
-      justify-content:center;
-      padding-bottom:120px;
-      pointer-events:auto;
-      z-index:9999;
-      background:rgba(0,0,0,.35);
-    }
-    .play-again{
-      padding:16px 28px;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.25);
-      background:rgba(10,12,26,.9);
-      color:#e9ecff;
-      font:800 16px/1 "Orbitron",system-ui,sans-serif;
-      letter-spacing:.14em;
-      cursor:pointer;
-    }
-
-  
-/* --- PATCH: better Play Again button + tighter vertical fit --- */
-.center .gamewrap { padding: 10px 10px 14px; }
-.center .foot { display:none; }
-.gamebox { min-height: unset; }
-#px-gamebox { flex: 1; display:flex; align-items:stretch; }
-#millipedeMount { height: 100%; display:flex; align-items:stretch; justify-content:center; }
-#millipedeFrame { width: min(520px, 100%); height: 100%; aspect-ratio: 9 / 16; max-height: calc(100vh - 170px); border-radius: 18px; }
-#px-play-again { position:absolute; inset:0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,.55); backdrop-filter: blur(4px); }
-#px-play-again .inner { padding: 22px 24px; border: 1px solid rgba(255,255,255,.12); border-radius: 16px; background: rgba(10,10,10,.7); box-shadow: 0 12px 40px rgba(0,0,0,.45); text-align:center; }
-#px-play-again h3 { margin: 0 0 10px; letter-spacing: .08em; }
-#px-play-again button { font: inherit; font-weight: 800; letter-spacing: .08em; padding: 12px 22px; border-radius: 12px; cursor:pointer; border: 1px solid rgba(255,255,255,.18); background: rgba(0,0,0,.4); color: #e9ecff; }
-#px-play-again button:hover { transform: translateY(-1px); }
-@media (max-width: 1100px) {
-  #millipedeFrame { max-height: calc(100vh - 210px); }
+:root{--text:#e9ecff;--muted:#a7b0d6;--card1:rgba(15,19,36,.72);--card2:rgba(10,12,26,.55);--stroke:rgba(255,255,255,.10);--shadow:0 14px 40px rgba(0,0,0,.35)}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  height:100vh;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  padding:10px 0 10px;
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:
+    radial-gradient(1200px 700px at 20% 10%, rgba(255,0,122,.14), transparent 60%),
+    radial-gradient(900px 500px at 85% 20%, rgba(0,255,247,.12), transparent 55%),
+    linear-gradient(180deg,#050611 0%,#060716 100%);
+  color-scheme:dark;
+  touch-action:none;
+  overscroll-behavior:none;
 }
+.topbar{
+  width:min(1300px,94vw);
+  margin:0 auto 8px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex:0 0 auto;
+}
+.btn,.badge{
+  height:38px;
+  padding:0 12px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(10,12,26,.72);
+  color:var(--text);
+  font:700 13px/1 "Orbitron",system-ui,sans-serif;
+  letter-spacing:.10em;
+  cursor:pointer;
+}
+.badge{min-width:54px;display:inline-grid;place-items:center}
+.layout{
+  width:min(1300px,94vw);
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:280px 1fr 320px;
+  gap:14px;
+  align-items:stretch;
+  flex:1 1 auto;
+  min-height:0;
+}
+@media (max-width:1100px){.layout{grid-template-columns:1fr;gap:10px}}
+.panel{
+  background:linear-gradient(180deg,var(--card1),var(--card2));
+  border:1px solid var(--stroke);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+  padding:14px;
+  min-height:0;
+  overflow:auto;
+}
+.title{font-family:"Orbitron",system-ui,sans-serif;letter-spacing:.10em;margin:0 0 10px;font-size:14px}
+.muted{color:var(--muted)}
+.hint{color:var(--muted);font-size:12px;margin-top:10px}
 
-</style>
+main.panel{display:flex;flex-direction:column;min-height:0}
+.gamebox{
+  position:relative;
+  border-radius:16px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(0,0,0,.28);
+  min-height:0;
+  touch-action:none;
+  flex:1 1 auto;
+}
+#root{width:100%;height:100%;min-height:0}
+#root > div{height:100%}
+#root canvas{width:100% !important;height:100% !important;display:block}
+
+.lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.lb-col{list-style:none;padding:0;margin:0}
+.lb-item{display:flex;justify-content:space-between;gap:10px;padding:6px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);margin-bottom:8px;font-family:"Orbitron",system-ui,sans-serif;letter-spacing:.06em;font-size:12px}
+.lb-rank{opacity:.85;min-width:22px}.lb-score{font-weight:800}
+.lb-meta{color:var(--muted);font-size:11px;margin-top:10px}
+
+@media (max-width:1100px){
+  /* Keep everything on-screen: panels become compact; game stays fully visible */
+  .panel{max-height:18vh}
+  main.panel{max-height:none;flex:1 1 auto}
+  main.panel .gamebox{flex:1 1 auto}
+}
+  </style>
 
   <!-- React build -->
   <script type="module" crossorigin src="./assets/index-BTthQfIO.js"></script>
