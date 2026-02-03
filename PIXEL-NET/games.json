@@ -7,13 +7,6 @@
     "description": "Defend the garden from the swarm."
   },
   {
-    "name": "CREEK CROSSER",
-    "type": "iframe",
-    "path": "games/creek-crosser/index.html",
-    "thumb": "assets/creek-crosser-thumb.png",
-    "description": "Hop, ride, and survive your way across the creek."
-  },
-  {
     "name": "NEON CHASE",
     "type": "iframe",
     "path": "games/neon-chase/index.html",
@@ -61,5 +54,17 @@
     "path": "games/astrotype/index.html",
     "thumb": "assets/astrotype_thumb.png",
     "description": "Type alien codes to defend the lunar base."
+  },
+  {
+    "id": "creek-crosser",
+    "title": "Creek Crosser",
+    "desc": "Hop to the 5 nests. Avoid cars and the creek.",
+    "thumb": "assets/creek-crosser-thumb.png",
+    "path": "games/creek-crosser/index.html",
+    "leaderboardKey": "creek-crosser",
+    "controls": [
+      "Arrow Keys / WASD",
+      "Touch D-pad (mobile)"
+    ]
   }
 ]

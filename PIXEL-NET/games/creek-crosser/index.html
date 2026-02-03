@@ -1,583 +1,312 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>CREEK CROSSER | PIXEL-NET</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <title>PIXEL-NET • Creek Crosser</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet"/>
+  <!-- Canon wrapper layout (same structure/behavior as Millipede wrapper):
+       - Left HOW TO PLAY panel
+       - Center autoscaled stage
+       - Right LEADERBOARD panel
+       - Keeps game aspect ratio via fitStage() (no distortion)
+  -->
+  <style>
+    :root{
+      --bg0:#070912;
+      --bg1:#0b0f25;
+      --panel:#0b1226cc;
+      --panel2:#0b1226aa;
+      --stroke:rgba(255,255,255,.10);
+      --text:#e9ecff;
+      --muted:#a7b0d8;
+      --shadow:0 18px 60px rgba(0,0,0,.45);
 
-<style>
-:root{
-  --bg:#07121c;
-  --panel:#0b1a27;
-  --panel2:#08131d;
-  --text:#e9ecff;
-  --muted:#a7b1d6;
-  --accent:#f1c40f;      /* chick yellow */
-  --accent2:#e67e22;     /* beak orange */
-  --good:#2ecc71;
-  --bad:#e74c3c;
-  --border:rgba(241,196,15,0.22);
-  --shadow: 0 14px 44px rgba(0,0,0,0.55);
-  --radius:18px;
-}
+      /* Game accent (Creek Crosser = chick yellow) */
+      --game-accent:#f1c40f;
+      --game-accent2:#e67e22;
+    }
 
-*{box-sizing:border-box}
-html,body{height:100%}
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
+      background:
+        radial-gradient(1000px 600px at 20% 10%, rgba(241,196,15,.18), transparent 60%),
+        radial-gradient(900px 700px at 80% 10%, rgba(230,126,34,.14), transparent 60%),
+        radial-gradient(900px 700px at 65% 80%, rgba(80,120,255,.10), transparent 60%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+      overflow:hidden;
+    }
 
-/* ✅ allow scrolling + normal touch on the page */
-body{
-  margin:0;
-  min-height:100dvh;
-  overflow:auto;
-  display:flex;
-  flex-direction:column;
-  padding:10px 0 10px;
-  color:var(--text);
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-  background:
-    radial-gradient(1200px 700px at 20% 10%, rgba(255,0,122,.14), transparent 60%),
-    radial-gradient(900px 500px at 85% 20%, rgba(0,255,247,.12), transparent 55%),
-    linear-gradient(180deg,#050611 0%,#060716 100%);
-  color-scheme:dark;
-  touch-action:auto;
-  overscroll-behavior:auto;
-}
+    .topbar{
+      position:fixed; left:0; right:0; top:0;
+      height:64px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:14px 18px;
+      z-index:50;
+      pointer-events:none;
+    }
+    .topbar .left,
+    .topbar .right{display:flex; gap:12px; align-items:center; pointer-events:auto;}
 
-.topbar{
-  width:min(1300px,94vw);
-  margin:0 auto 8px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  flex:0 0 auto;
-}
-.btn,.badge{
-  height:38px;
-  padding:0 12px;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(10,12,26,.72);
-  color:var(--text);
-  font:700 13px/1 "Orbitron",system-ui,sans-serif;
-  letter-spacing:.10em;
-  cursor:pointer;
-}
-.badge{min-width:54px;display:inline-grid;place-items:center}
-.layout{
-  width:min(1300px,94vw);
-  margin:0 auto;
-  display:grid;
-  grid-template-columns: minmax(260px, 320px) minmax(520px, 1fr) minmax(260px, 320px);
-  gap:14px;
-  align-items:stretch;
-  flex:1 1 auto;
-  min-height:0;
-}
-@media (max-width:1100px){.layout{grid-template-columns: minmax(260px, 320px) minmax(520px, 1fr) minmax(260px, 320px);gap:10px}}
-.panel{
-  background:linear-gradient(180deg,var(--card1),var(--card2));
-  border:1px solid var(--stroke);
-  border-radius:18px;
-  box-shadow:var(--shadow);
-  padding:14px;
-  min-height:0;
-  overflow:auto;
-}
-.title{font-family:"Orbitron",system-ui,sans-serif;letter-spacing:.10em;margin:0 0 10px;font-size:14px}
-.muted{color:var(--muted)}
-.hint{color:var(--muted);font-size:12px;margin-top:10px}
+    .pill{
+      border:1px solid var(--stroke);
+      background:rgba(10,12,26,.55);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius:14px;
+      padding:10px 14px;
+      box-shadow:0 12px 36px rgba(0,0,0,.35);
+      display:inline-flex; align-items:center; gap:10px;
+      color:var(--text);
+      text-decoration:none;
+      font-weight:800;
+      letter-spacing:.08em;
+      font-size:12px;
+      text-transform:uppercase;
+    }
 
-main.panel{display:flex;flex-direction:column;min-height:0}
+    .app{
+      position:fixed;
+      inset:64px 0 0 0;
+      display:grid;
+      grid-template-columns: 320px minmax(0, 1fr) 320px;
+      gap:18px;
+      padding:18px;
+      height:calc(100% - 64px);
+    }
 
-/* ✅ lock touch + overscroll ONLY inside the game box */
-.gamebox{
-  position:relative;
-  border-radius:16px;
-  overflow:hidden;
-  border:1px solid rgba(255,255,255,.10);
-  background:rgba(0,0,0,.28);
-  min-height:0;
-  touch-action:none;
-  overscroll-behavior:contain;
-  flex:1 1 auto;
-}
+    .panel{
+      border:1px solid var(--stroke);
+      background:var(--panel);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      padding:18px;
+      overflow:auto;
+    }
 
-#root{width:100%;height:100%;min-height:0}
-#root > div{height:100%}
-#root canvas{display:block}
+    .panel h3{
+      margin:0 0 10px;
+      font-size:14px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:var(--game-accent);
+      text-shadow:0 0 16px rgba(241,196,15,.25);
+    }
 
-.lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-.lb-col{list-style:none;padding:0;margin:0}
-.lb-item{display:flex;justify-content:space-between;gap:10px;padding:6px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);margin-bottom:8px;font-family:"Orbitron",system-ui,sans-serif;letter-spacing:.06em;font-size:12px}
-.lb-rank{opacity:.85;min-width:22px}.lb-score{font-weight:800}
-.lb-meta{color:var(--muted);font-size:11px;margin-top:10px}
+    .howto p{margin:10px 0; color:var(--muted); line-height:1.35}
+    .howto b{color:var(--text)}
 
-@media (max-width:1100px){
-  .panel{max-height:18vh}
-  main.panel{max-height:none;flex:1 1 auto}
-  main.panel .gamebox{flex:1 1 auto}
-}
+    .stage-wrap{
+      border:1px solid var(--stroke);
+      background:var(--panel2);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      min-height:0;
+    }
 
-/* VERSION BANNER */
-#pn-version-banner{
-  position:fixed;
-  left:0; right:0; top:0;
-  z-index:999999;
-  font:12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  padding:6px 10px;
-  background:rgba(0,0,0,0.78);
-  color:#e9ecff;
-  border-bottom:1px solid rgba(255,255,255,0.15);
-  pointer-events:none;
-}
-body{ padding-top:28px; }
+    .stage-title{
+      display:flex;
+      align-items:baseline;
+      justify-content:space-between;
+      padding:6px 6px 10px;
+    }
+    .stage-title h2{
+      margin:0;
+      font-size:14px;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:var(--text);
+    }
+    .stage-title small{color:var(--muted)}
 
+    .stage-viewport{
+      position:relative;
+      flex:1;
+      min-height:0;
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:18px;
+      background:rgba(0,0,0,.28);
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
 
-/* V1.15 fixes */
-.layout > *{min-width:0;}
-.panel{min-height:0;}
-.panel.leaderboard{overflow:hidden;}
-.panel.leaderboard .lb-grid{height:100%; overflow:auto;}
-/* keep game contained */
-.game-shell{position:relative; overflow:hidden;}
-#root{width:100%; height:100%;}
-/* hide in-game DDT/POISON legend strip */
-#root *{box-sizing:border-box;}
-/* try to hide legend row if present */
-#root .legend, #root [class*="legend"]{display:none !important;}
-/* initials modal (wrapper) */
+    /* The element whose size we control (keeps aspect ratio). */
+    .stage-inner{
+      position:relative;
+      width:100px;
+      height:100px;
+      border-radius:16px;
+      overflow:hidden;
+      background:#000;
+      box-shadow:0 10px 30px rgba(0,0,0,.45);
+    }
 
-/* V1.15 fixes */
-.game-stage{
-  position:absolute;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  z-index: 1;
-}
-.game-stage-inner{
-  position:relative;
-  overflow:hidden;
-  border-radius: 12px;
-}
-.game-stage-inner #root{width:100%;height:100%;min-height:0;}
-.game-stage-inner #root > div{height:100%}
-.game-stage-inner #root canvas{width:100% !important; height:100% !important; display:block;}
+    #gameFrame{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      border:0;
+      display:block;
+      background:#000;
+    }
 
-/* Leaderboard: true 2-column list, no clipping */
-.lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-.lb-item{min-width:0}
-.lb-item span:nth-child(2){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.lb-score{white-space:nowrap}
+    .leaderboard ol{margin:10px 0 0; padding-left:18px; color:var(--muted)}
+    .leaderboard li{margin:8px 0}
+    .lb-row{display:flex; justify-content:space-between; gap:10px}
+    .lb-score{color:var(--text); font-weight:800}
 
-.px-init-modal {
-  position: fixed;
-  inset: 0;
-  z-index: 10000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.px-init-modal.hidden {
-  display: none;
-}
-
-.px-init-backdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(4px);
-}
-
-.px-init-card {
-  position: relative;
-  z-index: 1;
-  width: 320px;
-  padding: 18px 18px 20px;
-  border-radius: 16px;
-  background: linear-gradient(
-    180deg,
-    rgba(15, 19, 36, 0.95),
-    rgba(10, 12, 26, 0.95)
-  );
-  border: 1px solid rgba(0, 255, 247, 0.35);
-  box-shadow: 0 0 24px rgba(0, 255, 247, 0.15);
-  text-align: center;
-}
-
-.px-init-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-family: "Orbitron", system-ui, sans-serif;
-  letter-spacing: 0.10em;
-  font-weight: 700;
-  font-size: 13px;
-  margin-bottom: 10px;
-}
-
-#px-init-close {
-  width: 34px;
-  height: 34px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(10,12,26,.72);
-  color: var(--text);
-  cursor: pointer;
-}
-
-#px-init-input {
-  width: 100%;
-  height: 44px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(0,0,0,.20);
-  color: var(--text);
-  font: 700 16px/1 "Orbitron", system-ui, sans-serif;
-  letter-spacing: .20em;
-  text-align: center;
-  outline: none;
-  margin: 8px 0 10px;
-}
-
-#px-init-save {
-  width: 100%;
-  height: 42px;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(10,12,26,.72);
-  color: var(--text);
-  font: 800 13px/1 "Orbitron", system-ui, sans-serif;
-  letter-spacing: .10em;
-  cursor: pointer;
-}
-
-#px-init-save:hover { filter: brightness(1.08); }
-
-.px-init-hint {
-  margin-top: 10px;
-  font-size: 12px;
-  color: var(--muted);
-}
-
-</style>
+    @media (max-width: 1100px){
+      body{overflow:auto}
+      .app{
+        position:relative;
+        inset:auto;
+        height:auto;
+        grid-template-columns: 1fr;
+      }
+      .panel, .stage-wrap{min-height:unset}
+      .topbar{position:sticky}
+    }
+  </style>
 </head>
 <body>
 
-<!-- PATCH_VERSION:MILLIPede_WRAPPER_scrollfix_v2026-02-02_1625cst -->
-<section id="px-init-modal" class="px-init-modal hidden" aria-hidden="true">
-  <div class="px-init-backdrop"></div>
-  <div class="px-init-card" role="dialog" aria-modal="true" aria-label="Enter Initials">
-    <div class="px-init-header">
-      <span>ENTER INITIALS</span>
-      <button id="px-init-close" type="button" aria-label="Close">×</button>
+  <div class="topbar">
+    <div class="left">
+      <a class="pill" href="../../index.html">EXIT</a>
     </div>
-    <input id="px-init-input" type="text" maxlength="3" placeholder="_ _ _" autocomplete="off"
-      autocapitalize="characters" spellcheck="false" />
-    <button id="px-init-save" type="button">SAVE</button>
-    <div class="px-init-hint">Press Enter to save</div>
+    <div class="right">
+      <div class="pill" id="px-badge">???</div>
+    </div>
   </div>
-</section>
 
-<div class="topbar">
-<button class="btn" id="px-exit">EXIT</button>
-<div class="badge" id="px-badge" title="Click to change initials">???</div>
-</div>
-<div class="layout">
-<aside class="panel">
-<h3 class="title">HOW TO PLAY</h3>
-<div class="muted">
-  <p><b>Move:</b> Arrow Keys / WASD</p>
-  <p><b>Goal:</b> Reach the 5 nests at the top.</p>
-  <p><b>Avoid:</b> Cars on the road and falling in the creek.</p>
-  <p><b>Tip:</b> On water rows, you must be on a log/turtle/platform.</p>
-  <p class="tiny">Mobile: the on-screen D-pad is shown automatically on touch devices.</p>
-</div>
-</aside>
-<main class="panel">
-<h3 class="title">CREEK CROSSER</h3>
-<div class="gamebox">
-<div class="game-stage" id="pn-stage"><div class="game-stage-inner" id="pn-stage-inner"><iframe id="pn-iframe" src="./game.html?embed=1" title="Game" style="border:0;width:100%;height:100%;display:block;" loading="eager"></iframe></div></div>
-<div class="muted">Leaderboard refreshes automatically.</div>
-</main>
-<aside class="panel">
-<h3 class="title">LEADERBOARD</h3>
-<div class="muted">Top 10</div>
-<div class="lb-grid">
-<ol class="lb-col" id="lb-left"></ol>
-<ol class="lb-col" id="lb-right"></ol>
-</div>
-<div class="lb-meta" id="lb-status">Loading…</div>
-</aside>
-</div>
+  <div class="app">
+    <aside class="panel howto">
+      <h3>HOW TO PLAY</h3>
+      <p><b>Move:</b> Arrow Keys / WASD</p>
+      <p><b>Goal:</b> Reach the 5 nests at the top.</p>
+      <p><b>Avoid:</b> Cars on the road and falling in the creek.</p>
+      <p><b>Tip:</b> On water rows, you must be on a log/turtle/platform.</p>
+      <p><b>Mobile:</b> The on‑screen D‑pad is shown automatically on touch devices.</p>
+    </aside>
 
-<script src="../../js/engine.js"></script>
-<script>
+    <main class="stage-wrap">
+      <div class="stage-title">
+        <h2>CREEK CROSSER</h2>
+        <small>Leaderboard refreshes automatically.</small>
+      </div>
+      <div class="stage-viewport" id="stageViewport">
+        <div class="stage-inner" id="stageInner">
+          <iframe id="gameFrame" src="./game.html" title="Creek Crosser" allow="fullscreen" loading="eager"></iframe>
+        </div>
+      </div>
+    </main>
 
-(function () {
-  "use strict";
+    <aside class="panel leaderboard">
+      <h3>LEADERBOARD</h3>
+      <div style="color:var(--muted)">Top 10</div>
+      <ol id="lbList">
+        <li>Loading…</li>
+      </ol>
+    </aside>
+  </div>
 
-  const SLUGS = ["creek-crosser"];
-  const SLUG  = SLUGS[0];
+  <script src="../../js/engine.js"></script>
+  <script>
+    // Creek Crosser wrapper version
+    const WRAPPER_VERSION = "1.3";
 
-  // --------------------------------------------------------
-  // HELPERS
-  // --------------------------------------------------------
-  function norm(v) {
-    return String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3) || "???";
-  }
+    // Game's *native* logical size in grid units (keeps aspect ratio).
+    // Creek Crosser draws a 13x13 grid canvas plus a UI bar below.
+    // We budget 2 extra grid rows for the UI bar so the stage doesn't crop it.
+    const GRID_COLS = 13;
+    const GRID_ROWS = 15;
 
-  // --------------------------------------------------------
-  // INITIALS SYNC (homepage ↔ game)
-  // --------------------------------------------------------
-  let initials = norm(
-    localStorage.getItem("px_player_initials") ||
-    sessionStorage.getItem("playerInitials")  ||
-    "???"
-  );
+    // Show initials in the badge (engine.js already normalizes & stores).
+    (function syncBadge(){
+      try {
+        const s = sessionStorage.getItem('playerInitials') || localStorage.getItem('px_player_initials') || '???';
+        document.getElementById('px-badge').textContent = (s||'???').toString().toUpperCase().slice(0,3);
+      } catch(_){}
+    })();
 
-  function syncInitials(val) {
-    val = norm(val);
-    try { localStorage.setItem("px_player_initials", val); } catch(_){}
-    try { sessionStorage.setItem("playerInitials",   val); } catch(_){}
-    // legacy fallbacks some games used
-    try { localStorage.setItem("p",  val); } catch(_){}
-    try { localStorage.setItem("u",  val); } catch(_){}
-    try { localStorage.setItem("n",  val); } catch(_){}
-    try { localStorage.setItem("nm", val); } catch(_){}
-  }
-  syncInitials(initials);
+    // --- Autoscale stage (same idea as Millipede): keep aspect ratio, no distortion.
+    function fitStage(){
+      const vp = document.getElementById('stageViewport');
+      const inner = document.getElementById('stageInner');
+      if(!vp || !inner) return;
 
-  if (window.PixelNet && PixelNet.init)   PixelNet.init();
-  if (window.PixelNet && PixelNet.uiInit) PixelNet.uiInit();
+      const pad = 18; // breathing room inside viewport
+      const maxW = Math.max(0, vp.clientWidth - pad*2);
+      const maxH = Math.max(0, vp.clientHeight - pad*2);
 
-  // --------------------------------------------------------
-  // TOP BAR
-  // --------------------------------------------------------
-  const badge = document.getElementById("px-badge");
-  badge.textContent = initials;
-
-  document.getElementById("px-exit").onclick = function () {
-    location.href = "../../index.html";
-  };
-
-  // --------------------------------------------------------
-  // INITIALS MODAL
-  // --------------------------------------------------------
-  const modal   = document.getElementById("px-init-modal");
-  const input   = document.getElementById("px-init-input");
-  const closBtn = document.getElementById("px-init-close");
-  const saveBtn = document.getElementById("px-init-save");
-
-  function openModal() {
-    input.value = initials !== "???" ? initials : "";
-    modal.classList.remove("hidden");
-    modal.setAttribute("aria-hidden", "false");
-    input.focus();
-  }
-  function closeModal() {
-    modal.classList.add("hidden");
-    modal.setAttribute("aria-hidden", "true");
-  }
-  function saveInitials() {
-    const v = norm(input.value);
-    if (v && v !== "???") {
-      initials = v;
-      syncInitials(v);
-      badge.textContent = v;
-    }
-    closeModal();
-  }
-
-  badge.addEventListener("click", openModal);
-  closBtn.addEventListener("click", saveInitials);
-  modal.querySelector(".px-init-backdrop").addEventListener("click", saveInitials);
-  if (saveBtn) saveBtn.addEventListener("click", saveInitials);
-
-  input.addEventListener("keydown", function (e) {
-    if (e.key === "Enter")  { e.preventDefault(); saveInitials(); }
-    if (e.key === "Escape") { e.preventDefault(); closeModal(); }
-  });
-
-  // Cross-tab sync (optional but harmless)
-  window.addEventListener("storage", function (e) {
-    if (e && e.key === "px_player_initials") {
-      initials = norm(e.newValue);
-      badge.textContent = initials;
-      try { sessionStorage.setItem("playerInitials", initials); } catch(_){}
-    }
-  });
-
-  // --------------------------------------------------------
-  // LEADERBOARD
-  // --------------------------------------------------------
-  async function renderLeaderboard() {
-    const status  = document.getElementById("lb-status");
-    const mStatus = document.getElementById("m-lb-status");
-    const L       = document.getElementById("lb-left");
-    const R       = document.getElementById("lb-right");
-    const mL      = document.getElementById("m-lb-left");
-    const mR      = document.getElementById("m-lb-right");
-
-    L.innerHTML = ""; R.innerHTML = "";
-    mL.innerHTML = ""; mR.innerHTML = "";
-
-    try {
-      let rows = [];
-      for (let i = 0; i < SLUGS.length; i++) {
-        try { rows = await PixelNet.getLeaderboard(SLUGS[i]); } catch(_) { rows = []; }
-        if (Array.isArray(rows) && rows.length) break;
+      const aspect = GRID_COLS / GRID_ROWS;
+      let w = maxW;
+      let h = w / aspect;
+      if(h > maxH){
+        h = maxH;
+        w = h * aspect;
       }
 
-      const top = (rows || []).slice(0, 10);
-      if (!top.length) {
-        status.textContent  = "No scores yet.";
-        mStatus.textContent = "No scores yet.";
+      inner.style.width  = Math.floor(w) + 'px';
+      inner.style.height = Math.floor(h) + 'px';
+    }
+
+    window.addEventListener('resize', fitStage);
+    window.addEventListener('orientationchange', fitStage);
+    setTimeout(fitStage, 0);
+
+    // --- Leaderboard (uses the shared PixelNet engine)
+    async function refreshLB(){
+      const list = document.getElementById('lbList');
+      if(!list || !window.PixelNet) return;
+
+      const rows = await PixelNet.getLeaderboard('creek-crosser');
+      list.innerHTML = '';
+
+      if(!rows || rows.length === 0){
+        const li = document.createElement('li');
+        li.textContent = 'No scores yet.';
+        list.appendChild(li);
         return;
       }
 
-      top.forEach(function (row, idx) {
-        const ini = norm(row.initials || row.name || "???");
-        const sc  = Number(row.score != null ? row.score : (row.points != null ? row.points : (row.value != null ? row.value : 0))) || 0;
-
-        const li = document.createElement("li");
-        li.className = "lb-item";
-        li.innerHTML =
-          '<span class="lb-rank">' + (idx + 1) + '.</span>' +
-          '<span class="lb-name">' + ini + '</span>' +
-          '<span class="lb-score">' + sc + '</span>';
-
-        (idx < 5 ? L : R).appendChild(li);
-        (idx < 5 ? mL : mR).appendChild(li.cloneNode(true));
+      rows.slice(0,10).forEach((r)=>{
+        const li = document.createElement('li');
+        const wrap = document.createElement('div');
+        wrap.className = 'lb-row';
+        const left = document.createElement('span');
+        left.textContent = (r.initials || '???').toString().toUpperCase();
+        const right = document.createElement('span');
+        right.className = 'lb-score';
+        right.textContent = String(r.score ?? 0);
+        wrap.appendChild(left);
+        wrap.appendChild(right);
+        li.appendChild(wrap);
+        list.appendChild(li);
       });
-
-      status.textContent  = "Auto-refreshing…";
-      mStatus.textContent = "Auto-refreshing…";
-    } catch (e) {
-      console.error("[Wrapper] leaderboard failed:", e);
-      const msg = "Failed to load (backend sleeping?).";
-      status.textContent  = msg;
-      mStatus.textContent = msg;
     }
-  }
 
-  renderLeaderboard();
-  setInterval(renderLeaderboard, 6000);
+    refreshLB();
+    setInterval(refreshLB, 4000);
 
-  // --------------------------------------------------------
-  // ASPECT-FIT (dynamic from iframe canvas)
-  // --------------------------------------------------------
-  let GAME_ASPECT = 1; // default until we can read the canvas ratio
-
-  const iframeEl = document.getElementById("pn-iframe");
-
-  function detectAspect() {
-    try {
-      if (!iframeEl || !iframeEl.contentWindow) return;
-      const doc = iframeEl.contentWindow.document;
-      if (!doc) return;
-      const c = doc.querySelector("canvas");
-      if (!c) return;
-      const w = c.width || c.clientWidth || 0;
-      const h = c.height || c.clientHeight || 0;
-      if (w > 0 && h > 0) GAME_ASPECT = w / h;
-    } catch(_) {}
-  }
-
-  const stageInnerDesktop = document.getElementById("pn-stage-inner");
-  const gameboxDesktop    = document.querySelector(".gamebox");
-
-  function fitStage() {
-    let box = gameboxDesktop;
-    let inner = stageInnerDesktop;
-
-    if (window.innerWidth <= 1000) {
-      box   = document.querySelector("#m-game .gamebox");
-      inner = document.getElementById("pn-stage-inner-mobile");
-    }
-    if (!inner || !box) return;
-
-    detectAspect();
-
-    const W = box.clientWidth;
-    const H = box.clientHeight;
-    const ratio = GAME_ASPECT || 1;
-    let w, h;
-
-    if (W / H > ratio) { h = H; w = Math.floor(H * ratio); }
-    else               { w = W; h = Math.floor(W / ratio); }
-
-    inner.style.width  = w + "px";
-    inner.style.height = h + "px";
-  }
-
-  if (iframeEl) {
-    iframeEl.addEventListener("load", function() {
-      detectAspect();
-      fitStage();
-    });
-  }
-
-  fitStage();
-  window.addEventListener("resize", fitStage);
-
-  // --------------------------------------------------------
-  // MOBILE TABS (move iframe)
-  // --------------------------------------------------------
-  const tabButtons = document.querySelectorAll("#m-tabs button");
-  const mGame      = document.getElementById("m-game");
-  const mHowTo     = document.getElementById("m-howto");
-  const mLb        = document.getElementById("m-lb");
-  const mRoot      = iframeEl;
-
-  function showMobileTab(tab) {
-    tabButtons.forEach(b => b.classList.remove("active"));
-    mGame.classList.add("hidden");
-    mHowTo.classList.add("hidden");
-    mLb.classList.add("hidden");
-
-    const btn = document.querySelector('#m-tabs button[data-tab="' + tab + '"]');
-    if (btn) btn.classList.add("active");
-
-    if (tab === "game") {
-      mGame.classList.remove("hidden");
-      const mInner = document.getElementById("pn-stage-inner-mobile");
-      if (mInner && mRoot && mInner !== mRoot.parentNode) mInner.appendChild(mRoot);
-      fitStage();
-    } else if (tab === "howto") {
-      mHowTo.classList.remove("hidden");
-    } else if (tab === "lb") {
-      mLb.classList.remove("hidden");
-    }
-  }
-
-  tabButtons.forEach(btn => {
-    btn.addEventListener("click", function () {
-      showMobileTab(btn.getAttribute("data-tab"));
-    });
-  });
-
-  if (window.innerWidth <= 1000) showMobileTab("game");
-
-  window.addEventListener("resize", function () {
-    fitStage();
-    if (window.innerWidth <= 1000) {
-      showMobileTab("game");
-    } else {
-      const desktopInner = document.getElementById("pn-stage-inner");
-      if (desktopInner && mRoot && desktopInner !== mRoot.parentNode) desktopInner.appendChild(mRoot);
-    }
-  });
-
-})();
-
-</script>
+    // Debug hint in console
+    console.log('[CreekCrosser wrapper]', { version: WRAPPER_VERSION, GRID_COLS, GRID_ROWS });
+  </script>
 </body>
 </html>
