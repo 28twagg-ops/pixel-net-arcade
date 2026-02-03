@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PIXEL-NET Arcade</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css?v=112" />
+</head>
+<body>
+
+
+<section id="px-init-modal" class="px-init-modal hidden" aria-hidden="true">
+  <div class="px-init-backdrop"></div>
+  <div class="px-init-card" role="dialog" aria-modal="true" aria-label="Enter Initials">
+    <div class="px-init-header">
+      <span>ENTER INITIALS</span>
+      <button id="px-init-close" type="button" aria-label="Close">×</button>
+    </div>
+    <input id="px-init-input" type="text" maxlength="3" placeholder="_ _ _" autocomplete="off"
+      autocapitalize="characters" spellcheck="false" />
+    <button id="px-init-save" type="button">SAVE</button>
+    <div class="px-init-hint">Press Enter to save</div>
+  </div>
+</section>
+
+<div class="header-wrap">
+<header class="site-header">
+  <div class="brand">
+    <div class="brand-mark">PX</div>
+    <div class="brand-text">
+      <div class="brand-title">PIXEL-NET</div>
+      <div class="brand-subtitle">Online Arcade Network</div>
+    </div>
+  </div>
+
+  <nav class="nav">
+    <a class="nav-link" href="#featured-game">Featured</a>
+    <a class="nav-link" href="#game-library">Library</a>
+    <a class="nav-link" href="#leaderboards">Leaderboards</a>
+  
+    <button id="px-player-badge" class="px-badge px-badge--nav" type="button">???</button>
+</nav>
+</header>
+</div>
+
+<main class="wrap">
+
+  <section id="featured-game" class="section">
+    <div class="featured-card">
+      <div class="featured-media">
+        <img id="featuredThumb" src="assets/millipede_thumb.png" alt="Featured Game">
+      </div>
+
+      <div class="featured-info">
+        <span class="badge">Game of the Week</span>
+        <h2 id="featuredTitle">Loading…</h2>
+        <p id="featuredDesc">Pick a cabinet below.</p>
+        <button id="featuredPlay" class="btn" type="button">Play Featured</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="game-library" class="section">
+    <div class="section-head px-headrow">
+      <div>
+        <h3>Arcade Floor</h3>
+        <p class="muted">Pick a cabinet. Click to play.</p>
+      </div>
+      <input id="px-search" class="px-search" type="search" placeholder="Search games…" autocomplete="off" />
+    </div>
+
+    <div id="arcadeGrid" class="game-grid"></div>
+    <div id="px-empty" class="muted hidden">No games match your search.</div>
+  </section>
+
+  <!-- ✅ Leaderboards now actually renders -->
+  <section id="leaderboards" class="section">
+    <div class="section-head">
+      <h3>Leaderboards</h3>
+      <p class="muted">Top Dogs = longest time held at #1.  Recent Champions = latest #1 holders.  Recent Champions = latest #1 holders.</p>
+    </div>
+
+    <div class="lb-grid">
+      <div class="panel" style="padding:14px;border-radius:18px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.18)">
+        <div class="muted" style="font-family:Orbitron,system-ui,sans-serif;letter-spacing:.10em;font-size:12px">ALL‑TIME TOP DOGS</div>
+        <div id="px-topdogs" style="margin-top:10px"></div>
+      </div>
+
+      <div class="panel" style="padding:14px;border-radius:18px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.18)">
+        <div class="muted" style="font-family:Orbitron,system-ui,sans-serif;letter-spacing:.10em;font-size:12px">RECENT CHAMPIONS</div>
+        <div id="px-current" style="margin-top:10px"></div>
+      </div>
+    </div>
+
+    <div class="muted" id="px-lb-status" style="margin-top:10px">Loading…</div>
+  </section>
+
+</main>
+
+<footer class="footer wrap">
+  <div class="muted">CREATED BY TYLER WAGGONER WITH THE USE OF AI</div>
+  <div class="muted">PIXEL-NET • Static GitHub Pages</div>
+</footer>
+
+<script>
+(() => {
+  const KEY = "px_player_initials";
+  const badge = document.getElementById("px-player-badge");
+  const modal = document.getElementById("px-init-modal");
+  const input = document.getElementById("px-init-input");
+  const closeBtn = document.getElementById("px-init-close");
+  const saveBtn = document.getElementById("px-init-save");
+
+  function normalize(v){ return String(v || "").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,3); }
+  function getInitials(){ return localStorage.getItem(KEY) || ""; }
+  function setInitials(v){ localStorage.setItem(KEY, v); }
+  function refreshBadge(){ badge.textContent = getInitials() || "???"; }
+
+  function openModal(){
+    modal.classList.remove("hidden");
+    modal.setAttribute("aria-hidden","false");
+    input.value = getInitials() || "";
+    setTimeout(() => input.focus(), 0);
+  }
+  function closeModal(){
+    modal.classList.add("hidden");
+    modal.setAttribute("aria-hidden","true");
+  }
+  function save(){
+    const v = normalize(input.value);
+    if(!v) return;
+    setInitials(v);
+    refreshBadge();
+    closeModal();
+  }
+
+  badge.addEventListener("click", openModal);
+  closeBtn.addEventListener("click", closeModal);
+  saveBtn.addEventListener("click", save);
+
+  input.addEventListener("keydown", (e) => {
+    if(e.key === "Enter") save();
+    if(e.key === "Escape") closeModal();
+  });
+
+  modal.querySelector(".px-init-backdrop").addEventListener("click", () => {
+    if(getInitials()) closeModal();
+  });
+
+  window.addEventListener("DOMContentLoaded", () => { refreshBadge(); });
+})();
+</script>
+
+<script>
+async function loadGames(){
+  const grid = document.getElementById("arcadeGrid");
+  const empty = document.getElementById("px-empty");
+  const search = document.getElementById("px-search");
+
+  const res = await fetch("./games.json", { cache:"no-store" });
+  if(!res.ok){ console.error("games.json failed to load"); return; }
+
+  const games = await res.json();
+  grid.innerHTML = "";
+
+  games.forEach(g => {
+    const card = document.createElement("div");
+    card.className = "game-card";
+
+    const img = document.createElement("img");
+    img.src = g.thumb || "assets/millipede_thumb.png";
+    img.alt = g.name || "Game";
+
+    const title = document.createElement("h4");
+    title.textContent = g.name || "UNTITLED";
+
+    card.appendChild(img);
+    card.appendChild(title);
+
+    card.addEventListener("click", () => { if(g.path) window.location.href = g.path; });
+    grid.appendChild(card);
+  });
+
+  empty.classList.toggle("hidden", games.length !== 0);
+
+  if(games[0]){
+    const ft = document.getElementById("featuredThumb");
+    const tt = document.getElementById("featuredTitle");
+    const play = document.getElementById("featuredPlay");
+    ft.src = games[0].thumb || "assets/millipede_thumb.png";
+    tt.textContent = games[0].name || "Featured";
+    play.onclick = () => { if(games[0].path) location.href = games[0].path; };
+  }
+
+  search.addEventListener("input", () => {
+    const q = (search.value || "").toLowerCase().trim();
+    let visible = 0;
+    document.querySelectorAll(".game-card").forEach(card => {
+      const show = card.textContent.toLowerCase().includes(q);
+      card.style.display = show ? "" : "none";
+      if(show) visible++;
+    });
+    empty.classList.toggle("hidden", visible !== 0);
+  });
+}
+loadGames();
+</script>
+
+<!-- Engine first so we have backend URL + toast -->
+<script src="js/engine.js"></script>
+<script src="js/leaderboard.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", async () => {
+    const status = document.getElementById("px-lb-status");
+    try{
+      await renderTopDogs("px-topdogs");
+      await renderCurrentHolders("px-current");
+      status.textContent = "Auto-refreshing…";
+      setInterval(() => { renderTopDogs("px-topdogs"); renderCurrentHolders("px-current"); }, 20000);
+    }catch(e){
+      console.error(e);
+      status.textContent = "Failed to load leaderboards (backend sleeping?).";
+    }
+  });
+</script>
+
+</body>
+</html>
