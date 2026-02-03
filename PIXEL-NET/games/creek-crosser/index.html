@@ -1,5 +1,5 @@
-<!-- PIXEL-NET Millipede Wrapper -->
-<!-- Version: V2.4 -->
+<!-- PIXEL-NET Creek Crosser Wrapper (Millipede-canon) -->
+<!-- Version: V1.1 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -12,6 +12,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet"/>
 
+<!-- React game bundle (DO NOT MODIFY) -->
+<script type="module" crossorigin src="./assets/index-BTthQfIO.js"></script>
 
 <style>
 /* ========================================================
@@ -547,8 +549,8 @@ main.panel {
     <h3 class="title">HOW TO PLAY</h3>
     <div class="muted">
       <p><b>Move:</b> Arrow Keys / WASD</p>
-      <p><b>Shoot:</b> Space</p>
-      <p><b>Goal:</b> Clear the swarm, survive, score high.</p>
+      <p><b>Action:</b> Navigate hazards</p>
+      <p><b>Goal:</b> Reach all 5 nests, avoid cars, don’t fall in the water.</p>
     </div>
     <div class="hint">
       Initials are set on the homepage. Click the badge (top-right) to change them here.
@@ -560,12 +562,12 @@ main.panel {
 
   <!-- CENTER: Game -->
   <main class="panel">
-    <h3 class="title">MILLIPEDE CHAOS</h3>
+    <h3 class="title">CREEK CROSSER</h3>
     <div class="gamebox">
       <div class="game-stage" id="pn-stage">
         <div class="game-stage-inner" id="pn-stage-inner">
-          <div id="pn-game-root"><iframe id="pn-game-iframe" src="./game.html" class="pn-game-iframe" frameborder="0" scrolling="no" allowfullscreen></iframe></div>
-        </div>
+      <iframe id="root" title="Creek Crosser" src="./game.html" style="width:100%;height:100%;border:0;display:block;background:transparent;" scrolling="no"></iframe>
+    </div>
       </div>
     </div>
     <div class="muted" style="font-size:11px; margin-top:6px;">Leaderboard refreshes automatically.</div>
@@ -592,8 +594,8 @@ main.panel {
   <h3 class="title">HOW TO PLAY</h3>
   <div class="muted">
     <p><b>Move:</b> Arrow Keys / WASD</p>
-    <p><b>Shoot:</b> Space</p>
-    <p><b>Goal:</b> Clear the swarm, survive, score high.</p>
+    <p><b>Action:</b> Navigate hazards</p>
+    <p><b>Goal:</b> Reach all 5 nests, avoid cars, don’t fall in the water.</p>
   </div>
   <div class="hint">Click the badge (top-right) to change initials.</div>
   <div class="hint"><b>Game Over:</b> score auto-saves. Press <b>Enter</b> to restart.</div>
@@ -638,22 +640,12 @@ main.panel {
   // ============================================================
   // CONFIG  ←  change these per game, leave everything else alone
   // ============================================================
-  var GAME_CONFIG = {
-    // Slugs: leaderboard fetch tries each in order; first one is used for score submission.
-    slugs:        ["creek-crosser"],
-
-    // Native grid dimensions (columns × rows).
-    // fitStage() uses width/height to lock the aspect ratio.
-    //   Millipede  →  20 × 32
-    //   Example 4:3 game → e.g. 40 × 30
-    //   Example 16:9 game → e.g. 16 × 9
-    gridCols:     13,
-    gridRows:     13};
+  var GAME_CONFIG = { cols: 13, rows: 13 };
   // Derived — don't edit these.
   var SLUGS = GAME_CONFIG.slugs;
   var SLUG  = SLUGS[0];
   var ACTIVE_SLUG = SLUG;   // updated when leaderboard fetch finds a live slug
-  var GAME_ASPECT = GAME_CONFIG.gridCols / GAME_CONFIG.gridRows;  // width / height
+  var GAME_ASPECT = GAME_CONFIG.cols / GAME_CONFIG.rows;  // width / height
 
   // --------------------------------------------------------
   // HELPERS
@@ -969,7 +961,7 @@ main.panel {
     });
 
     // Kill bare text nodes that match the prompt
-    var root = document.getElementById("pn-game-root");
+    var root = document.getElementById("root");
     if (root) {
       Array.from(root.querySelectorAll("*")).forEach(function (el) {
         if (el.childElementCount > 0) return;
@@ -1083,7 +1075,7 @@ main.panel {
   // --------------------------------------------------------
   // MOBILE TAB SWITCHING
   // --------------------------------------------------------
-  var mobileRoot = document.getElementById("pn-game-root");
+  var mobileRoot = document.getElementById("root");
   var tabButtons = document.querySelectorAll("#m-tabs button");
   var mGame      = document.getElementById("m-game");
   var mHowTo     = document.getElementById("m-howto");
@@ -1115,7 +1107,7 @@ main.panel {
   }
 
   // Cache the #root element for potential re-parenting on mobile.
-  var mRoot = document.getElementById("pn-game-root");
+  var mRoot = document.getElementById("root");
 
   tabButtons.forEach(function (btn) {
     btn.addEventListener("click", function () {
