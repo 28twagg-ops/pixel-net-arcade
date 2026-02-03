@@ -91,31 +91,15 @@ main.panel{display:flex;flex-direction:column;min-height:0}
   touch-action:none;
   overscroll-behavior:contain;
   flex:1 1 auto;
-  display:flex;
-  align-items:center;
-  justify-content:center;
 }
 
-.stage{
-  width:100%;
-  height:100%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-.stage{aspect-ratio:20/32; max-width:100%; max-height:100%;}
-.stage > #root{width:100%;height:100%;}
+#root{width:100%;height:100%;min-height:0}
+#root > div{height:100%}
+#root canvas{display:block}
 
-
-#root{width:100%;height:100%;min-height:0;}
-#root > div{height:100%;}
-/* IMPORTANT: do NOT force canvas to 100% height/width without aspect-lock */
-#root canvas{width:100% !important;height:100% !important;display:block;image-rendering:pixelated;}
-
-
-.lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;align-items:start}
+.lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
 .lb-col{list-style:none;padding:0;margin:0}
-.lb-item{display:flex;justify-content:space-between;gap:10px;padding:6px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);margin-bottom:8px;font-family:"Orbitron",system-ui,sans-serif;letter-spacing:.06em;font-size:12pxfont-size:12px;padding:5px 8px;line-height:1.1;}
+.lb-item{display:flex;justify-content:space-between;gap:10px;padding:6px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);margin-bottom:8px;font-family:"Orbitron",system-ui,sans-serif;letter-spacing:.06em;font-size:12px}
 .lb-rank{opacity:.85;min-width:22px}.lb-score{font-weight:800}
 .lb-meta{color:var(--muted);font-size:11px;margin-top:10px}
 
@@ -140,11 +124,11 @@ main.panel{display:flex;flex-direction:column;min-height:0}
 body{ padding-top:28px; }
 
 
-/* V1.12 fixes */
+/* V1.13 fixes */
 .layout > *{min-width:0;}
 .panel{min-height:0;}
 .panel.leaderboard{overflow:hidden;}
-.panel.leaderboard .lb-grid{height:auto; overflow:visible;}
+.panel.leaderboard .lb-grid{height:100%; overflow:auto;}
 /* keep game contained */
 .game-shell{position:relative; overflow:hidden;}
 #root{width:100%; height:100%;}
@@ -153,24 +137,175 @@ body{ padding-top:28px; }
 /* try to hide legend row if present */
 #root .legend, #root [class*="legend"]{display:none !important;}
 /* initials modal (wrapper) */
-#pnInitialsModal{position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.55); z-index:9999;}
-#pnInitialsModal.open{display:flex;}
-#pnInitialsModal .card{width:min(420px,92vw); border-radius:16px; padding:16px; background:rgba(10,14,22,.92); border:1px solid rgba(255,255,255,.12); box-shadow:0 24px 80px rgba(0,0,0,.55);}
-#pnInitialsModal label{display:block; font-weight:700; letter-spacing:.06em; margin-bottom:8px;}
-#pnInitialsModal input{width:100%; font-size:28px; letter-spacing:.25em; text-transform:uppercase; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.18); background:rgba(0,0,0,.35); color:#e9ecff; outline:none;}
-#pnInitialsModal .row{display:flex; gap:10px; margin-top:12px;}
-#pnInitialsModal button{flex:1; padding:10px 12px; border-radius:12px; border:1px solid rgba(255,255,255,.16); background:rgba(255,255,255,.08); color:#e9ecff; font-weight:800; cursor:pointer;}
-#pnInitialsModal button.primary{background:rgba(255,255,255,.16);}
+
+/* V1.13 fixes */
+#px-play-again{
+  position:absolute;
+  inset:0;
+  display:none; /* shown only on Game Over */
+  align-items:center;
+  justify-content:center;
+  background: rgba(0,0,0,.55);
+  z-index: 50;
+}
+#px-play-again .inner{
+  background: rgba(10,12,26,.86);
+  border:1px solid rgba(255,255,255,.14);
+  border-radius: 16px;
+  padding: 18px 22px;
+  text-align:center;
+}
+#px-play-again h3{margin:0 0 10px;font-family:"Orbitron",system-ui,sans-serif;letter-spacing:.10em}
+#px-play-again button{
+  height:42px;
+  padding:0 16px;
+  border-radius: 14px;
+  border:1px solid rgba(255,255,255,.14);
+  background: rgba(10,12,26,.72);
+  color: var(--text);
+  font: 800 13px/1 "Orbitron",system-ui,sans-serif;
+  letter-spacing: .10em;
+  cursor:pointer;
+}
+
+.game-stage{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index: 1;
+}
+.game-stage-inner{
+  position:relative;
+  overflow:hidden;
+  border-radius: 12px;
+}
+.game-stage-inner #root{width:100%;height:100%;min-height:0;}
+.game-stage-inner #root > div{height:100%}
+.game-stage-inner #root canvas{width:100% !important; height:100% !important; display:block;}
+
+/* Leaderboard: true 2-column list, no clipping */
+.lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.lb-item{min-width:0}
+.lb-item span:nth-child(2){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-score{white-space:nowrap}
+
+.px-init-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.px-init-modal.hidden {
+  display: none;
+}
+
+.px-init-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+}
+
+.px-init-card {
+  position: relative;
+  z-index: 1;
+  width: 320px;
+  padding: 18px 18px 20px;
+  border-radius: 16px;
+  background: linear-gradient(
+    180deg,
+    rgba(15, 19, 36, 0.95),
+    rgba(10, 12, 26, 0.95)
+  );
+  border: 1px solid rgba(0, 255, 247, 0.35);
+  box-shadow: 0 0 24px rgba(0, 255, 247, 0.15);
+  text-align: center;
+}
+
+.px-init-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: "Orbitron", system-ui, sans-serif;
+  letter-spacing: 0.10em;
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+#px-init-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(10,12,26,.72);
+  color: var(--text);
+  cursor: pointer;
+}
+
+#px-init-input {
+  width: 100%;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.20);
+  color: var(--text);
+  font: 700 16px/1 "Orbitron", system-ui, sans-serif;
+  letter-spacing: .20em;
+  text-align: center;
+  outline: none;
+  margin: 8px 0 10px;
+}
+
+#px-init-save {
+  width: 100%;
+  height: 42px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(10,12,26,.72);
+  color: var(--text);
+  font: 800 13px/1 "Orbitron", system-ui, sans-serif;
+  letter-spacing: .10em;
+  cursor: pointer;
+}
+
+#px-init-save:hover { filter: brightness(1.08); }
+
+.px-init-hint {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
 </style>
 <!-- React build -->
 <script crossorigin="" src="./assets/index-BTthQfIO.js" type="module"></script>
 </head>
 <body>
 <!-- PATCH_VERSION:MILLIPede_WRAPPER_scrollfix_v2026-02-02_1625cst -->
-<div id="pn-version-banner">PIXEL-NET · Millipede wrapper · <strong>V1.12</strong></div>
+<div id="pn-version-banner">PIXEL-NET · Millipede wrapper · <strong>V1.13</strong></div>
+<section id="px-init-modal" class="px-init-modal hidden" aria-hidden="true">
+  <div class="px-init-backdrop"></div>
+  <div class="px-init-card" role="dialog" aria-modal="true" aria-label="Enter Initials">
+    <div class="px-init-header">
+      <span>ENTER INITIALS</span>
+      <button id="px-init-close" type="button" aria-label="Close">×</button>
+    </div>
+    <input id="px-init-input" type="text" maxlength="3" placeholder="_ _ _" autocomplete="off"
+      autocapitalize="characters" spellcheck="false" />
+    <button id="px-init-save" type="button">SAVE</button>
+    <div class="px-init-hint">Press Enter to save</div>
+  </div>
+</section>
+
 <div class="topbar">
 <button class="btn" id="px-exit">EXIT</button>
-<div class="badge" id="px-badge" title="Click to change initials on home page">???</div>
+<div class="badge" id="px-badge" title="Click to change initials">???</div>
 </div>
 <div class="layout">
 <aside class="panel">
@@ -186,7 +321,7 @@ body{ padding-top:28px; }
 <main class="panel">
 <h3 class="title">MILLIPEDE CHAOS</h3>
 <div class="gamebox">
-<div class="stage" id="px-stage"><div id="root"></div></div>
+<div class="game-stage" id="pn-stage"><div class="game-stage-inner" id="pn-stage-inner"><div id="root"></div></div></div>
 <div id="px-play-again">
 <div class="inner">
 <h3>GAME OVER</h3>
@@ -196,7 +331,7 @@ body{ padding-top:28px; }
 </div>
 <div class="muted">Leaderboard refreshes automatically.</div>
 </main>
-<aside class="panel leaderboard">
+<aside class="panel">
 <h3 class="title">LEADERBOARD</h3>
 <div class="muted">Top 10</div>
 <div class="lb-grid">
@@ -227,8 +362,30 @@ body{ padding-top:28px; }
 
       const badge = document.getElementById("px-badge");
       badge.textContent = initials || "???";
-      badge.onclick = () => location.href = "../../index.html";
+      if(window.PixelNet && PixelNet.uiInit) PixelNet.uiInit();
       document.getElementById("px-exit").onclick = () => location.href = "../../index.html";
+      // --- V1.13: aspect-fit stage (20x32) to prevent horizontal stretch ---
+      const stageInner = document.getElementById("pn-stage-inner");
+      const gamebox = document.querySelector(".gamebox");
+      function fitStage(){
+        if(!stageInner || !gamebox) return;
+        const W = gamebox.clientWidth;
+        const H = gamebox.clientHeight;
+        const ratio = 20/32; // width/height
+        let w, h;
+        if(W/H > ratio){
+          h = H;
+          w = Math.floor(H * ratio);
+        }else{
+          w = W;
+          h = Math.floor(W / ratio);
+        }
+        stageInner.style.width = w + "px";
+        stageInner.style.height = h + "px";
+      }
+      fitStage();
+      window.addEventListener("resize", fitStage);
+
 
       // ---- Block duplicate /api/score submissions (even if React game tries) ----
       // We allow ONE real POST per page-load for this slug.
@@ -416,107 +573,9 @@ body{ padding-top:28px; }
           location.reload();
         }
       }, {capture:true});
-    
-      // --- Aspect-ratio lock (prevents horizontal stretch) ---
-      const stage = document.getElementById("px-stage");
-      const gamebox = document.querySelector(".gamebox");
-      const ASPECT_W = 20, ASPECT_H = 32; // 20×32 grid
-      function fitStage(){
-        if(!stage || !gamebox) return;
-        const r = gamebox.getBoundingClientRect();
-        const maxW = Math.max(0, r.width);
-        const maxH = Math.max(0, r.height);
-        const targetRatio = ASPECT_W / ASPECT_H;
-
-        let w = maxW;
-        let h = w / targetRatio;
-        if(h > maxH){
-          h = maxH;
-          w = h * targetRatio;
-        }
-        stage.style.width = Math.floor(w) + "px";
-        stage.style.height = Math.floor(h) + "px";
-      }
-      window.addEventListener("resize", fitStage);
-      if(window.ResizeObserver){
-        new ResizeObserver(fitStage).observe(gamebox);
-      }
-      fitStage();
-})();
-  
-  // --- V1.12: initials modal (wrapper) ---
-  const initialsModal = document.getElementById("pnInitialsModal");
-  const initialsInput = document.getElementById("pnInitialsInput");
-  const initialsSaveBtn = document.getElementById("pnInitialsSave");
-  const initialsCancelBtn = document.getElementById("pnInitialsCancel");
-
-  function sanitizeInitials(v){
-    return (v||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,3) || "???";
-  }
-
-  function openInitialsModal(){
-    if (!initialsModal) return;
-    const cur = localStorage.getItem("px_player_initials") || "???";
-    initialsInput.value = sanitizeInitials(cur);
-    initialsModal.classList.add("open");
-    initialsInput.focus();
-    initialsInput.select();
-  }
-  function closeInitialsModal(){
-    initialsModal?.classList.remove("open");
-  }
-
-  initialsInput?.addEventListener("input", () => {
-    initialsInput.value = sanitizeInitials(initialsInput.value);
-  });
-
-  initialsSaveBtn?.addEventListener("click", () => {
-    const v = sanitizeInitials(initialsInput.value);
-    localStorage.setItem("px_player_initials", v);
-    const badge = document.getElementById("px-badge");
-    const badgeTxt = document.getElementById("px-initials-text");
-    if (badgeTxt) badgeTxt.textContent = v;
-    closeInitialsModal();
-    // inform engine/game (if listening)
-    window.dispatchEvent(new CustomEvent("px:initials", { detail: { initials: v } }));
-  });
-  initialsCancelBtn?.addEventListener("click", closeInitialsModal);
-  initialsModal?.addEventListener("click", (e) => { if (e.target === initialsModal) closeInitialsModal(); });
-  window.addEventListener("keydown", (e) => {
-    if (!initialsModal?.classList.contains("open")) return;
-    if (e.key === "Escape") closeInitialsModal();
-    if (e.key === "Enter") initialsSaveBtn?.click();
-  });
-
-  // --- V1.12: aggressively hide the React "ENTER INITIALS" overlay (unstyled) ---
-  function hideReactInitialsOverlay(){
-    const root = document.getElementById("root");
-    if (!root) return;
-    const candidates = Array.from(root.querySelectorAll("div,section,main,header,form"));
-    for (const el of candidates){
-      const txt = (el.textContent||"").toUpperCase();
-      if (txt.includes("ENTER INITIALS") && txt.includes("SAVE")){
-        el.style.display = "none";
-      }
-    }
-  }
-  hideReactInitialsOverlay();
-  const mo = new MutationObserver(() => hideReactInitialsOverlay());
-  const rootNode = document.getElementById("root");
-  if (rootNode) mo.observe(rootNode, { childList:true, subtree:true });
+    })();
 
 </script>
-
-<div id="pnInitialsModal" aria-hidden="true">
-  <div class="card" role="dialog" aria-modal="true" aria-label="Enter initials">
-    <label for="pnInitialsInput">ENTER INITIALS</label>
-    <input id="pnInitialsInput" maxlength="3" autocapitalize="characters" autocomplete="off" inputmode="text" />
-    <div class="row">
-      <button class="primary" id="pnInitialsSave" type="button">SAVE</button>
-      <button id="pnInitialsCancel" type="button">CANCEL</button>
-    </div>
-  </div>
-</div>
 
 </body>
 </html>
