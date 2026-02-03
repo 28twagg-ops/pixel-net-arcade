@@ -124,7 +124,7 @@ main.panel{display:flex;flex-direction:column;min-height:0}
 body{ padding-top:28px; }
 
 
-/* V1.16 fixes */
+/* V1.15 fixes */
 .layout > *{min-width:0;}
 .panel{min-height:0;}
 .panel.leaderboard{overflow:hidden;}
@@ -138,7 +138,7 @@ body{ padding-top:28px; }
 #root .legend, #root [class*="legend"]{display:none !important;}
 /* initials modal (wrapper) */
 
-/* V1.16 fixes */
+/* V1.15 fixes */
 .game-stage{
   position:absolute;
   inset:0;
@@ -256,17 +256,10 @@ body{ padding-top:28px; }
 </style>
 <!-- React build -->
 <script crossorigin="" src="./assets/index-BTthQfIO.js" type="module"></script>
-
-<style>
-/* V1.16 HOTFIX */
-#px-play-again{display:none!important;pointer-events:none!important;}
-.leaderboard-footer{position:static;margin-top:8px;}
-</style>
-
 </head>
 <body>
 <!-- PATCH_VERSION:MILLIPede_WRAPPER_scrollfix_v2026-02-02_1625cst -->
-<div id="pn-version-banner">PIXEL-NET · Millipede wrapper · <strong>V1.16</strong></div>
+<div id="pn-version-banner">PIXEL-NET · Millipede wrapper · <strong>V1.15</strong></div>
 <section id="px-init-modal" class="px-init-modal hidden" aria-hidden="true">
   <div class="px-init-backdrop"></div>
   <div class="px-init-card" role="dialog" aria-modal="true" aria-label="Enter Initials">
@@ -292,6 +285,7 @@ body{ padding-top:28px; }
 <p><b>Move:</b> Arrow Keys / WASD</p>
 <p><b>Shoot:</b> Space</p>
 <p><b>Goal:</b> Clear the swarm, survive, score high.</p>
+      <p><b>Tip:</b> Use corners for safety; mushrooms block shots & movement.</p>
 </div>
 <div class="hint">Initials are set on the homepage. Click the badge (top-right) to change.</div>
 <div class="hint"><b>Game Over:</b> score auto-saves. Press <b>Enter</b> to restart.</div>
@@ -335,7 +329,7 @@ body{ padding-top:28px; }
       badge.textContent = initials || "???";
       if(window.PixelNet && PixelNet.uiInit) PixelNet.uiInit();
       document.getElementById("px-exit").onclick = () => location.href = "../../index.html";
-      // --- V1.16: aspect-fit stage (20x32) to prevent horizontal stretch ---
+      // --- V1.15: aspect-fit stage (20x32) to prevent horizontal stretch ---
       const stageInner = document.getElementById("pn-stage-inner");
       const gamebox = document.querySelector(".gamebox");
       function fitStage(){
