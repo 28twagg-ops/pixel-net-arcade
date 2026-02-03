@@ -7,6 +7,13 @@
     "description": "Defend the garden from the swarm."
   },
   {
+    "name": "CREEK CROSSER",
+    "type": "iframe",
+    "path": "games/creek-crosser/index.html",
+    "thumb": "assets/creek-crosser-thumb.png",
+    "description": "Hop, ride, and survive your way across the creek."
+  },
+  {
     "name": "NEON CHASE",
     "type": "iframe",
     "path": "games/neon-chase/index.html",
@@ -54,12 +61,5 @@
     "path": "games/astrotype/index.html",
     "thumb": "assets/astrotype_thumb.png",
     "description": "Type alien codes to defend the lunar base."
-  },
-  {
-    "name": "CREEK CROSSER",
-    "type": "iframe",
-    "path": "games/creek-crosser/index.html",
-    "thumb": "assets/creek-crosser_thumb.png",
-    "description": "Hop across the creek and survive the lanes."
   }
 ]
