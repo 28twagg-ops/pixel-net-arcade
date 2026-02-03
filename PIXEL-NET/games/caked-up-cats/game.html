@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <script>(function(){try{if(window.top!==window.self){document.documentElement.classList.add("px-embed");}}catch(e){}})();</script>
-<title>Caked Up Cats: Garden Maze</title>
+    <title>Caked Up Cats: Garden Maze</title>
     <!-- PIXEL-NET Engine (leaderboard submit) -->
     <script src="../../js/engine.js"></script>
     <style>
@@ -301,45 +300,11 @@
         .down { grid-column: 2; grid-row: 2; }
         .right { grid-column: 3; grid-row: 2; }
 
-    /* =========================================================
-   PIXEL-NET EMBED MODE (when loaded inside wrapper iframe)
-   Hides the game's internal chrome (topbar/howto/leaderboard)
-   so ONLY the game viewport renders in the canonical wrapper.
-   ========================================================= */
-html.px-embed, html.px-embed body { height:100% !important; margin:0 !important; padding:0 !important; overflow:hidden !important; background:transparent !important; }
-
-/* Common internal chrome */
-html.px-embed header,
-html.px-embed .topbar,
-html.px-embed #px-exit,
-html.px-embed #px-badge,
-html.px-embed #px-initials,
-html.px-embed nav,
-html.px-embed aside,
-html.px-embed .howto,
-html.px-embed .leaderboard,
-html.px-embed #howto,
-html.px-embed #leaderboard,
-html.px-embed #px-lb,
-html.px-embed .center-head { display:none !important; }
-
-/* If the game uses a 3-col layout, collapse to just the center area */
-html.px-embed .layout { display:block !important; width:100% !important; height:100% !important; margin:0 !important; padding:0 !important; }
-
-/* Make the main game surface fill the iframe */
-html.px-embed main,
-html.px-embed .panel,
-html.px-embed .panel.center,
-html.px-embed .panel.main,
-html.px-embed .center,
-html.px-embed #game-container,
-html.px-embed .gamewrap,
-html.px-embed .gamebox,
-html.px-embed #px-gamebox { width:100% !important; height:100% !important; max-width:none !important; max-height:none !important; margin:0 !important; padding:0 !important; border:none !important; border-radius:0 !important; background:transparent !important; box-shadow:none !important; }
-
-/* Canvas fills */
-html.px-embed canvas { width:100% !important; height:100% !important; display:block !important; }
-
+    
+        /* PIXEL-NET EMBED HARDENING */
+        html, body { background: #050611 !important; }
+        body { overflow:hidden !important; }
+        canvas { background: transparent; }
 </style>
 </head>
 <body>

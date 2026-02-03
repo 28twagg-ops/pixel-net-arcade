@@ -1,1263 +1,1198 @@
+<!-- PIXEL-NET Millipede Wrapper -->
+<!-- Version: V3.5 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ROBO-ARENA</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
-  <style>
-    :root{
-      --text:#e9ecff;
-      --muted:#a7b0d6;
-      --stroke: rgba(255,255,255,.10);
-      --shadow: 0 14px 40px rgba(0,0,0,.35);
-      --panel: rgba(15,19,36,.72);
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      color:var(--text);
-      background:
-        radial-gradient(1200px 700px at 20% 10%, rgba(255,0,122,.14), transparent 60%),
-        radial-gradient(900px 500px at 85% 20%, rgba(0,255,247,.12), transparent 55%),
-        linear-gradient(180deg, #050611 0%, #060716 100%);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      /* Allow scrolling outside the game area on mobile */
-      overflow:auto;
-      touch-action:pan-y;
-    }
-    .topbar{
-      width:min(1200px, 92vw);
-      margin:14px auto 12px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-    }
-    .btn{
-      font-family:"Orbitron", system-ui, sans-serif;
-      letter-spacing:.10em;
-      text-transform:uppercase;
-      border:1px solid rgba(0,255,247,.40);
-      background: rgba(0,255,247,.10);
-      color:#00f3ff;
-      padding:10px 12px;
-      border-radius:14px;
-      cursor:pointer;
-    }
-    .btn:hover{ background: rgba(0,255,247,.16); box-shadow:0 0 14px rgba(0,243,255,.20); }
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>ROBO ARENA</title>
 
-    .badge{
-      font-family:"Orbitron", system-ui, sans-serif;
-      letter-spacing:.12em;
-      border:1px solid rgba(255,255,255,.14);
-      background: rgba(0,0,0,.28);
-      padding:10px 12px;
-      border-radius:18px;
-      cursor:pointer;
-      color:var(--text);
-    }
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet"/>
 
-    .layout{
-      width:min(1200px, 92vw);
-      margin:0 auto 16px;
-      display:grid;
-      grid-template-columns: 320px 1fr 320px;
-      gap:14px;
-      height: calc(100vh - 86px);
-      min-height: 520px;
-    }
-    .panel{
-      border:1px solid var(--stroke);
-      background: var(--panel);
-      border-radius:18px;
-      box-shadow: var(--shadow);
-      padding:14px;
-      overflow:hidden;
-    }
-    .title{
-      margin:0 0 10px 0;
-      font-family:"Orbitron", system-ui, sans-serif;
-      letter-spacing:.10em;
-      font-size:13px;
-      color: rgba(233,236,255,.92);
-    }
-    .muted{ color:var(--muted); font-size:13px; line-height:1.35; }
-    .lb-meta{ margin-top:10px; font-size:12px; color:var(--muted); opacity:.9; }
+<style>
+/* ========================================================
+   PIXEL-NET · Millipede Wrapper · V2.0
+   Single consolidated stylesheet — no hotfix layers.
+   ======================================================== */
 
-    .gamewrap{ display:flex; flex-direction:column; gap:10px; }
-    .gamebox{
-      position:relative;
-      flex:1;
-      min-height: 420px;
-      border-radius:16px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(0,0,0,.35);
-      overflow:hidden;
-      touch-action:none; /* capture touch for joysticks */
-    }
+/* --- Design Tokens --- */
+:root {
+  --text:        #e9ecff;
+  --muted:       #a7b0d6;
+  --card-top:    rgba(15, 19, 36, .72);
+  --card-bot:    rgba(10, 12, 26, .55);
+  --stroke:      rgba(255, 255, 255, .10);
+  --shadow:      0 14px 40px rgba(0, 0, 0, .35);
+  --accent-cyan: rgba(0, 255, 247, .35);
+  --glow-cyan:   rgba(0, 255, 247, .15);
+  --font-ui:     system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  --font-arcade: "Orbitron", var(--font-ui);
+  --banner-h:    28px;   /* version banner height */
+  --topbar-h:    38px;
+  --gap:         14px;
 
-    /* Robo Arena internal styles (scoped) */
-    #game-container{
-      position:absolute;
-      inset:0;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
-    }
-    canvas{
-      box-shadow: 0 0 30px rgba(0, 255, 255, 0.15);
-      border: 4px solid #222;
-      background-color: #000;
-      max-width:100%;
-      max-height:100%;
-    }
-    #ui-layer{
-      position:absolute;
-      top:0; left:0;
-      width:100%; height:100%;
-      pointer-events:none;
-      display:flex;
-      flex-direction:column;
-      justify-content:space-between;
-    }
-    .hud-top{
-      display:flex;
-      justify-content:space-between;
-      padding:10px 20px;
-      font-size:20px;
-      text-shadow:0 0 5px currentColor;
-      background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
-      font-family: 'Courier New', Courier, monospace;
-    }
-    .hud-score{ color:#0ff; }
-    .hud-lives{ color:#f0f; }
-    .hud-level{ color:#ff0; }
+  /* ── Millipede game-theme palette ── */
+  /* Deep mossy greens for panel fills */
+  --game-card-top:  rgba(14, 16, 22, .88);   /* dark forest */
+  --game-card-bot:  rgba(8, 9, 12, .74);   /* deeper moss */
+  /* Warm mushroom-cap accent (the red-orange caps in-game) */
+  --game-accent:    rgba(255, 170, 60, .55);  /* burnt mushroom */
+  --game-glow:      rgba(255, 170, 60, .20);  /* subtle warm glow */
+  /* Leaf-green stroke */
+  --game-stroke:    rgba(200, 215, 255, .18); /* soft green edge */
+  /* Leaderboard item tint — very faint green wash */
+  --game-item-bg:   rgba(40, 45, 60, .35);
+  --game-item-stroke: rgba(255, 170, 60, .14);
+}
 
-    #start-screen, #game-over-screen{
-      position:absolute;
-      inset:0;
-      background: rgba(0,0,0,0.9);
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      align-items:center;
-      pointer-events:auto;
-      z-index:10;
-      padding: 18px;
-    }
-    #game-over-screen.hidden{ display:none !important; }
-    h1{
-      font-size: 3rem;
-      margin: 0 0 6px 0;
-      color:#f00;
-      text-transform:uppercase;
-      text-shadow:4px 4px 0px #fff;
-      letter-spacing:5px;
-      text-align:center;
-      font-family: 'Courier New', Courier, monospace;
-    }
-    p{
-      font-size:1rem;
-      margin: 0 0 16px 0;
-      color:#ddd;
-      text-align:center;
-      line-height:1.4;
-      max-width:600px;
-      font-family: 'Courier New', Courier, monospace;
-    }
-    .btn2{
-      background: transparent;
-      color:#0f0;
-      border:2px solid #0f0;
-      padding:10px 30px;
-      font-size:1.2rem;
-      font-family: 'Courier New', Courier, monospace;
-      cursor:pointer;
-      text-transform:uppercase;
-      transition: all 0.2s;
-      box-shadow: 0 0 10px #0f0;
-      margin-top: 12px;
-    }
-    .btn2:hover{ background:#0f0; color:#000; box-shadow:0 0 20px #0f0; }
+/* --- Reset --- */
+*, *::before, *::after { box-sizing: border-box; }
 
-    .controls-info{
-      display:flex;
-      gap:40px;
-      margin-bottom:18px;
-      font-size:0.8rem;
-      color:#aaa;
-      font-family: 'Courier New', Courier, monospace;
-    }
-    .key-group{text-align:center}
-    .key{display:inline-block;border:1px solid #666;padding:2px 6px;border-radius:4px;color:#fff;background:#222}
+/* --- Root / Body --- */
+html, body { height: 100%; margin: 0; }
+body {
+  min-height: 100dvh;
+  overflow: auto;                          /* page-level scroll allowed */
+  display: flex;
+  flex-direction: column;
+  padding: var(--banner-h) 0 10px;         /* top pad = banner height */
+  color: var(--text);
+  font-family: var(--font-ui);
+  background:
+    radial-gradient(1200px 700px at 20% 10%, rgba(255,0,122,.14), transparent 60%),
+    radial-gradient(900px 500px at 85% 20%, rgba(0,255,247,.12), transparent 55%),
+    linear-gradient(180deg, #050611 0%, #060716 100%);
+  color-scheme: dark;
+  touch-action: auto;
+  overscroll-behavior: auto;
+}
 
-    .leaderboard{
-      margin-top: 8px;
-      border:2px solid #444;
-      padding: 15px;
-      background: rgba(20,20,20,0.8);
-      width: 300px;
-      box-shadow: 0 0 15px rgba(0,255,255,0.1);
-    }
-    .leaderboard h3{
-      color:#ff0;
-      margin:0 0 10px 0;
-      text-align:center;
-      text-transform:uppercase;
-      letter-spacing:2px;
-      border-bottom:1px solid #444;
-      padding-bottom:5px;
-      font-family: 'Courier New', Courier, monospace;
-    }
-    .score-row{ display:flex; justify-content:space-between; margin:5px 0; font-family: monospace; font-size:1.1rem; }
-    .score-rank{ color:#888; margin-right:10px; }
-    .score-name{ color:#0ff; }
-    .score-val{ color:#fff; }
+/* --------------------------------------------------------
+   VERSION BANNER  (fixed top strip)
+   -------------------------------------------------------- */
+#pn-version-banner {
+  position: fixed;
+  inset: 0 0 auto 0;                      /* top-left-right */
+  height: var(--banner-h);
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font: 12px/1.2 var(--font-ui);
+  background: rgba(0, 0, 0, .78);
+  color: var(--text);
+  border-bottom: 1px solid var(--stroke);
+  pointer-events: none;
+}
 
-    #mobile-controls{
-      display:none;
-      position:absolute;
-      bottom: 14px;
-      left:0;
-      width:100%;
-      height:150px;
-      pointer-events:none;
-      justify-content:space-between;
-      padding:0 26px;
-      box-sizing:border-box;
-      z-index: 20;
-    }
-    
+/* --------------------------------------------------------
+   TOP BAR  (Exit left · Badge right)
+   -------------------------------------------------------- */
+.topbar {
+  width: min(1300px, 94vw);
+  margin: 0 auto 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+.btn, .badge {
+  height: var(--topbar-h);
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(10,12,26,.72);
+  color: var(--text);
+  font: 700 13px/1 var(--font-arcade);
+  letter-spacing: .10em;
+  cursor: pointer;
+  transition: filter .15s;
+}
+.btn:hover, .badge:hover { filter: brightness(1.12); }
+.badge {
+  min-width: 54px;
+  display: inline-grid;
+  place-items: center;
+}
 
-    /* Force virtual joysticks ONLY on mobile / touch */
-    @media (pointer:fine) and (min-width:1001px){
-      #mobile-controls{ display:none !important; }
-    }
-    @media (pointer:coarse), (max-width:1000px){
-      #mobile-controls{ display:flex; }
-    }
-.joystick-zone{
-      width:120px; height:120px;
-      background: rgba(255,255,255,0.10);
-      border-radius:50%;
-      border:2px solid rgba(255,255,255,0.30);
-      position:relative;
-      pointer-events:auto;
-    }
-    .joystick-knob{
-      width:50px;height:50px;
-      background: rgba(255,255,255,0.50);
-      border-radius:50%;
-      position:absolute;
-      top:50%; left:50%;
-      transform: translate(-50%, -50%);
-      pointer-events:none;
-    }
+/* --------------------------------------------------------
+   THREE-COLUMN LAYOUT  (desktop)
+   -------------------------------------------------------- */
+.layout {
+  width: min(1300px, 94vw);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(220px, 280px)  /* How To Play */
+                         minmax(360px, 1fr)     /* Game        */
+                         minmax(220px, 280px);  /* Leaderboard */
+  gap: var(--gap);
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-height: 0;
+}
 
-    @media (max-width: 1100px){
-      .layout{ grid-template-columns: 1fr; height:auto; min-height:0; }
-      body{ overflow:auto; }
-      .gamebox{ min-height: 62vh; }
-    }
-    @media (max-width: 768px){
-      h1{ font-size:2rem; }
-      .controls-info{ display:none; }
-      #mobile-controls{ display:flex; }
-      .leaderboard{ width: 90%; font-size:0.9rem; }
-    }
-  </style>
+/* --------------------------------------------------------
+   PANELS  (shared chrome)
+   -------------------------------------------------------- */
+.panel {
+  background: linear-gradient(180deg, var(--card-top), var(--card-bot));
+  border: 1px solid var(--stroke);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 14px;
+  min-height: 0;
+  overflow: auto;
+}
+.panel.leaderboard { overflow: hidden; }
+
+/* --------------------------------------------------------
+   GAME-THEMED PANELS  (How To Play + Leaderboard)
+   Deep moss greens + warm mushroom-cap accents
+   -------------------------------------------------------- */
+aside.panel {
+  background: linear-gradient(180deg, var(--game-card-top), var(--game-card-bot));
+  border-color: var(--game-stroke);
+  box-shadow: 0 14px 40px rgba(0,0,0,.35), 0 0 18px var(--game-glow);
+}
+aside.panel .title {
+  color: #7fdf8a;                          /* leaf-green heading */
+  text-shadow: 0 0 8px rgba(80, 200, 100, .25);
+}
+aside.panel .muted,
+aside.panel .hint  { color: #8aac8f; }     /* muted moss-green body text */
+aside.panel .hint b { color: #b8e6bf; }    /* slightly brighter emphasis */
+
+/* Leaderboard items: green-washed cards with subtle warm top border on #1 */
+.lb-item {
+  background: var(--game-item-bg);
+  border-color: var(--game-item-stroke);
+}
+.lb-item:first-child {
+  border-top: 2px solid var(--game-accent);  /* mushroom-cap gold-line on rank 1 */
+}
+.lb-rank  { color: #7fdf8a; }
+.lb-score { color: #f0c87a; }              /* warm amber scores */
+.lb-meta  { color: #6a8a70; }
+
+.title {
+  font-family: var(--font-arcade);
+  letter-spacing: .10em;
+  margin: 0 0 10px;
+  font-size: 14px;
+}
+.muted { color: var(--muted); }
+.hint  { color: var(--muted); font-size: 12px; margin-top: 10px; }
+
+/* --------------------------------------------------------
+   GAME PANEL  (center column)
+   -------------------------------------------------------- */
+main.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Outer container — fills the panel, clips nothing except overflow */
+.gamebox {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--stroke);
+  background: rgba(0,0,0,.28);
+  touch-action: none;                      /* block scroll ONLY here */
+  overscroll-behavior: contain;
+}
+
+/* Centering stage — fills gamebox, centers the inner aspect-locked shell */
+.game-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+/* Aspect-locked shell — width + height set by JS (fitStage) */
+.game-stage-inner {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  background: rgba(0,0,0,.22);
+}
+.game-stage-inner #root            { width: 100%; height: 100%; min-height: 0; }
+.game-stage-inner #root > div      { height: 100%; }
+.game-stage-inner #root canvas     { width: 100% !important; height: 100% !important; display: block; }
+
+/* --------------------------------------------------------
+   LEADERBOARD  (right column)
+   -------------------------------------------------------- */
+.lb-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+  height: 100%;
+  overflow: auto;
+}
+.lb-col { list-style: none; padding: 0; margin: 0; }
+.lb-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(0,0,0,.18);
+  font-family: var(--font-arcade);
+  letter-spacing: .06em;
+  font-size: 12px;
+  min-width: 0;
+}
+.lb-item .lb-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lb-rank  { opacity: .85; min-width: 22px; }
+.lb-score { font-weight: 800; white-space: nowrap; }
+.lb-meta  { color: var(--muted); font-size: 11px; margin-top: 10px; }
+
+/* --------------------------------------------------------
+   INITIALS MODAL  (compact banner-style, Enter to save)
+   -------------------------------------------------------- */
+.px-init-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.px-init-modal.hidden { display: none; }
+
+.px-init-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.75);
+  backdrop-filter: blur(4px);
+}
+
+.px-init-card {
+  position: relative;
+  z-index: 1;
+  width: 300px;
+  padding: 16px 18px 14px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(15,19,36,.95), rgba(10,12,26,.95));
+  border: 1px solid var(--accent-cyan);
+  box-shadow: 0 0 24px var(--glow-cyan);
+  text-align: center;
+}
+
+/* Header row: label left, close right */
+.px-init-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-arcade);
+  letter-spacing: .10em;
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+#px-init-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(10,12,26,.72);
+  color: var(--text);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: filter .15s;
+}
+#px-init-close:hover { filter: brightness(1.15); }
+
+/* 3-char input — the only interactive element */
+#px-init-input {
+  width: 100%;
+  height: 42px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.20);
+  color: var(--text);
+  font: 700 18px/1 var(--font-arcade);
+  letter-spacing: .24em;
+  text-align: center;
+  outline: none;
+  margin: 4px 0 6px;
+  transition: border-color .2s;
+}
+#px-init-input:focus { border-color: var(--accent-cyan); }
+
+/* Subtle "Press Enter to save" hint — no big SAVE button */
+.px-init-hint {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: .04em;
+}
+
+
+/* SAVE button: hidden on desktop (Enter-to-save UX), shown on mobile */
+#px-init-save {
+  display: none;
+}
+/* --------------------------------------------------------
+   MOBILE LAYOUT  (single column + tabs)
+   -------------------------------------------------------- */
+.mobile-tabs        { display: none; }                /* hidden on desktop */
+.m-panel              { display: none; }                /* hidden on desktop, shown by tab JS on mobile */
+.mobile-tabs button { /* styled below in the media query */ }
+
+@media (max-width: 1000px) {
+  /* --- hide desktop grid, show mobile stack --- */
+  .layout { display: none; }
+
+  .topbar { width: 96vw; margin-bottom: 6px; }
+
+  /* Tab bar */
+  .mobile-tabs {
+    display: flex;
+    width: 96vw;
+    margin: 0 auto 6px;
+    gap: 4px;
+  }
+  .mobile-tabs button {
+    flex: 1;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid var(--stroke);
+    background: rgba(10,12,26,.55);
+    color: var(--muted);
+    font: 700 11px/1 var(--font-arcade);
+    letter-spacing: .08em;
+    cursor: pointer;
+    transition: background .18s, color .18s;
+  }
+  .mobile-tabs button.active {
+    background: rgba(0,255,247,.15);
+    border-color: var(--accent-cyan);
+    color: var(--text);
+  }
+
+  /* Mobile panels — stacked, each shown/hidden by JS */
+  .m-panel {
+    display: block;                          /* re-enable; .hidden toggles per-tab */
+    width: 96vw;
+    margin: 0 auto 8px;
+    border-radius: 16px;
+    background: linear-gradient(180deg, var(--card-top), var(--card-bot));
+    border: 1px solid var(--stroke);
+    box-shadow: var(--shadow);
+    padding: 14px;
+  }
+  .m-panel.hidden { display: none; }
+
+  /* Game-themed colors on mobile How To Play + Leaderboard */
+  #m-howto, #m-lb {
+    background: linear-gradient(180deg, var(--game-card-top), var(--game-card-bot));
+    border-color: var(--game-stroke);
+    box-shadow: 0 14px 40px rgba(0,0,0,.35), 0 0 18px var(--game-glow);
+  }
+  #m-howto .title, #m-lb .title {
+    color: #7fdf8a;
+    text-shadow: 0 0 8px rgba(80, 200, 100, .25);
+  }
+  #m-howto .muted, #m-howto .hint,
+  #m-lb .muted    { color: #8aac8f; }
+  #m-howto .hint b { color: #b8e6bf; }
+  #m-lb .lb-item  { background: var(--game-item-bg); border-color: var(--game-item-stroke); }
+  #m-lb .lb-item:first-child { border-top: 2px solid var(--game-accent); }
+  #m-lb .lb-rank  { color: #7fdf8a; }
+  #m-lb .lb-score { color: #f0c87a; }
+  #m-lb .lb-meta  { color: #6a8a70; }
+
+  /* Game panel: let the gamebox fill remaining viewport height */
+  #m-game .gamebox {
+    width: 100%;
+    /* height = viewport − banner − topbar − tabs − panel-pad − some breathing room */
+    height: calc(100dvh - var(--banner-h) - var(--topbar-h) - 34px - 28px - 60px);
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--stroke);
+    background: rgba(0,0,0,.28);
+    touch-action: none;
+    overscroll-behavior: contain;
+  }
+  /* Reuse the same stage classes; fitStage JS targets #pn-stage-inner */
+  #m-game .game-stage        { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index:1; }
+  #m-game .game-stage-inner  { position: relative; overflow: hidden; border-radius: 12px;
+  background: rgba(0,0,0,.22); }
+  #m-game .game-stage-inner #root            { width: 100%; height: 100%; min-height: 0; }
+  #m-game .game-stage-inner #root > div      { height: 100%; }
+  #m-game .game-stage-inner #root canvas     { width: 100% !important; height: 100% !important; display: block; }
+
+  /* ── Mobile modal: matches the screenshot exactly ── */
+  .px-init-card {
+    width: 88vw;
+    max-width: 340px;
+    padding: 22px 20px 24px;
+  }
+  .px-init-header {
+    font-size: 14px;
+    margin-bottom: 14px;
+  }
+  #px-init-close {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    font-size: 20px;
+  }
+  #px-init-input {
+    height: 48px;
+    font-size: 20px;
+    margin: 6px 0 12px;
+  }
+  /* Show the SAVE button on mobile */
+  #px-init-save {
+    display: block;
+    width: 100%;
+    height: 44px;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,.14);
+    background: rgba(10,12,26,.72);
+    color: var(--text);
+    font: 800 13px/1 var(--font-arcade);
+    letter-spacing: .10em;
+    cursor: pointer;
+    margin-bottom: 4px;
+    transition: filter .15s;
+  }
+  #px-init-save:hover { filter: brightness(1.12); }
+  .px-init-hint {
+    font-size: 13px;
+    margin-top: 2px;
+  }
+}
+
+</style>
 </head>
 <body>
-  <div class="topbar">
-    <button class="btn" id="px-exit">EXIT</button>
-    <div class="badge" id="px-badge" title="Click to change initials on home page">???</div>
+
+<!-- ============================================================
+     VERSION BANNER
+     ============================================================ -->
+<div id="pn-version-banner">
+  PIXEL-NET · Millipede · <strong>V2.4</strong>
+</div>
+
+<!-- ============================================================
+     INITIALS MODAL  (opened by badge click, not navigation)
+     ============================================================ -->
+<section id="px-init-modal" class="px-init-modal hidden" aria-hidden="true">
+  <div class="px-init-backdrop"></div>
+  <div class="px-init-card" role="dialog" aria-modal="true" aria-label="Enter Initials">
+    <div class="px-init-header">
+      <span>ENTER INITIALS</span>
+      <button id="px-init-close" type="button" aria-label="Close">×</button>
+    </div>
+    <input id="px-init-input" type="text" maxlength="3" placeholder="_ _ _"
+           autocomplete="off" autocapitalize="characters" spellcheck="false"/>
+    <button id="px-init-save" type="button">SAVE</button>
+    <div class="px-init-hint">Press Enter to save</div>
   </div>
+</section>
 
-  <div class="layout">
-    <aside class="panel">
-      <h3 class="title">HOW TO PLAY</h3>
-      <div class="muted">
-        <p><b>Move:</b> WASD (or left stick)</p>
-        <p><b>Shoot:</b> Arrow Keys (or right stick)</p>
-        <p><b>Goal:</b> Protect humans, clear waves, climb levels.</p>
-      </div>
-      <div class="lb-meta">Initials are set on the homepage. Click the badge (top-right) to change.</div>
-    </aside>
+<!-- ============================================================
+     TOP BAR
+     ============================================================ -->
+<div class="topbar">
+  <button class="btn" id="px-exit">EXIT</button>
+  <div  class="badge" id="px-badge" title="Click to change initials">???</div>
+</div>
 
-    <main class="panel gamewrap">
-      <h3 class="title">ROBO-ARENA</h3>
-      <div class="gamebox" id="px-gamebox">
-        <div id="game-container">
-          <canvas id="gameCanvas"></canvas>
+<!-- ============================================================
+     MOBILE TAB BAR  (visible only ≤ 768px)
+     ============================================================ -->
+<div class="mobile-tabs" id="m-tabs">
+  <button class="active" data-tab="game">GAME</button>
+  <button            data-tab="howto">HOW TO PLAY</button>
+  <button            data-tab="lb">LEADERBOARD</button>
+</div>
 
-          <div id="ui-layer">
-            <div class="hud-top">
-              <div class="hud-score">SCORE: <span id="scoreDisplay">0</span></div>
-              <div class="hud-level">LEVEL: <span id="levelDisplay">1</span></div>
-              <div class="hud-lives">LIVES: <span id="livesDisplay">3</span></div>
-            </div>
-          </div>
+<!-- ============================================================
+     DESKTOP: THREE-COLUMN GRID
+     ============================================================ -->
+<div class="layout">
 
-          <div id="start-screen">
-            <h1>ROBO-ARENA</h1>
-            <p>Protect Humans. Destroy Robots.<br>Aliens appear Level 2+.</p>
+  <!-- LEFT: How To Play -->
+  <aside class="panel">
+    <h3 class="title">HOW TO PLAY</h3>
+    <div class="muted">
+      
+      <p><b>Move:</b> WASD / Arrow Keys</p>
+      <p><b>Attack:</b> Space (or click if enabled)</p>
+      <p><b>Goal:</b> Outlast bots, control the arena, score high.</p>
+    </div>
+    <div class="hint">
+      Initials are set on the homepage. Click the badge (top-right) to change them here.
+    </div>
+    <div class="hint">
+      <b>Game Over:</b> your score auto-saves. Press <b>Enter</b> to restart.
+    </div>
+  </aside>
 
-            <div class="controls-info">
-              <div class="key-group">
-                <div>MOVE</div>
-                <div><span class="key">W</span><span class="key">A</span><span class="key">S</span><span class="key">D</span></div>
-              </div>
-              <div class="key-group">
-                <div>SHOOT</div>
-                <div><span class="key">ARROWS</span></div>
-              </div>
-            </div>
-
-            <div class="leaderboard">
-              <h3>Top Agents</h3>
-              <div id="score-list"></div>
-            </div>
-
-            <button class="btn2" id="startBtn">INSERT COIN</button>
-          </div>
-
-          <div id="game-over-screen" class="hidden">
-            <h1 style="color:#fff">GAME OVER</h1>
-            <p>FINAL SCORE: <span id="finalScore" style="color:#0ff; font-size:1.5rem">0</span></p>
-            <div id="standard-game-over-controls">
-              <button class="btn2" id="restartBtn">TRY AGAIN</button>
-            </div>
-          </div>
-
-          <div id="mobile-controls">
-            <div class="joystick-zone" id="stick-move">
-              <div class="joystick-knob" id="knob-move"></div>
-            </div>
-            <div class="joystick-zone" id="stick-aim">
-              <div class="joystick-knob" id="knob-aim"></div>
-            </div>
-          </div>
+  <!-- CENTER: Game -->
+  <main class="panel">
+    <h3 class="title">ROBO ARENA</h3>
+    <div class="gamebox">
+      <div class="game-stage" id="pn-stage">
+        <div class="game-stage-inner" id="pn-stage-inner">
+          <iframe id="pn-iframe" title="ROBO ARENA" src="./game.html" style="border:0; width:100%; height:100%; display:block; background:transparent;"></iframe>
         </div>
       </div>
-      <div class="muted">Backend leaderboard + auto-save on game over.</div>
-    </main>
+    </div>
+    <div class="muted" style="font-size:11px; margin-top:6px;">Leaderboard refreshes automatically.</div>
+  </main>
 
-    <aside class="panel">
-      <h3 class="title">LEADERBOARD</h3>
-      <div id="px-lb" class="muted">Loading…</div>
-    </aside>
+  <!-- RIGHT: Leaderboard -->
+  <aside class="panel leaderboard">
+    <h3 class="title">LEADERBOARD</h3>
+    <div class="muted">Top 10</div>
+    <div class="lb-grid">
+      <ol class="lb-col" id="lb-left"></ol>
+      <ol class="lb-col" id="lb-right"></ol>
+    </div>
+    <div class="lb-meta" id="lb-status">Loading…</div>
+  </aside>
+</div>
+
+<!-- ============================================================
+     MOBILE PANELS  (shown/hidden by tab JS; ≤ 768px only)
+     They duplicate the content above so the desktop grid stays
+     untouched and the React #root lives in one place.
+     ============================================================ -->
+<div id="m-howto" class="m-panel hidden">
+  <h3 class="title">HOW TO PLAY</h3>
+  <div class="muted">
+    
+      <p><b>Move:</b> WASD / Arrow Keys</p>
+      <p><b>Attack:</b> Space (or click if enabled)</p>
+      <p><b>Goal:</b> Outlast bots, control the arena, score high.</p>
   </div>
-
-  <script src="../../js/engine.js"></script>
-  <script>
-    (function(){
-      const SLUG = "robo-arena";
-      const ls = localStorage.getItem("px_player_initials") || "";
-      if(ls) sessionStorage.setItem("playerInitials", ls);
-      if(window.PixelNet && PixelNet.init) PixelNet.init();
-
-      const badge = document.getElementById("px-badge");
-      badge.textContent = ls || "???";
-      badge.onclick = () => location.href = "../../index.html";
-      document.getElementById("px-exit").onclick = () => location.href = "../../index.html";
-
-      function renderRows(rows){
-        const top = (rows || []).slice(0, 10);
-        if(top.length === 0){
-          return '<div class="muted">No scores yet.</div>';
-        }
-        return top.map((r, i) => {
-          const name = (r.initials || r.name || "---").toString().toUpperCase().slice(0,3);
-          const val = Math.max(0, Math.floor(Number(r.score) || 0));
-          return `<div class="score-row">
-            <div><span class="score-rank">#${i+1}</span><span class="score-name">${name}</span></div>
-            <span class="score-val">${val}</span>
-          </div>`;
-        }).join("");
-      }
-
-      async function renderLeaderboard(){
-        try{
-          const rows = (window.PixelNet && PixelNet.getLeaderboard) ? await PixelNet.getLeaderboard(SLUG) : [];
-          document.getElementById("px-lb").innerHTML = renderRows(rows);
-          document.getElementById("score-list").innerHTML = renderRows(rows.slice(0,5));
-        }catch(e){
-          console.warn("[robo-arena] leaderboard failed", e);
-          document.getElementById("px-lb").innerHTML = '<div class="muted">Offline</div>';
-          document.getElementById("score-list").innerHTML = '<div class="muted">Offline</div>';
-        }
-      }
-
-      renderLeaderboard();
-      window.__pxRenderRoboLeaderboard = renderLeaderboard;
-
-      // Prevent page scroll while touching the gamebox (mobile)
-      const gb = document.getElementById("px-gamebox");
-      if(gb){
-        gb.addEventListener("touchmove", (e)=>{ e.preventDefault(); }, {passive:false});
-      }
-
-      // Expose slug for game script
-      window.__PX_GAME_SLUG__ = SLUG;
-    })();
-  </script>
-
-  <script>
-/**
- * ROBO-ARENA (canonical)
- * Minimal changes: backend leaderboard + auto-save on GAME OVER (no initials)
- */
-
-// --- Audio System ---
-const AudioSys = (() => {
-    let ctx = null;
-    let masterGain = null;
-
-    function init() {
-        if (!ctx) {
-            ctx = new (window.AudioContext || window.webkitAudioContext)();
-            masterGain = ctx.createGain();
-            masterGain.gain.value = 0.3;
-            masterGain.connect(ctx.destination);
-        }
-        if (ctx.state === 'suspended') ctx.resume();
-    }
-
-    function playTone(freq, type, duration, vol = 1, slideTo = null) {
-        if (!ctx) return;
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, ctx.currentTime);
-        if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, ctx.currentTime + duration);
-
-        gain.gain.setValueAtTime(vol, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
-
-        osc.connect(gain);
-        gain.connect(masterGain);
-        osc.start();
-        osc.stop(ctx.currentTime + duration);
-    }
-
-    function shoot() { playTone(800, 'square', 0.1, 0.5, 300); }
-    function enemyShoot() { playTone(400, 'sawtooth', 0.15, 0.5, 200); }
-    function explosion() { playTone(100, 'sawtooth', 0.4, 0.8, 10); }
-    function pickup() { playTone(1200, 'sine', 0.2, 0.6, 2000); }
-    function levelUp() {
-        setTimeout(() => playTone(600, 'square', 0.1, 0.6), 0);
-        setTimeout(() => playTone(800, 'square', 0.1, 0.6), 100);
-        setTimeout(() => playTone(1200, 'square', 0.4, 0.6), 200);
-    }
-    function die() { playTone(500, 'sawtooth', 1.0, 1.0, 50); }
-    function highScore() {
-        playTone(1000, 'square', 0.1, 0.5);
-        setTimeout(() => playTone(1500, 'square', 0.1, 0.5), 100);
-        setTimeout(() => playTone(2000, 'square', 0.2, 0.5), 200);
-    }
-
-    return { init, shoot, enemyShoot, explosion, pickup, levelUp, die, highScore };
-})();
-
-// --- Constants & Config ---
-const TILE_SIZE = 40;
-
-const COLORS = {
-    PLAYER: '#0ff',
-    HUMAN: '#f0f',
-    GRUNT: '#f00',
-    HULK: '#0f0',
-    ENFORCER: '#ff9900',
-    BULLET: '#ff0',
-    ENEMY_BULLET: '#ff4400',
-    OBSTACLE: '#333'
-};
-
-// --- Game Engine ---
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-ctx.shadowBlur = 0;
-
-let animationId;
-let lastTime = 0;
-
-// Game State
-const state = {
-    active: false,
-    level: 1,
-    score: 0,
-    lives: 3,
-    entities: [],
-    particles: [],
-    width: 0,
-    height: 0,
-    waveCompleteTimer: 0
-};
-
-// Input State
-const input = {
-    keys: {},
-    move: { x: 0, y: 0 },
-    aim: { x: 0, y: 0 },
-    firing: false
-};
-
-// --- Classes ---
-class Entity {
-    constructor(x, y, type) {
-        this.x = x;
-        this.y = y;
-        this.type = type;
-        this.radius = 10;
-        this.dead = false;
-        this.vx = 0;
-        this.vy = 0;
-        this.speed = 0;
-        this.color = '#fff';
-    }
-
-    update(dt) {
-        this.x += this.vx * dt;
-        this.y += this.vy * dt;
-
-        if (this.x < this.radius) this.x = this.radius;
-        if (this.x > state.width - this.radius) this.x = state.width - this.radius;
-        if (this.y < this.radius) this.y = this.radius;
-        if (this.y > state.height - this.radius) this.y = state.height - this.radius;
-    }
-
-    draw(ctx) {
-        ctx.save();
-        ctx.translate(this.x, this.y);
-        ctx.fillStyle = this.color;
-        this.drawShape(ctx);
-        ctx.restore();
-    }
-
-    drawShape(ctx) {
-        ctx.beginPath();
-        ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
-        ctx.fill();
-    }
-}
-
-class Player extends Entity {
-    constructor(x, y) {
-        super(x, y, 'player');
-        this.speed = 250;
-        this.color = COLORS.PLAYER;
-        this.lastShot = 0;
-        this.fireRate = 0.08;
-        this.facing = 0;
-        this.animTimer = 0;
-    }
-
-    update(dt) {
-        this.vx = input.move.x * this.speed;
-        this.vy = input.move.y * this.speed;
-
-        if (this.vx !== 0 || this.vy !== 0) this.animTimer += dt * 15;
-        else this.animTimer = 0;
-
-        super.update(dt);
-
-        if (input.aim.x !== 0 || input.aim.y !== 0) {
-            this.facing = Math.atan2(input.aim.y, input.aim.x);
-            this.lastShot -= dt;
-            if (this.lastShot <= 0) {
-                this.shoot();
-                this.lastShot = this.fireRate;
-            }
-        } else if (input.move.x !== 0 || input.move.y !== 0) {
-            this.facing = Math.atan2(input.move.y, input.move.x);
-        }
-    }
-
-    shoot() {
-        const dx = Math.cos(this.facing);
-        const dy = Math.sin(this.facing);
-        state.entities.push(new Bullet(this.x + dx * 15, this.y + dy * 15, dx, dy, false));
-        AudioSys.shoot();
-    }
-
-    draw(ctx) {
-        ctx.shadowBlur = 15;
-        ctx.shadowColor = this.color;
-        super.draw(ctx);
-        ctx.shadowBlur = 0;
-    }
-
-    drawShape(ctx) {
-        ctx.fillStyle = this.color;
-        ctx.strokeStyle = this.color;
-        ctx.lineWidth = 2;
-
-        const legOffset = Math.sin(this.animTimer) * 6;
-
-        ctx.save();
-        ctx.rotate(this.facing);
-
-        ctx.beginPath();
-        ctx.moveTo(-4, 0);
-        ctx.lineTo(-8 - legOffset, 0);
-        ctx.moveTo(-4, 0);
-        ctx.lineTo(-8 + legOffset, 0);
-        ctx.stroke();
-
-        ctx.fillRect(-6, -6, 12, 12);
-
-        ctx.beginPath();
-        ctx.arc(0, 0, 4, 0, Math.PI * 2);
-        ctx.fillStyle = '#fff';
-        ctx.fill();
-
-        ctx.fillStyle = this.color;
-        ctx.fillRect(4, -2, 14, 4);
-
-        ctx.restore();
-    }
-}
-
-class Bullet extends Entity {
-    constructor(x, y, dx, dy, isEnemy = false) {
-        super(x, y, isEnemy ? 'enemy_bullet' : 'bullet');
-        this.isEnemy = isEnemy;
-        this.vx = dx * (isEnemy ? 300 : 800);
-        this.vy = dy * (isEnemy ? 300 : 800);
-        this.radius = 4;
-        this.color = isEnemy ? COLORS.ENEMY_BULLET : COLORS.BULLET;
-        this.life = 1.5;
-    }
-
-    update(dt) {
-        this.x += this.vx * dt;
-        this.y += this.vy * dt;
-        this.life -= dt;
-        if (this.life <= 0) this.dead = true;
-        if (this.x < 0 || this.x > state.width || this.y < 0 || this.y > state.height) this.dead = true;
-    }
-
-    drawShape(ctx) {
-        ctx.fillStyle = this.color;
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = this.color;
-        ctx.beginPath();
-        ctx.arc(0, 0, this.radius, 0, Math.PI*2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-    }
-}
-
-class Grunt extends Entity {
-    constructor(x, y) {
-        super(x, y, 'grunt');
-        this.speed = 100 + (state.level * 10);
-        this.radius = 14;
-        this.color = COLORS.GRUNT;
-        this.animTimer = 0;
-    }
-
-    update(dt) {
-        this.animTimer += dt * 5;
-        const player = getPlayer();
-        if (!player) return;
-
-        const dx = player.x - this.x;
-        const dy = player.y - this.y;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-
-        if (dist > 0) {
-            this.vx = (dx / dist) * this.speed;
-            this.vy = (dy / dist) * this.speed;
-        }
-        super.update(dt);
-    }
-
-    drawShape(ctx) {
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = this.color;
-        ctx.strokeStyle = this.color;
-        ctx.lineWidth = 2;
-
-        ctx.strokeRect(-10, -10, 20, 20);
-
-        ctx.fillStyle = '#fff';
-        const blink = Math.sin(this.animTimer * 10) > 0.8;
-        if (!blink) {
-            ctx.fillRect(-6, -4, 4, 4);
-            ctx.fillRect(2, -4, 4, 4);
-        }
-
-        ctx.beginPath();
-        ctx.moveTo(0, -10);
-        ctx.lineTo(0, -16);
-        ctx.stroke();
-
-        const w = Math.sin(this.animTimer * 20) * 4;
-        ctx.beginPath();
-        ctx.moveTo(-8, 10);
-        ctx.lineTo(-8, 16 + w);
-        ctx.moveTo(8, 10);
-        ctx.lineTo(8, 16 - w);
-        ctx.stroke();
-
-        ctx.shadowBlur = 0;
-    }
-}
-
-class Hulk extends Entity {
-    constructor(x, y) {
-        super(x, y, 'hulk');
-        this.speed = 60 + (state.level * 5);
-        this.radius = 20;
-        this.color = COLORS.HULK;
-        this.dirChangeTimer = 0;
-        this.animTimer = 0;
-    }
-
-    update(dt) {
-        this.animTimer += dt * 3;
-        this.dirChangeTimer -= dt;
-
-        let target = null;
-        let minDist = 250;
-
-        state.entities.forEach(e => {
-            if (e.type === 'human') {
-                const d = Math.hypot(e.x - this.x, e.y - this.y);
-                if (d < minDist) { minDist = d; target = e; }
-            }
-        });
-
-        if (target) {
-            const dx = target.x - this.x;
-            const dy = target.y - this.y;
-            this.vx = (dx / minDist) * this.speed;
-            this.vy = (dy / minDist) * this.speed;
-        } else if (this.dirChangeTimer <= 0) {
-            const angle = Math.random() * Math.PI * 2;
-            this.vx = Math.cos(angle) * this.speed;
-            this.vy = Math.sin(angle) * this.speed;
-            this.dirChangeTimer = 1.0;
-        }
-
-        super.update(dt);
-    }
-
-    drawShape(ctx) {
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = this.color;
-        ctx.fillStyle = this.color;
-
-        const pulse = Math.sin(this.animTimer) * 2;
-        ctx.fillRect(-16 - pulse, -18, 32 + pulse*2, 30);
-
-        ctx.fillStyle = '#0a0';
-        ctx.fillRect(-20, 8, 12, 10);
-        ctx.fillRect(8, 8, 12, 10);
-
-        ctx.fillStyle = '#000';
-        ctx.fillRect(-12, -10, 24, 8);
-
-        ctx.fillStyle = '#f00';
-        ctx.fillRect(-8, -8, 6, 4);
-        ctx.fillRect(2, -8, 6, 4);
-
-        ctx.shadowBlur = 0;
-    }
-}
-
-class Enforcer extends Entity {
-    constructor(x, y) {
-        super(x, y, 'enforcer');
-        this.speed = 120 + (state.level * 5);
-        this.radius = 14;
-        this.color = COLORS.ENFORCER;
-        this.fireTimer = 2.0 + Math.random();
-        this.moveTimer = 0;
-    }
-
-    update(dt) {
-        this.moveTimer += dt;
-        const player = getPlayer();
-
-        if (player) {
-            const dx = player.x - this.x;
-            const dy = player.y - this.y;
-            const dist = Math.sqrt(dx*dx + dy*dy);
-
-            if (dist > 0) {
-                this.vx = (dx / dist) * this.speed + Math.sin(this.moveTimer * 3) * 50;
-                this.vy = (dy / dist) * this.speed + Math.cos(this.moveTimer * 2) * 50;
-            }
-
-            this.fireTimer -= dt;
-            if (this.fireTimer <= 0 && dist < 500) {
-                const angle = Math.atan2(dy, dx);
-                state.entities.push(new Bullet(this.x, this.y, Math.cos(angle), Math.sin(angle), true));
-                this.fireTimer = 2.0 - Math.min(1.5, state.level * 0.1);
-                AudioSys.enemyShoot();
-            }
-        }
-
-        super.update(dt);
-    }
-
-    drawShape(ctx) {
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = this.color;
-        ctx.strokeStyle = this.color;
-        ctx.lineWidth = 2;
-
-        ctx.beginPath();
-        ctx.moveTo(0, -12);
-        ctx.lineTo(12, 0);
-        ctx.lineTo(0, 12);
-        ctx.lineTo(-12, 0);
-        ctx.closePath();
-        ctx.stroke();
-
-        const s = 4 + Math.sin(this.moveTimer * 10) * 2;
-        ctx.fillStyle = '#fff';
-        ctx.fillRect(-s/2, -s/2, s, s);
-
-        ctx.shadowBlur = 0;
-    }
-}
-
-class Human extends Entity {
-    constructor(x, y) {
-        super(x, y, 'human');
-        this.speed = 40;
-        this.radius = 10;
-        this.color = COLORS.HUMAN;
-        this.changeTimer = 0;
-        this.walkAnim = 0;
-    }
-
-    update(dt) {
-        this.walkAnim += dt * 10;
-        this.changeTimer -= dt;
-        if (this.changeTimer <= 0) {
-            const angle = Math.random() * Math.PI * 2;
-            this.vx = Math.cos(angle) * this.speed;
-            this.vy = Math.sin(angle) * this.speed;
-            this.changeTimer = 1.0;
-        }
-
-        if (this.x < 30) this.vx = Math.abs(this.vx);
-        if (this.x > state.width - 30) this.vx = -Math.abs(this.vx);
-        if (this.y < 30) this.vy = Math.abs(this.vy);
-        if (this.y > state.height - 30) this.vy = -Math.abs(this.vy);
-
-        super.update(dt);
-    }
-
-    drawShape(ctx) {
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = this.color;
-        ctx.strokeStyle = this.color;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(0, -8, 5, 0, Math.PI*2);
-        ctx.moveTo(0, -3);
-        ctx.lineTo(0, 8);
-        const legSwing = Math.sin(this.walkAnim) * 5;
-        ctx.lineTo(-6 + legSwing, 16);
-        ctx.moveTo(0, 8);
-        ctx.lineTo(6 - legSwing, 16);
-        ctx.moveTo(0, 0);
-        ctx.lineTo(-6 - legSwing/2, 6);
-        ctx.moveTo(0, 0);
-        ctx.lineTo(6 + legSwing/2, 6);
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-    }
-}
-
-class Particle {
-    constructor(x, y, color) {
-        this.x = x;
-        this.y = y;
-        this.color = color;
-        const angle = Math.random() * Math.PI * 2;
-        const speed = Math.random() * 150 + 50;
-        this.vx = Math.cos(angle) * speed;
-        this.vy = Math.sin(angle) * speed;
-        this.life = 0.5 + Math.random() * 0.3;
-        this.size = Math.random() * 3 + 1;
-    }
-
-    update(dt) { this.x += this.vx * dt; this.y += this.vy * dt; this.life -= dt; }
-
-    draw(ctx) {
-        ctx.globalAlpha = this.life;
-        ctx.fillStyle = this.color;
-        ctx.fillRect(this.x, this.y, this.size, this.size);
-        ctx.globalAlpha = 1.0;
-    }
-}
-
-// --- Utils ---
-function getPlayer() { return state.entities.find(e => e.type === 'player'); }
-
-function spawnExplosion(x, y, color, count = 10) {
-    for(let i=0; i<count; i++) state.particles.push(new Particle(x, y, color));
-}
-
-function checkCollision(a, b) {
-    const dx = a.x - b.x;
-    const dy = a.y - b.y;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    return dist < (a.radius + b.radius);
-}
-
-// --- Level Generation ---
-function startLevel(levelNum) {
-    state.entities = [];
-    state.particles = [];
-    state.level = levelNum;
-    state.waveCompleteTimer = 0;
-
-    state.entities.push(new Player(state.width/2, state.height/2));
-
-    const gruntCount = 5 + (levelNum * 4);
-    const hulkCount = Math.floor(levelNum * 0.8) + 1;
-    const enforcerCount = levelNum >= 2 ? (levelNum - 1) * 2 : 0;
-    const humanCount = Math.min(10, 2 + Math.floor(levelNum / 2));
-
-    const safeDist = 200;
-    const cx = state.width/2;
-    const cy = state.height/2;
-
-    function getSpawnPos() {
-        let x, y, d;
-        let attempts = 0;
-        do {
-            x = Math.random() * (state.width - 60) + 30;
-            y = Math.random() * (state.height - 60) + 30;
-            d = Math.hypot(x - cx, y - cy);
-            attempts++;
-            if (attempts > 50) return {x: 50, y: 50};
-        } while(d < safeDist);
-        return {x, y};
-    }
-
-    for(let i=0; i<gruntCount; i++) {
-        const pos = getSpawnPos();
-        state.entities.push(new Grunt(pos.x, pos.y));
-    }
-
-    for(let i=0; i<hulkCount; i++) {
-        const pos = getSpawnPos();
-        state.entities.push(new Hulk(pos.x, pos.y));
-    }
-
-    for(let i=0; i<enforcerCount; i++) {
-        const pos = getSpawnPos();
-        state.entities.push(new Enforcer(pos.x, pos.y));
-    }
-
-    for(let i=0; i<humanCount; i++) {
-        const pos = getSpawnPos();
-        state.entities.push(new Human(pos.x, pos.y));
-    }
-
-    updateHUD();
-    AudioSys.levelUp();
-}
-
-// --- Main Loop ---
-function update(dt) {
-    let kMoveX = 0, kMoveY = 0, kAimX = 0, kAimY = 0;
-
-    if (input.keys['w']) kMoveY -= 1;
-    if (input.keys['s']) kMoveY += 1;
-    if (input.keys['a']) kMoveX -= 1;
-    if (input.keys['d']) kMoveX += 1;
-
-    if (input.keys['arrowup']) kAimY -= 1;
-    if (input.keys['arrowdown']) kAimY += 1;
-    if (input.keys['arrowleft']) kAimX -= 1;
-    if (input.keys['arrowright']) kAimX += 1;
-
-    input.move.x = kMoveX;
-    input.move.y = kMoveY;
-    input.aim.x = kAimX;
-    input.aim.y = kAimY;
-
-    if (input.touchMove && (input.touchMove.x !== 0 || input.touchMove.y !== 0)) input.move = input.touchMove;
-    if (input.touchAim && (input.touchAim.x !== 0 || input.touchAim.y !== 0)) input.aim = input.touchAim;
-
-    state.entities.forEach(e => e.update(dt));
-    state.particles.forEach(p => p.update(dt));
-
-    state.entities = state.entities.filter(e => !e.dead);
-    state.particles = state.particles.filter(p => p.life > 0);
-
-    const player = getPlayer();
-    const playerBullets = state.entities.filter(e => e.type === 'bullet');
-    const enemyBullets = state.entities.filter(e => e.type === 'enemy_bullet');
-    const enemies = state.entities.filter(e => ['grunt', 'hulk', 'enforcer'].includes(e.type));
-    const humans = state.entities.filter(e => e.type === 'human');
-
-    playerBullets.forEach(b => {
-        enemies.forEach(e => {
-            if (b.dead || e.dead) return;
-            if (checkCollision(b, e)) {
-                b.dead = true;
-                if (e.type === 'grunt') {
-                    e.dead = true; state.score += 100;
-                    spawnExplosion(e.x, e.y, COLORS.GRUNT);
-                    AudioSys.explosion();
-                } else if (e.type === 'enforcer') {
-                    e.dead = true; state.score += 500;
-                    spawnExplosion(e.x, e.y, COLORS.ENFORCER);
-                    AudioSys.explosion();
-                } else if (e.type === 'hulk') {
-                    e.x += b.vx * dt * 0.2;
-                    e.y += b.vy * dt * 0.2;
-                }
-            }
-        });
-    });
-
-    if (player) {
-        enemies.forEach(e => { if (checkCollision(player, e)) killPlayer(); });
-        enemyBullets.forEach(b => { if (checkCollision(player, b)) { b.dead = true; killPlayer(); } });
-        humans.forEach(h => {
-            if (checkCollision(player, h)) {
-                h.dead = true; state.score += 1000;
-                spawnExplosion(h.x, h.y, COLORS.HUMAN, 20);
-                AudioSys.pickup();
-            }
-        });
-    }
-
-    enemies.filter(e => e.type === 'hulk').forEach(hulk => {
-        humans.forEach(human => {
-            if (!human.dead && checkCollision(hulk, human)) {
-                human.dead = true;
-                spawnExplosion(human.x, human.y, '#f00', 30);
-                AudioSys.die();
-            }
-        });
-    });
-
-    const hostileCount = state.entities.filter(e => e.type === 'grunt' || e.type === 'enforcer').length;
-    if (hostileCount === 0 && player && !state.waveCompleteTimer) state.waveCompleteTimer = 2.0;
-
-    if (state.waveCompleteTimer > 0) {
-        state.waveCompleteTimer -= dt;
-        if (state.waveCompleteTimer <= 0) startLevel(state.level + 1);
-    }
-
-    updateHUD();
-}
-
-function draw() {
-    ctx.fillStyle = 'rgba(5, 5, 5, 0.4)';
-    ctx.fillRect(0, 0, state.width, state.height);
-
-    ctx.strokeStyle = '#222';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    for(let x=0; x<=state.width; x+=TILE_SIZE) { ctx.moveTo(x,0); ctx.lineTo(x, state.height); }
-    for(let y=0; y<=state.height; y+=TILE_SIZE) { ctx.moveTo(0,y); ctx.lineTo(state.width, y); }
-    ctx.stroke();
-
-    state.entities.sort((a,b) => a.y - b.y);
-    state.entities.forEach(e => e.draw(ctx));
-
-    ctx.shadowBlur = 5;
-    state.particles.forEach(p => { ctx.shadowColor = p.color; p.draw(ctx); });
-    ctx.shadowBlur = 0;
-}
-
-function gameLoop(timestamp) {
-    if (!state.active) return;
-
-    if (!lastTime) lastTime = timestamp;
-    const dt = (timestamp - lastTime) / 1000;
-    lastTime = timestamp;
-
-    update(Math.min(dt, 0.1));
-    draw();
-
-    animationId = requestAnimationFrame(gameLoop);
-}
-
-// --- Game Control ---
-let __scoreSubmitted = false;
-
-function killPlayer() {
-    const player = getPlayer();
-    if (player) {
-        spawnExplosion(player.x, player.y, COLORS.PLAYER, 50);
-        player.dead = true;
-        AudioSys.die();
-        state.lives--;
-
-        if (state.lives < 0) {
-            gameOver();
-        } else {
-            setTimeout(() => {
-                if (state.active) {
-                    state.entities.push(new Player(state.width/2, state.height/2));
-                    state.entities.forEach(e => {
-                        if (e.type === 'grunt' || e.type === 'hulk' || e.type === 'enforcer') {
-                            const d = Math.hypot(e.x - state.width/2, e.y - state.height/2);
-                            if (d < 150) e.dead = true;
-                        }
-                    });
-                }
-            }, 1500);
-        }
-    }
-}
-
-function gameOver() {
-    state.active = false;
-    document.getElementById('game-over-screen').classList.remove('hidden');
-    const final = Math.max(0, Math.floor(state.score || 0));
-    document.getElementById('finalScore').innerText = final;
-
-    // Submit once to backend (no initials)
-    if(!__scoreSubmitted && window.PixelNet && PixelNet.submitScore){
-      __scoreSubmitted = true;
-      try{
-        PixelNet.submitScore(window.__PX_GAME_SLUG__ || "robo-arena", final);
-        if(window.__pxRenderRoboLeaderboard) setTimeout(window.__pxRenderRoboLeaderboard, 800);
-      }catch(e){
-        console.warn("[robo-arena] submit failed", e);
+  <div class="hint">Click the badge (top-right) to change initials.</div>
+  <div class="hint"><b>Game Over:</b> score auto-saves. Press <b>Enter</b> to restart.</div>
+</div>
+
+<div id="m-game" class="m-panel hidden">
+  <div class="gamebox">
+    <!-- On mobile, fitStage targets this inner shell via #pn-stage-inner.
+         The game iframe is moved between desktop and mobile containers. -->
+    <div class="game-stage">
+      <div class="game-stage-inner" id="pn-stage-inner-mobile">
+        <!-- #root lives in the desktop panel; mobile just shows the same viewport.
+             See note in script: on mobile we move #root here. -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="m-lb" class="m-panel hidden">
+  <h3 class="title">LEADERBOARD</h3>
+  <div class="muted">Top 10</div>
+  <div class="lb-grid">
+    <ol class="lb-col" id="m-lb-left"></ol>
+    <ol class="lb-col" id="m-lb-right"></ol>
+  </div>
+  <div class="lb-meta" id="m-lb-status">Loading…</div>
+</div>
+
+<!-- ============================================================
+     ENGINE  (PixelNet SDK — provides getLeaderboard / submitScore)
+     ============================================================ -->
+<script src="../../js/engine.js"></script>
+
+<!-- ============================================================
+     WRAPPER LOGIC  (V2.0 — single consolidated IIFE)
+     ============================================================ -->
+<script>
+(function () {
+  "use strict";
+
+  // --------------------------------------------------------
+  // ============================================================
+  // CONFIG  ←  change these per game, leave everything else alone
+  // ============================================================
+  var GAME_CONFIG = {
+    // Slugs: leaderboard fetch tries each in order; first one is used for score submission.
+    slugs:        ["robo-arena", "roboarena"],
+
+
+    // If false, wrapper lets the game fill the panel (no letterboxing).
+    lockAspect:   false,
+    // Native grid dimensions (columns × rows).
+    // fitStage() uses width/height to lock the aspect ratio.
+    //   Millipede  →  20 × 32
+    //   Example 4:3 game → e.g. 40 × 30
+    //   Example 16:9 game → e.g. 16 × 9
+    gridCols:     20,
+    gridRows:     32
+  };
+  // Derived — don't edit these.
+  var SLUGS = GAME_CONFIG.slugs;
+  var SLUG  = SLUGS[0];
+  var ACTIVE_SLUG = SLUG;   // updated when leaderboard fetch finds a live slug
+  var GAME_ASPECT = GAME_CONFIG.gridCols / GAME_CONFIG.gridRows;  // width / height
+
+  // --------------------------------------------------------
+  // HELPERS
+  // --------------------------------------------------------
+  /** Normalise initials: uppercase, alphanumeric only, max 3 chars. */
+  function norm(v) {
+    return String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3) || "???";
+  }
+
+  // --------------------------------------------------------
+  // INITIALS BOOTSTRAP  (sync localStorage ↔ sessionStorage)
+  // --------------------------------------------------------
+  var initials = norm(
+    localStorage.getItem("px_player_initials") ||
+    sessionStorage.getItem("playerInitials")   ||
+    "???"
+  );
+
+  // Write to every key the React bundle might read.
+  function syncInitials(val) {
+    val = norm(val);
+    try { localStorage.setItem("px_player_initials", val); } catch(_){}
+    try { sessionStorage.setItem("playerInitials",   val); } catch(_){}
+    try { localStorage.setItem("p",  val); } catch(_){}
+    try { localStorage.setItem("u",  val); } catch(_){}
+    try { localStorage.setItem("n",  val); } catch(_){}
+    try { localStorage.setItem("nm", val); } catch(_){}
+  }
+  syncInitials(initials);
+
+  // Boot PixelNet SDK if available.
+  if (window.PixelNet && PixelNet.init)   PixelNet.init();
+  if (window.PixelNet && PixelNet.uiInit) PixelNet.uiInit();
+
+  // --------------------------------------------------------
+  // TOP-BAR WIRING
+  // --------------------------------------------------------
+  var badge = document.getElementById("px-badge");
+  badge.textContent = initials;
+
+  // Cross-tab / homepage sync: if the homepage updates px_player_initials, reflect it here.
+  window.addEventListener("storage", function (e) {
+    if (!e) return;
+    if (e.key === "px_player_initials" && e.newValue) {
+      var v = norm(e.newValue);
+      if (v && v !== initials) {
+        initials = v;
+        syncInitials(v);
+        badge.textContent = v;
       }
     }
-}
+  });
+  document.getElementById("px-exit").onclick = function () {
+    location.href = "../../index.html";
+  };
 
-function resetGame() {
-    state.score = 0;
-    state.lives = 3;
-    state.level = 1;
-    state.entities = [];
-    state.active = true;
-    state.waveCompleteTimer = 0;
-    lastTime = 0;
-    __scoreSubmitted = false;
+  // --------------------------------------------------------
+  // INITIALS MODAL  (badge click → open, Enter / close → save & sync)
+  // --------------------------------------------------------
+  var modal   = document.getElementById("px-init-modal");
+  var input   = document.getElementById("px-init-input");
+  var closBtn = document.getElementById("px-init-close");
 
-    input.keys = {};
-    input.move = {x:0, y:0};
-    input.aim = {x:0, y:0};
+  function openModal() {
+    input.value = initials !== "???" ? initials : "";
+    modal.classList.remove("hidden");
+    modal.setAttribute("aria-hidden", "false");
+    input.focus();
+  }
+  function closeModal() {
+    modal.classList.add("hidden");
+    modal.setAttribute("aria-hidden", "true");
+  }
+  function saveInitials() {
+    var v = norm(input.value);
+    if (v && v !== "???") {
+      initials = v;
+      syncInitials(v);
+      badge.textContent = v;
+    }
+    closeModal();
+  }
 
-    document.getElementById('start-screen').style.display = 'none';
-    document.getElementById('game-over-screen').classList.add('hidden');
+  badge.addEventListener("click", openModal);
+  closBtn.addEventListener("click", saveInitials);   // close = save
 
-    resize();
-    AudioSys.init();
-    startLevel(1);
-    gameLoop(0);
-}
+  input.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { e.preventDefault(); saveInitials(); }
+    if (e.key === "Escape") { e.preventDefault(); closeModal(); }
+  });
 
-function updateHUD() {
-    document.getElementById('scoreDisplay').innerText = state.score;
-    document.getElementById('levelDisplay').innerText = state.level;
-    document.getElementById('livesDisplay').innerText = state.lives >= 0 ? state.lives : 0;
-}
+  // Click backdrop → save & close
+  modal.querySelector(".px-init-backdrop").addEventListener("click", saveInitials);
 
-// Resize to gamebox (not full window)
-function resize() {
-    const box = document.getElementById("px-gamebox");
-    const rect = box ? box.getBoundingClientRect() : null;
-    state.width = rect ? Math.floor(rect.width) : window.innerWidth;
-    state.height = rect ? Math.floor(rect.height) : window.innerHeight;
-    canvas.width = state.width;
-    canvas.height = state.height;
-}
+  // SAVE button (visible on mobile) — same action as close/Enter
+  var saveBtn = document.getElementById("px-init-save");
+  if (saveBtn) saveBtn.addEventListener("click", saveInitials);
 
-window.addEventListener('keydown', (e) => {
-    if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Space"].indexOf(e.code) > -1) e.preventDefault();
-    input.keys[e.key.toLowerCase()] = true;
-});
-window.addEventListener('keyup', (e) => { input.keys[e.key.toLowerCase()] = false; });
+  
+  // --------------------------------------------------------
+  // IFRAME TWEAKS  (embed mode: no white, no desktop joysticks)
+  // --------------------------------------------------------
+  function applyIframeTweaks() {
+    var frame = document.getElementById("pn-iframe");
+    if (!frame) return;
+    var doc = null;
+    try { doc = frame.contentDocument; } catch(_) { doc = null; }
+    if (!doc) return;
 
-window.addEventListener('blur', () => {
-    input.keys = {};
-    input.move = {x:0, y:0};
-    input.aim = {x:0, y:0};
-});
-
-window.addEventListener('resize', () => { resize(); });
-
-// Joystick Logic (unchanged)
-function setupJoystick(elementId, knobId, inputTarget) {
-    const zone = document.getElementById(elementId);
-    const knob = document.getElementById(knobId);
-
-    let touchId = null;
-    const maxDist = 35;
-
-    zone.addEventListener('touchstart', (e) => {
-        e.preventDefault();
-        const touch = e.changedTouches[0];
-        touchId = touch.identifier;
-        updateJoystick(touch.clientX, touch.clientY);
-    }, {passive: false});
-
-    zone.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-        for (let i=0; i<e.changedTouches.length; i++) {
-            if (e.changedTouches[i].identifier === touchId) updateJoystick(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
+    // Inject once
+    if (!doc.getElementById("px-embed-style")) {
+      var style = doc.createElement("style");
+      style.id = "px-embed-style";
+      style.textContent = `
+        html, body { margin:0 !important; padding:0 !important; height:100% !important; background: #050611 !important; overflow:hidden !important; }
+        canvas { display:block; }
+        /* Hide virtual sticks on desktop */
+        @media (min-width: 1001px) {
+          .joystick, .joysticks, .touch-joystick, .touch-controls,
+          #joystick, #joystick-left, #joystick-right, #left-joystick, #right-joystick,
+          [class*="joystick"], [id*="joystick"] { display:none !important; opacity:0 !important; pointer-events:none !important; }
         }
-    }, {passive: false});
+      `;
+      doc.head.appendChild(style);
+    }
+  }
 
-    const endTouch = (e) => {
-        e.preventDefault();
-        for (let i=0; i<e.changedTouches.length; i++) {
-            if (e.changedTouches[i].identifier === touchId) {
-                touchId = null;
-                knob.style.transform = `translate(-50%, -50%)`;
-                input[inputTarget] = {x:0, y:0};
-            }
-        }
+  // --------------------------------------------------------
+  // ASPECT-FIT  (uses GAME_CONFIG.gridCols / gridRows)
+  // --------------------------------------------------------
+  var stageInner = document.getElementById("pn-stage-inner");
+  var gamebox    = document.querySelector(".gamebox");   // desktop gamebox
+
+  function fitStage() {
+    // If this game is freeform/fullscreen, let it fill the panel.
+    if (GAME_CONFIG.lockAspect === false) {
+      var boxF = (window.innerWidth <= 1000) ? document.querySelector("#m-game .gamebox") : document.querySelector(".gamebox");
+      var innerF = (window.innerWidth <= 1000) ? document.getElementById("pn-stage-inner-mobile") : document.getElementById("pn-stage-inner");
+      if (innerF && boxF) {
+        innerF.style.width = boxF.clientWidth + "px";
+        innerF.style.height = boxF.clientHeight + "px";
+      }
+      return;
+    }
+
+    // On mobile the gamebox reference may differ; grab the visible one.
+    var box = gamebox;
+    var inner = stageInner;
+
+    if (window.innerWidth <= 1000) {
+      box   = document.querySelector("#m-game .gamebox");
+      inner = document.getElementById("pn-stage-inner-mobile");
+    }
+    if (!inner || !box) return;
+
+    var W     = box.clientWidth;
+    var H     = box.clientHeight;
+    var ratio = GAME_ASPECT;             // set in GAME_CONFIG above
+    var w, h;
+
+    if (W / H > ratio) {
+      // Container is wider than the game → fit to height
+      h = H;
+      w = Math.floor(H * ratio);
+    } else {
+      // Container is taller → fit to width
+      w = W;
+      h = Math.floor(W / ratio);
+    }
+
+    inner.style.width  = w + "px";
+    inner.style.height = h + "px";
+  }
+
+  applyIframeTweaks();
+  fitStage();
+  window.addEventListener("resize", function(){ applyIframeTweaks(); fitStage(); });
+
+  // --------------------------------------------------------
+  // DUPLICATE-SCORE GUARD
+  // Allows exactly ONE real /api/score POST per page-load per slug,
+  // blocking any extra attempts the React bundle might make.
+  // --------------------------------------------------------
+  var sentOnce = false;
+
+  function shouldBlockScorePost(url, bodyText) {
+    if (!url || typeof url !== "string") return false;
+    if (url.indexOf("/api/score") === -1)  return false;
+
+    // If we can parse a slug and it's NOT ours, let it through.
+    try {
+      var obj  = bodyText ? JSON.parse(bodyText) : null;
+      var slug = obj && (obj.game_slug || obj.gameSlug);
+      if (slug && SLUGS.indexOf(String(slug)) === -1) return false;
+    } catch(_) { /* unparseable → treat as ours */ }
+
+    if (sentOnce) return true;   // already sent → block
+    sentOnce = true;
+    return false;                // first time  → allow
+  }
+
+  // Patch fetch
+  var _fetch = window.fetch ? window.fetch.bind(window) : null;
+  if (_fetch) {
+    window.fetch = function (input, init) {
+      var url      = (typeof input === "string") ? input : (input && input.url) || "";
+      var bodyText = init && init.body ? String(init.body) : "";
+      if (shouldBlockScorePost(url, bodyText)) {
+        console.warn("[Millipede V2] blocked duplicate /api/score (fetch)");
+        return Promise.resolve(new Response("", { status: 204 }));
+      }
+      return _fetch(input, init);
     };
+  }
 
-    zone.addEventListener('touchend', endTouch);
-    zone.addEventListener('touchcancel', endTouch);
-
-    function updateJoystick(cx, cy) {
-        const rect = zone.getBoundingClientRect();
-        const centerX = rect.left + rect.width/2;
-        const centerY = rect.top + rect.height/2;
-
-        let dx = cx - centerX;
-        let dy = cy - centerY;
-        const dist = Math.sqrt(dx*dx + dy*dy);
-
-        if (dist > maxDist) {
-            dx = (dx / dist) * maxDist;
-            dy = (dy / dist) * maxDist;
-        }
-
-        knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-
-        input[inputTarget] = { x: dx / maxDist, y: dy / maxDist };
+  // Patch XHR
+  var _open = XMLHttpRequest.prototype.open;
+  var _send = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (method, url) {
+    this.__px_url    = url;
+    this.__px_method = method;
+    return _open.apply(this, arguments);
+  };
+  XMLHttpRequest.prototype.send = function (body) {
+    var url      = this.__px_url || "";
+    var bodyText = body ? String(body) : "";
+    if (shouldBlockScorePost(url, bodyText)) {
+      console.warn("[Millipede V2] blocked duplicate /api/score (XHR)");
+      try { this.abort(); } catch(_) {}
+      return;
     }
-}
+    return _send.apply(this, arguments);
+  };
 
-setupJoystick('stick-move', 'knob-move', 'touchMove');
-setupJoystick('stick-aim', 'knob-aim', 'touchAim');
+  // --------------------------------------------------------
+  // LEADERBOARD  (fetch + render into both desktop & mobile lists)
+  // --------------------------------------------------------
+  async function renderLeaderboard() {
+    var status  = document.getElementById("lb-status");
+    var mStatus = document.getElementById("m-lb-status");
+    var L       = document.getElementById("lb-left");
+    var R       = document.getElementById("lb-right");
+    var mL      = document.getElementById("m-lb-left");
+    var mR      = document.getElementById("m-lb-right");
 
-document.getElementById('startBtn').addEventListener('click', () => { AudioSys.init(); resetGame(); });
-document.getElementById('restartBtn').addEventListener('click', () => { resetGame(); });
+    L.innerHTML = ""; R.innerHTML = "";
+    mL.innerHTML = ""; mR.innerHTML = "";
 
-// Initial Setup
-resize();
-if(window.__pxRenderRoboLeaderboard) window.__pxRenderRoboLeaderboard();
-  </script>
+    if (!(window.PixelNet && PixelNet.getLeaderboard)) {
+      var msg0 = "Leaderboard unavailable."; 
+      status.textContent  = msg0;
+      mStatus.textContent = msg0;
+      return;
+    }
+
+    try {
+      var rows = [];
+      // Try each slug until we get results.
+      for (var i = 0; i < SLUGS.length; i++) {
+        try { rows = await PixelNet.getLeaderboard(SLUGS[i]); } catch(_) { rows = []; }
+        if (Array.isArray(rows) && rows.length) { ACTIVE_SLUG = SLUGS[i]; break; }
+      }
+
+      var top = (rows || []).slice(0, 10);
+      if (!top.length) {
+        status.textContent  = "No scores yet.";
+        mStatus.textContent = "No scores yet.";
+        return;
+      }
+
+      top.forEach(function (row, idx) {
+        var ini = norm(row.initials || row.name || "???");
+        var sc  = Number(row.score != null ? row.score : (row.points != null ? row.points : (row.value != null ? row.value : 0))) || 0;
+
+        // Build <li> for desktop
+        var li = document.createElement("li");
+        li.className = "lb-item";
+        li.innerHTML =
+          '<span class="lb-rank">' + (idx + 1) + '.</span>' +
+          '<span class="lb-name">' + ini + '</span>' +
+          '<span class="lb-score">' + sc + '</span>';
+
+        // Desktop: 1-5 left, 6-10 right
+        (idx < 5 ? L : R).appendChild(li);
+
+        // Mobile copy
+        var mli = li.cloneNode(true);
+        (idx < 5 ? mL : mR).appendChild(mli);
+      });
+
+      status.textContent  = "Auto-refreshing…";
+      mStatus.textContent = "Auto-refreshing…";
+
+    } catch (e) {
+      console.error("[Millipede V2] leaderboard fetch failed:", e);
+      var msg = "Failed to load (backend sleeping?).";
+      status.textContent  = msg;
+      mStatus.textContent = msg;
+    }
+  }
+
+  renderLeaderboard();
+  setInterval(renderLeaderboard, 6000);
+
+  // --------------------------------------------------------
+  // GAME-OVER DETECTION + AUTO-SAVE
+  // We poll periodically instead of a MutationObserver to keep things
+  // simple and stable.  6-second LB refresh already proves the interval
+  // approach works; we just need a faster cadence for the GAME OVER moment.
+  // --------------------------------------------------------
+  var gameOverSeen    = false;
+  var isGameOverNow   = false;
+  var savedThisDeath  = false;
+  var lastScoreSaved  = -1;
+
+  /** Read the visible score out of the page text (React renders it). */
+  function readScoreNow() {
+    var frame = document.getElementById("pn-iframe");
+    var txt = "";
+    try { txt = (frame && frame.contentDocument && frame.contentDocument.body && frame.contentDocument.body.innerText) ? frame.contentDocument.body.innerText : ""; } catch(_) { txt = ""; }
+// Primary: "SCORE: 1,234" anywhere on page
+    var m = txt.match(/SCORE:\s*([0-9][0-9,]*)/i);
+    if (m && m[1]) return parseInt(m[1].replace(/,/g, ""), 10) || 0;
+
+    // Fallback: first large number near "GAME OVER"
+    var overIdx = txt.toUpperCase().indexOf("GAME OVER");
+    var slice   = overIdx >= 0 ? txt.slice(overIdx, overIdx + 220) : txt;
+    var m2      = slice.match(/([0-9][0-9,]{2,})/);
+    return m2 ? (parseInt(m2[1].replace(/,/g, ""), 10) || 0) : 0;
+  }
+
+  /** Hide any "SAVE" / "ENTER INITIALS" UI the React bundle renders on death. */
+  function hideSaveUI() {
+    var killRe = /(ENTER\s+YOUR?\s*INITIALS|TYPE\s+YOUR?\s*INITIALS|ENTER\s+INITIALS|YOUR\s+INITIALS)/i;
+
+    // Kill matching buttons
+    Array.from((frameD||document).querySelectorAll("button")).forEach(function (b) {
+      if (b.id === "px-init-save") return;   // leave OUR modal SAVE button alone
+      var t = (b.textContent || "").trim().toUpperCase();
+      if (t === "SAVE" || t === "ENTER INITIALS" || t === "SUBMIT" || t === "OK" || killRe.test(t)) {
+        b.style.display = "none";
+        b.disabled = true;
+      }
+    });
+
+    // Kill 3-char inputs (initials entry)
+    Array.from((frameD||document).querySelectorAll("input")).forEach(function (inp) {
+      if (inp.id === "px-init-input") return;   // leave OUR modal input alone
+      var ml = inp.getAttribute("maxlength");
+      var ph = (inp.getAttribute("placeholder") || "").trim();
+      if (ml === "3" || ph.includes("_")) {
+        inp.style.display = "none";
+        inp.disabled = true;
+      }
+    });
+
+    // Kill bare text nodes that match the prompt
+    var root = frameD ? frameD.body : null;
+    if (root) {
+      Array.from(root.querySelectorAll("*")).forEach(function (el) {
+        if (el.childElementCount > 0) return;
+        var txt = (el.textContent || "").trim();
+        if (!txt || txt.length > 80) return;
+        if (killRe.test(txt)) {
+          el.textContent = "";
+          el.style.display = "none";
+          el.setAttribute("aria-hidden", "true");
+        }
+      });
+    }
+  }
+
+  /** Core check — called on every poll tick. */
+  async function checkGameOver() {
+    var rootButtons = Array.from(document.querySelectorAll("#root button"));
+    var hasSaveBtn = rootButtons.some(function (b) {
+      return (b.textContent || "").trim().toUpperCase() === "SAVE";
+    });
+    var rootEls = Array.from(frameD.querySelectorAll("*"));
+    var hasInitialsPrompt = rootEls.some(function (el) {
+      return (el.textContent || "").trim().toUpperCase() === "ENTER INITIALS";
+    });
+    var hasGameOver = rootEls.some(function (el) {
+      return (el.textContent || "").trim().toUpperCase() === "GAME OVER";
+    });
+
+    isGameOverNow = (hasSaveBtn || hasInitialsPrompt || hasGameOver);
+
+    if (!isGameOverNow) return;   // not dead yet
+
+    // --- We are in GAME OVER state ---
+    gameOverSeen = true;
+    hideSaveUI();
+
+    if (savedThisDeath) return;   // already submitted this death
+
+    var score = readScoreNow();
+    if (score === lastScoreSaved) return;   // same score, no-op
+
+    savedThisDeath  = true;
+    lastScoreSaved  = score;
+
+    try {
+      console.log("[Millipede V2] auto-saving score", { slug: ACTIVE_SLUG, initials: initials, score: score });
+      if (window.PixelNet && PixelNet.submitScore) {
+        await PixelNet.submitScore(ACTIVE_SLUG, score);
+      }
+      // Refresh leaderboard after a short delay so the backend has time.
+      setTimeout(renderLeaderboard, 700);
+    } catch (err) {
+      console.error("[Millipede V2] auto-save failed:", err);
+    }
+  }
+
+  // Poll every 800 ms.  Lightweight and reliable.
+  setInterval(checkGameOver, 800);
+  checkGameOver();   // run once immediately
+
+  // --------------------------------------------------------
+  // ENTER-TO-RESTART  (only after game over seen)
+  // --------------------------------------------------------
+  document.addEventListener("keydown", function (e) {
+    if ((e.code === "Enter" || e.key === "Enter") && gameOverSeen) {
+      // If our initials modal is open, let the modal handle it.
+      if (!modal.classList.contains("hidden")) return;
+      e.preventDefault();
+      // Reset death-tracking flags so the next death submits again.
+      gameOverSeen   = false;
+      isGameOverNow  = false;
+      savedThisDeath = false;
+      sentOnce       = false;
+      ACTIVE_SLUG   = SLUG;
+      location.reload();
+    }
+  }, { capture: true });
+
+  // --------------------------------------------------------
+  // TAP/CLICK-TO-RESTART  (mobile-friendly)
+  // After GAME OVER, tapping/clicking the game area reloads the page
+  // so the user can immediately start again (no keyboard required).
+  // --------------------------------------------------------
+  function restartNowFromPointer(e) {
+    if (!gameOverSeen || !isGameOverNow) return;
+    if (!modal.classList.contains("hidden")) return; // don't hijack modal taps
+    // Don't treat dragging/swiping as a restart.
+    if (e && e.type === "pointerup" && e.pointerType === "touch") {
+      // no-op; pointerup is fine
+    }
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    gameOverSeen   = false;
+    isGameOverNow  = false;
+    savedThisDeath = false;
+    sentOnce       = false;
+    location.reload();
+  }
+
+  // Bind to both desktop + mobile game containers (even if one is hidden).
+  Array.from(document.querySelectorAll(".gamebox")).forEach(function (box) {
+    // Use pointerup to avoid blocking gameplay taps while alive.
+    box.addEventListener("pointerup", restartNowFromPointer, { passive: false });
+    box.addEventListener("click", restartNowFromPointer, { passive: false });
+    box.addEventListener("touchend", restartNowFromPointer, { passive: false });
+  });
+
+
+  // --------------------------------------------------------
+  // MOBILE TAB SWITCHING
+  // --------------------------------------------------------
+  var mobileRoot = document.getElementById("pn-iframe");
+  var tabButtons = document.querySelectorAll("#m-tabs button");
+  var mGame      = document.getElementById("m-game");
+  var mHowTo     = document.getElementById("m-howto");
+  var mLb        = document.getElementById("m-lb");
+
+  function showMobileTab(tab) {
+    // Deactivate all
+    tabButtons.forEach(function (b) { b.classList.remove("active"); });
+    mGame.classList.add("hidden");
+    mHowTo.classList.add("hidden");
+    mLb.classList.add("hidden");
+
+    // Activate chosen
+    document.querySelector('#m-tabs button[data-tab="' + tab + '"]').classList.add("active");
+
+    if (tab === "game") {
+      mGame.classList.remove("hidden");
+      // Move #root into the mobile gamebox if not already there.
+      var mInner = document.getElementById("pn-stage-inner-mobile");
+      if (mInner && mRoot && mInner !== mRoot.parentNode) {
+        mInner.appendChild(mRoot);
+      }
+      fitStage();
+    } else if (tab === "howto") {
+      mHowTo.classList.remove("hidden");
+    } else if (tab === "lb") {
+      mLb.classList.remove("hidden");
+    }
+  }
+
+  // Cache the #root element for potential re-parenting on mobile.
+  var mRoot = document.getElementById("pn-iframe");
+
+  tabButtons.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      showMobileTab(btn.getAttribute("data-tab"));
+    });
+  });
+
+  // On mobile, default to GAME tab and move #root into mobile container.
+  if (window.innerWidth <= 1000) {
+    showMobileTab("game");
+  }
+
+  // Ensure iframe tweaks applied after load
+  var _f = document.getElementById("pn-iframe");
+  if (_f) _f.addEventListener("load", applyIframeTweaks);
+
+  // Also re-check on resize (desktop ↔ mobile transition)
+  window.addEventListener("resize", function () {
+    fitStage();
+    if (window.innerWidth <= 1000) {
+      showMobileTab("game");
+    } else {
+      // Move #root back to desktop panel if it was relocated.
+      var desktopInner = document.getElementById("pn-stage-inner");
+      if (desktopInner && mRoot && desktopInner !== mRoot.parentNode) {
+        desktopInner.appendChild(mRoot);
+      }
+    }
+  });
+
+})();
+</script>
+
 </body>
 </html>

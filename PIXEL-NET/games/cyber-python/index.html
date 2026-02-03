@@ -1,5 +1,5 @@
 <!-- PIXEL-NET Millipede Wrapper -->
-<!-- Version: V3.2 -->
+<!-- Version: V3.5 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet"/>
+
 <style>
 /* ========================================================
    PIXEL-NET · Millipede Wrapper · V2.0
@@ -29,22 +30,22 @@
   --glow-cyan:   rgba(0, 255, 247, .15);
   --font-ui:     system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   --font-arcade: "Orbitron", var(--font-ui);
-  --banner-h:    0px;   /* version banner height */
+  --banner-h:    28px;   /* version banner height */
   --topbar-h:    38px;
   --gap:         14px;
 
   /* ── Millipede game-theme palette ── */
   /* Deep mossy greens for panel fills */
-  --game-card-top:  rgba(4, 20, 10, .85);   /* dark forest */
-  --game-card-bot:  rgba(2, 10, 6, .74);   /* deeper moss */
+  --game-card-top:  rgba(6, 22, 12, .88);   /* dark forest */
+  --game-card-bot:  rgba(3, 10, 6, .74);   /* deeper moss */
   /* Warm mushroom-cap accent (the red-orange caps in-game) */
-  --game-accent:  rgba(0, 255, 65, .55);  /* burnt mushroom */
-  --game-glow:  rgba(0, 255, 130, .18);  /* subtle warm glow */
+  --game-accent:    rgba(80, 255, 140, .55);  /* burnt mushroom */
+  --game-glow:      rgba(80, 255, 140, .20);  /* subtle warm glow */
   /* Leaf-green stroke */
-  --game-stroke:  rgba(0, 255, 65, .26); /* soft green edge */
+  --game-stroke:    rgba(80, 255, 140, .20); /* soft green edge */
   /* Leaderboard item tint — very faint green wash */
-  --game-item-bg:  rgba(0, 255, 65, .12);
-  --game-item-stroke:  rgba(0, 255, 65, .18);
+  --game-item-bg:   rgba(40, 200, 110, .18);
+  --game-item-stroke: rgba(80, 255, 140, .14);
 }
 
 /* --- Reset --- */
@@ -223,14 +224,11 @@ main.panel {
   position: relative;
   overflow: hidden;
   border-radius: 12px;
+  background: rgba(0,0,0,.22);
 }
 .game-stage-inner #root            { width: 100%; height: 100%; min-height: 0; }
 .game-stage-inner #root > div      { height: 100%; }
 .game-stage-inner #root canvas     { width: 100% !important; height: 100% !important; display: block; }
-
-/* Suppress any legend / initials-entry UI rendered by the React bundle */
-#root .legend,
-#root [class*="legend"] { display: none !important; }
 
 /* --------------------------------------------------------
    LEADERBOARD  (right column)
@@ -442,7 +440,8 @@ main.panel {
   }
   /* Reuse the same stage classes; fitStage JS targets #pn-stage-inner */
   #m-game .game-stage        { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index:1; }
-  #m-game .game-stage-inner  { position: relative; overflow: hidden; border-radius: 12px; }
+  #m-game .game-stage-inner  { position: relative; overflow: hidden; border-radius: 12px;
+  background: rgba(0,0,0,.22); }
   #m-game .game-stage-inner #root            { width: 100%; height: 100%; min-height: 0; }
   #m-game .game-stage-inner #root > div      { height: 100%; }
   #m-game .game-stage-inner #root canvas     { width: 100% !important; height: 100% !important; display: block; }
@@ -495,6 +494,13 @@ main.panel {
 <body>
 
 <!-- ============================================================
+     VERSION BANNER
+     ============================================================ -->
+<div id="pn-version-banner">
+  PIXEL-NET · Millipede · <strong>V2.4</strong>
+</div>
+
+<!-- ============================================================
      INITIALS MODAL  (opened by badge click, not navigation)
      ============================================================ -->
 <section id="px-init-modal" class="px-init-modal hidden" aria-hidden="true">
@@ -537,9 +543,10 @@ main.panel {
   <aside class="panel">
     <h3 class="title">HOW TO PLAY</h3>
     <div class="muted">
+      
       <p><b>Move:</b> Arrow Keys / WASD</p>
-      <p><b>Goal:</b> Grow the snake, don’t crash, farm points.</p>
-      <p><b>Tip:</b> Plan turns early.</p>
+      <p><b>Action:</b> Space / Click (if available)</p>
+      <p><b>Goal:</b> Hack targets, avoid traps, chain points.</p>
     </div>
     <div class="hint">
       Initials are set on the homepage. Click the badge (top-right) to change them here.
@@ -555,7 +562,7 @@ main.panel {
     <div class="gamebox">
       <div class="game-stage" id="pn-stage">
         <div class="game-stage-inner" id="pn-stage-inner">
-          <div id="root"></div>
+          <iframe id="pn-iframe" title="CYBER PYTHON" src="./game.html" style="border:0; width:100%; height:100%; display:block; background:transparent;"></iframe>
         </div>
       </div>
     </div>
@@ -582,9 +589,10 @@ main.panel {
 <div id="m-howto" class="m-panel hidden">
   <h3 class="title">HOW TO PLAY</h3>
   <div class="muted">
-    <p><b>Move:</b> Arrow Keys / WASD</p>
-    <p><b>Goal:</b> Grow the snake, don’t crash, farm points.</p>
-    <p><b>Tip:</b> Plan turns early.</p>
+    
+      <p><b>Move:</b> Arrow Keys / WASD</p>
+      <p><b>Action:</b> Space / Click (if available)</p>
+      <p><b>Goal:</b> Hack targets, avoid traps, chain points.</p>
   </div>
   <div class="hint">Click the badge (top-right) to change initials.</div>
   <div class="hint"><b>Game Over:</b> score auto-saves. Press <b>Enter</b> to restart.</div>
@@ -593,7 +601,7 @@ main.panel {
 <div id="m-game" class="m-panel hidden">
   <div class="gamebox">
     <!-- On mobile, fitStage targets this inner shell via #pn-stage-inner.
-         The React app mounts into #root wherever it is in the DOM. -->
+         The game iframe is moved between desktop and mobile containers. -->
     <div class="game-stage">
       <div class="game-stage-inner" id="pn-stage-inner-mobile">
         <!-- #root lives in the desktop panel; mobile just shows the same viewport.
@@ -633,14 +641,16 @@ main.panel {
     // Slugs: leaderboard fetch tries each in order; first one is used for score submission.
     slugs:        ["cyber-python", "cyberpython"],
 
+
+    // If false, wrapper lets the game fill the panel (no letterboxing).
+    lockAspect:   false,
     // Native grid dimensions (columns × rows).
     // fitStage() uses width/height to lock the aspect ratio.
     //   Millipede  →  20 × 32
     //   Example 4:3 game → e.g. 40 × 30
     //   Example 16:9 game → e.g. 16 × 9
     gridCols:     20,
-    gridRows:     32,
-    lockAspect:  false
+    gridRows:     32
   };
   // Derived — don't edit these.
   var SLUGS = GAME_CONFIG.slugs;
@@ -745,6 +755,35 @@ main.panel {
   var saveBtn = document.getElementById("px-init-save");
   if (saveBtn) saveBtn.addEventListener("click", saveInitials);
 
+  
+  // --------------------------------------------------------
+  // IFRAME TWEAKS  (embed mode: no white, no desktop joysticks)
+  // --------------------------------------------------------
+  function applyIframeTweaks() {
+    var frame = document.getElementById("pn-iframe");
+    if (!frame) return;
+    var doc = null;
+    try { doc = frame.contentDocument; } catch(_) { doc = null; }
+    if (!doc) return;
+
+    // Inject once
+    if (!doc.getElementById("px-embed-style")) {
+      var style = doc.createElement("style");
+      style.id = "px-embed-style";
+      style.textContent = `
+        html, body { margin:0 !important; padding:0 !important; height:100% !important; background: #050611 !important; overflow:hidden !important; }
+        canvas { display:block; }
+        /* Hide virtual sticks on desktop */
+        @media (min-width: 1001px) {
+          .joystick, .joysticks, .touch-joystick, .touch-controls,
+          #joystick, #joystick-left, #joystick-right, #left-joystick, #right-joystick,
+          [class*="joystick"], [id*="joystick"] { display:none !important; opacity:0 !important; pointer-events:none !important; }
+        }
+      `;
+      doc.head.appendChild(style);
+    }
+  }
+
   // --------------------------------------------------------
   // ASPECT-FIT  (uses GAME_CONFIG.gridCols / gridRows)
   // --------------------------------------------------------
@@ -752,6 +791,17 @@ main.panel {
   var gamebox    = document.querySelector(".gamebox");   // desktop gamebox
 
   function fitStage() {
+    // If this game is freeform/fullscreen, let it fill the panel.
+    if (GAME_CONFIG.lockAspect === false) {
+      var boxF = (window.innerWidth <= 1000) ? document.querySelector("#m-game .gamebox") : document.querySelector(".gamebox");
+      var innerF = (window.innerWidth <= 1000) ? document.getElementById("pn-stage-inner-mobile") : document.getElementById("pn-stage-inner");
+      if (innerF && boxF) {
+        innerF.style.width = boxF.clientWidth + "px";
+        innerF.style.height = boxF.clientHeight + "px";
+      }
+      return;
+    }
+
     // On mobile the gamebox reference may differ; grab the visible one.
     var box = gamebox;
     var inner = stageInner;
@@ -762,11 +812,6 @@ main.panel {
     }
     if (!inner || !box) return;
 
-    if (GAME_CONFIG.lockAspect === false) {
-      inner.style.width = "100%";
-      inner.style.height = "100%";
-      return;
-    }
     var W     = box.clientWidth;
     var H     = box.clientHeight;
     var ratio = GAME_ASPECT;             // set in GAME_CONFIG above
@@ -786,36 +831,9 @@ main.panel {
     inner.style.height = h + "px";
   }
 
+  applyIframeTweaks();
   fitStage();
-  window.addEventListener("resize", fitStage);
-
-  // --------------------------------------------------------
-  // GAME MOUNT (iframe)
-  // Keeps the canonical wrapper HTML identical across games.
-  // --------------------------------------------------------
-  function pxMountIframe() {
-    var root = document.getElementById("root");
-    if (!root) return;
-    if (root.querySelector("iframe.px-gameframe")) return;
-
-    var f = document.createElement("iframe");
-    f.className = "px-gameframe";
-    f.src = "./game.html";
-    f.title = "Game";
-    f.loading = "eager";
-    f.setAttribute("allow", "autoplay; fullscreen; gamepad");
-    f.style.width = "100%";
-    f.style.height = "100%";
-    f.style.border = "0";
-    f.style.display = "block";
-    f.tabIndex = 0;
-
-    root.appendChild(f);
-    // Focus so keyboard works immediately.
-    try { f.focus(); } catch(_){}
-  }
-  pxMountIframe();
-
+  window.addEventListener("resize", function(){ applyIframeTweaks(); fitStage(); });
 
   // --------------------------------------------------------
   // DUPLICATE-SCORE GUARD
@@ -956,9 +974,10 @@ main.panel {
 
   /** Read the visible score out of the page text (React renders it). */
   function readScoreNow() {
-    var txt = document.body.innerText || "";
-
-    // Primary: "SCORE: 1,234" anywhere on page
+    var frame = document.getElementById("pn-iframe");
+    var txt = "";
+    try { txt = (frame && frame.contentDocument && frame.contentDocument.body && frame.contentDocument.body.innerText) ? frame.contentDocument.body.innerText : ""; } catch(_) { txt = ""; }
+// Primary: "SCORE: 1,234" anywhere on page
     var m = txt.match(/SCORE:\s*([0-9][0-9,]*)/i);
     if (m && m[1]) return parseInt(m[1].replace(/,/g, ""), 10) || 0;
 
@@ -974,7 +993,7 @@ main.panel {
     var killRe = /(ENTER\s+YOUR?\s*INITIALS|TYPE\s+YOUR?\s*INITIALS|ENTER\s+INITIALS|YOUR\s+INITIALS)/i;
 
     // Kill matching buttons
-    Array.from(document.querySelectorAll("button")).forEach(function (b) {
+    Array.from((frameD||document).querySelectorAll("button")).forEach(function (b) {
       if (b.id === "px-init-save") return;   // leave OUR modal SAVE button alone
       var t = (b.textContent || "").trim().toUpperCase();
       if (t === "SAVE" || t === "ENTER INITIALS" || t === "SUBMIT" || t === "OK" || killRe.test(t)) {
@@ -984,7 +1003,7 @@ main.panel {
     });
 
     // Kill 3-char inputs (initials entry)
-    Array.from(document.querySelectorAll("input")).forEach(function (inp) {
+    Array.from((frameD||document).querySelectorAll("input")).forEach(function (inp) {
       if (inp.id === "px-init-input") return;   // leave OUR modal input alone
       var ml = inp.getAttribute("maxlength");
       var ph = (inp.getAttribute("placeholder") || "").trim();
@@ -995,7 +1014,7 @@ main.panel {
     });
 
     // Kill bare text nodes that match the prompt
-    var root = document.getElementById("root");
+    var root = frameD ? frameD.body : null;
     if (root) {
       Array.from(root.querySelectorAll("*")).forEach(function (el) {
         if (el.childElementCount > 0) return;
@@ -1016,7 +1035,7 @@ main.panel {
     var hasSaveBtn = rootButtons.some(function (b) {
       return (b.textContent || "").trim().toUpperCase() === "SAVE";
     });
-    var rootEls = Array.from(document.querySelectorAll("#root *"));
+    var rootEls = Array.from(frameD.querySelectorAll("*"));
     var hasInitialsPrompt = rootEls.some(function (el) {
       return (el.textContent || "").trim().toUpperCase() === "ENTER INITIALS";
     });
@@ -1109,7 +1128,7 @@ main.panel {
   // --------------------------------------------------------
   // MOBILE TAB SWITCHING
   // --------------------------------------------------------
-  var mobileRoot = document.getElementById("root");
+  var mobileRoot = document.getElementById("pn-iframe");
   var tabButtons = document.querySelectorAll("#m-tabs button");
   var mGame      = document.getElementById("m-game");
   var mHowTo     = document.getElementById("m-howto");
@@ -1141,7 +1160,7 @@ main.panel {
   }
 
   // Cache the #root element for potential re-parenting on mobile.
-  var mRoot = document.getElementById("root");
+  var mRoot = document.getElementById("pn-iframe");
 
   tabButtons.forEach(function (btn) {
     btn.addEventListener("click", function () {
@@ -1153,6 +1172,10 @@ main.panel {
   if (window.innerWidth <= 1000) {
     showMobileTab("game");
   }
+
+  // Ensure iframe tweaks applied after load
+  var _f = document.getElementById("pn-iframe");
+  if (_f) _f.addEventListener("load", applyIframeTweaks);
 
   // Also re-check on resize (desktop ↔ mobile transition)
   window.addEventListener("resize", function () {
