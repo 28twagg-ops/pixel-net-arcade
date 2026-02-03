@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Creek Crosser — Wrapper (Canon)</title>
+<style>
+/* Minimal Millipede-style wrapper CSS (canonical layout) */
+:root{--bg:#0f1724;--panel:#0b1220;--muted:#9aa7b2}
+html,body{height:100%;margin:0;background:var(--bg);color:#e6eef6;font-family:Segoe UI,system-ui,Arial;}
+.app {display:grid;grid-template-columns:260px 1fr 320px;gap:18px;padding:18px;height:100vh;box-sizing:border-box;}
+@media (max-width:900px){ .app{grid-template-columns:1fr;grid-template-rows:auto 1fr auto;padding:0;} .left,.right{display:none;} .mobile-tabs{display:flex;} }
+.left{background:var(--panel);padding:16px;border-radius:8px;overflow:auto}
+.center{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.right{background:var(--panel);padding:16px;border-radius:8px;overflow:auto}
+.header{font-weight:700;margin-bottom:12px}
+.gamebox{width:100%;height:100%;max-width:900px;max-height:calc(100vh - 140px);display:flex;align-items:center;justify-content:center;background:#07101a;border-radius:8px;box-shadow:0 8px 30px rgba(2,6,23,0.6);}
+.game-stage{display:flex;align-items:center;justify-content:center;width:100%;height:100%;position:relative;}
+.stage-inner{background:transparent;display:flex;align-items:center;justify-content:center;box-sizing:border-box;overflow:hidden;}
+.game-frame{width:100%;height:100%;border:0;display:block;}
+.mobile-tabs{display:none;background:#07101a;padding:8px;border-radius:8px;gap:8px}
+.tab-btn{flex:1;padding:10px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.03);color:#cfe6ff;font-weight:600}
+.hint{font-size:13px;color:var(--muted);margin-top:8px}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <aside class="left">
+    <div class="header">HOW TO PLAY</div>
+    <div id="howto">Use arrow keys or WASD. Jump across logs and avoid cars...</div>
+  </aside>
+
+  <main class="center">
+    <div class="gamebox" id="gamebox">
+      <div class="game-stage" id="game-stage">
+        <!-- aspect-locked inner stage -->
+        <div id="stage-inner" class="stage-inner">
+          <iframe id="game-frame" class="game-frame" src="./game.html" scrolling="no" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+    <div class="hint">Creek Crosser — scales to preserve the game's native aspect ratio (1:1)</div>
+    <div class="mobile-tabs" id="mobile-tabs" style="display:none;">
+      <button class="tab-btn" data-target="game">GAME</button>
+      <button class="tab-btn" data-target="howto">HOW TO PLAY</button>
+      <button class="tab-btn" data-target="leaderboard">LEADERBOARD</button>
+    </div>
+  </main>
+
+  <aside class="right">
+    <div class="header">LEADERBOARD</div>
+    <div id="leaderboard">Top scores will appear here.</div>
+  </aside>
+</div>
+
+<script>
+// Canon wrapper fitStage logic (Millipede-style)
+// Configure native game cols/rows here:
+const GAME_CONFIG = { cols:13, rows:13 };
+const GAME_ASPECT = GAME_CONFIG.cols / GAME_CONFIG.rows;
+
+const stageInner = document.getElementById('stage-inner');
+const gamebox = document.getElementById('gamebox');
+const gameFrame = document.getElementById('game-frame');
+
+function fitStage(){
+  // available space inside gamebox
+  const boxStyles = getComputedStyle(gamebox);
+  const boxWidth = gamebox.clientWidth - parseFloat(boxStyles.paddingLeft || 0) - parseFloat(boxStyles.paddingRight || 0);
+  const boxHeight = gamebox.clientHeight - parseFloat(boxStyles.paddingTop || 0) - parseFloat(boxStyles.paddingBottom || 0);
+
+  // compute best fit preserving aspect
+  let targetW = boxWidth;
+  let targetH = Math.round(targetW / GAME_ASPECT);
+
+  if (targetH > boxHeight) {
+    targetH = boxHeight;
+    targetW = Math.round(targetH * GAME_ASPECT);
+  }
+
+  // set explicit pixel size to avoid subpixel stretching
+  stageInner.style.width = targetW + 'px';
+  stageInner.style.height = targetH + 'px';
+  // ensure iframe fills inner stage
+  gameFrame.style.width = '100%';
+  gameFrame.style.height = '100%';
+}
+
+// Run on load and resize
+window.addEventListener('load', () => {
+  fitStage();
+  // mobile tabs show on small screens
+  if (window.matchMedia('(max-width:900px)').matches) {
+    document.getElementById('mobile-tabs').style.display = 'flex';
+  }
+});
+window.addEventListener('resize', () => {
+  fitStage();
+  if (window.matchMedia('(max-width:900px)').matches) {
+    document.getElementById('mobile-tabs').style.display = 'flex';
+  } else {
+    document.getElementById('mobile-tabs').style.display = 'none';
+  }
+});
+
+// Optional: observe size changes to parent
+const ro = new ResizeObserver(entries => { fitStage(); });
+ro.observe(gamebox);
+
+// Mobile tab switching (very lightweight; reparenting not implemented here — iframe remains singular)
+document.getElementById('mobile-tabs')?.addEventListener('click', (e)=> {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  const t = btn.dataset.target;
+  if (t === 'howto') {
+    alert('HOW TO PLAY (mobile): Use arrows / touch controls if present in game.');
+  } else if (t === 'leaderboard') {
+    alert('Leaderboard (mobile): feature placeholder.');
+  }
+});
+</script>
+</body>
+</html>
