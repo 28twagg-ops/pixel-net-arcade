@@ -124,7 +124,7 @@ main.panel{padding-bottom:12px}
   justify-content:center;
 }
 .gameframe{
-  height:min(84dvh, 920px);
+  height:min(88dvh, 980px);
   max-height:100%;
   aspect-ratio:20/32;
   width:auto;
@@ -184,6 +184,8 @@ main.panel{padding-bottom:12px}
     align-items:center;
     flex-wrap:wrap;
   }
+  .mobile-tabs{position:sticky; top:calc(var(--topbarH) + 6px); z-index:20; backdrop-filter: blur(6px);}
+
   .tab-btn{
     flex:1 1 auto;
     min-width:110px;
@@ -197,22 +199,12 @@ main.panel{padding-bottom:12px}
     cursor:pointer;
   }
   .tab-btn.is-active{background:rgba(255,255,255,.10)}
-  .tab-fs{min-width:140px}
-  /* Mobile: keep main panel, hide side panels; tabs swap views inside main */
+    /* Mobile: keep main panel, hide side panels; tabs swap views inside main */
   aside.panel{display:none !important}
   main.panel{display:flex !important}
   /* Make game bigger on mobile */
   .gameframe{height:min(72dvh, 720px)}
 }
-
-/* Fullscreen mode helpers */
-body.is-fs .layout{padding-top:calc(var(--topbarH) + 10px)}
-body.is-fs .panel[data-panel="howto"],
-body.is-fs .panel[data-panel="lb"]{display:none !important}
-body.is-fs main.panel{display:flex !important}
-body.is-fs .gameframe{height:calc(100dvh - var(--topbarH) - 28px); max-width:100%}
-
-
 
 /* Tab views (inside main, used on mobile) */
 .tabviews{width:100%}
@@ -223,6 +215,54 @@ body.is-fs .gameframe{height:calc(100dvh - var(--topbarH) - 28px); max-width:100
   .view[data-view="howto"], .view[data-view="lb"]{display:none !important}
   .view[data-view="game"]{display:block}
 }
+.hidden{display:none !important}
+
+/* Initials modal */
+.px-init-modal{
+  position:fixed; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  z-index:200;
+}
+.px-init-modal.hidden{display:none !important}
+.px-init-backdrop{position:absolute; inset:0; background:rgba(0,0,0,.55); backdrop-filter: blur(4px);}
+.px-init-card{
+  position:relative;
+  width:min(420px, calc(100vw - 26px));
+  background:linear-gradient(180deg,var(--card1),var(--card2));
+  border:1px solid var(--stroke);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+  padding:14px;
+}
+.px-init-header{display:flex; align-items:center; justify-content:space-between; font:900 13px/1 Orbitron, ui-sans-serif, system-ui; letter-spacing:.12em;}
+#px-init-close{border:0;background:transparent;color:var(--text);font-size:22px;cursor:pointer; padding:0 6px;}
+#px-init-input{
+  width:100%;
+  margin-top:12px;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(0,0,0,.25);
+  color:var(--text);
+  font:900 28px/1.1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+#px-init-save{
+  width:100%;
+  margin-top:12px;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.10);
+  color:var(--text);
+  font:900 13px/1 Orbitron, ui-sans-serif, system-ui;
+  letter-spacing:.12em;
+  cursor:pointer;
+}
+#px-init-save:hover{background:rgba(255,255,255,.14)}
+.px-init-hint{margin-top:10px; color:var(--muted); font-size:12px;}
+
 </style>
 
   <!-- React build -->
@@ -243,11 +283,11 @@ body.is-fs .gameframe{height:calc(100dvh - var(--topbarH) - 28px); max-width:100
     <div class="px-init-hint">Press Enter to save</div>
   </div>
 </section>
-<div id="pn-version-pill">V1.7</div>
+<div id="pn-version-pill">V1.8</div>
 
   <div class="topbar">
     <button class="btn" id="px-exit">EXIT</button>
-    <div class="badge" id="px-badge" title="Click to change initials on home page">???</div>
+    <div class="badge" id="px-badge" title="Click to change initials">???</div>
   </div>
 
   <div class="layout">
@@ -257,6 +297,9 @@ body.is-fs .gameframe{height:calc(100dvh - var(--topbarH) - 28px); max-width:100
         <p><b>Move:</b> Arrow Keys / WASD</p>
         <p><b>Shoot:</b> Space</p>
         <p><b>Goal:</b> Clear the swarm, survive, score high.</p>
+        <p><b>DDT Bomb:</b> shoot it to create a gas cloud that clears enemies.</p>
+        <p><b>Poison:</b> poisoned mushrooms make the millipede dive downward.</p>
+
       </div>
       <div class="hint">Initials are set on the homepage. Click the badge (top-right) to change.</div>
       <div class="hint"><b>Game Over:</b> score auto-saves. Press <b>Enter</b> to restart.</div>
@@ -268,8 +311,7 @@ body.is-fs .gameframe{height:calc(100dvh - var(--topbarH) - 28px); max-width:100
         <button class="tab-btn is-active" data-tab="game" type="button">GAME</button>
         <button class="tab-btn" data-tab="howto" type="button">HOW TO PLAY</button>
         <button class="tab-btn" data-tab="lb" type="button">LEADERBOARD</button>
-        <button class="tab-btn tab-fs" data-action="fs" type="button">FULL SCREEN</button>
-      </div>
+</div>
       <div class="tabviews">
         <section class="view is-active" data-view="game">
 
@@ -290,6 +332,9 @@ body.is-fs .gameframe{height:calc(100dvh - var(--topbarH) - 28px); max-width:100
         <p><b>Move:</b> Arrow Keys / WASD</p>
         <p><b>Shoot:</b> Space</p>
         <p><b>Goal:</b> Clear the swarm, survive, score high.</p>
+        <p><b>DDT Bomb:</b> shoot it to create a gas cloud that clears enemies.</p>
+        <p><b>Poison:</b> poisoned mushrooms make the millipede dive downward.</p>
+
       </div>
       <div class="hint">Initials are set on the homepage. Click the badge (top-right) to change.</div>
       <div class="hint"><b>Game Over:</b> score auto-saves. Press <b>Enter</b> to restart.</div>
@@ -342,6 +387,62 @@ body.is-fs .gameframe{height:calc(100dvh - var(--topbarH) - 28px); max-width:100
       badge.textContent = initials || "???";
       document.getElementById("px-exit").onclick = () => location.href = "../../index.html";
 
+      // ---- Initials modal (badge click) ----
+      const modal = document.getElementById("px-init-modal");
+      const modalInput = document.getElementById("px-init-input");
+      const modalSave = document.getElementById("px-init-save");
+      const modalClose = document.getElementById("px-init-close");
+      const backdrop = modal ? modal.querySelector(".px-init-backdrop") : null;
+
+      function openInitials(){
+        if(!modal) return;
+        modal.classList.remove("hidden");
+        modal.setAttribute("aria-hidden","false");
+        if(modalInput){
+          modalInput.value = initials;
+          setTimeout(()=>modalInput.focus(), 0);
+          modalInput.select?.();
+        }
+      }
+      function closeInitials(){
+        if(!modal) return;
+        modal.classList.add("hidden");
+        modal.setAttribute("aria-hidden","true");
+      }
+      function applyInitials(v){
+        const nv = norm(v);
+        localStorage.setItem("px_player_initials", nv);
+        sessionStorage.setItem("playerInitials", nv);
+        try{
+          localStorage.setItem("p", nv);
+          localStorage.setItem("u", nv);
+          localStorage.setItem("n", nv);
+          localStorage.setItem("nm", nv);
+        }catch(_){}
+        badge.textContent = nv;
+      }
+
+      badge.addEventListener("click", openInitials);
+      if(modalClose) modalClose.addEventListener("click", closeInitials);
+      if(backdrop) backdrop.addEventListener("click", closeInitials);
+
+      if(modalSave){
+        modalSave.addEventListener("click", ()=>{
+          applyInitials(modalInput ? modalInput.value : "");
+          closeInitials();
+        });
+      }
+      if(modalInput){
+        modalInput.addEventListener("keydown", (e)=>{
+          if(e.key === "Enter"){ e.preventDefault(); applyInitials(modalInput.value); closeInitials(); }
+          if(e.key === "Escape"){ e.preventDefault(); closeInitials(); }
+        });
+        modalInput.addEventListener("input", ()=>{
+          modalInput.value = norm(modalInput.value);
+        });
+      }
+
+
       // ---- Mobile tabs ----
       const views = Array.from(document.querySelectorAll('.tabviews .view[data-view]'));
       const tabBtns = Array.from(document.querySelectorAll('.mobile-tabs .tab-btn[data-tab]'));
@@ -365,251 +466,5 @@ body.is-fs .gameframe{height:calc(100dvh - var(--topbarH) - 28px); max-width:100
           if(tab) setActive(tab);
         });
       });
+      
 
-      // ---- Fullscreen (game-only) ---- (game-only) ----
-      const fsBtn = document.querySelector('.mobile-tabs .tab-btn[data-action="fs"]');
-      const gameFrame = document.getElementById('px-gameframe');
-
-      function isFs(){
-        return !!(document.fullscreenElement || document.webkitFullscreenElement);
-      }
-
-      async function enterFs(){
-        document.body.classList.add('is-fs'); // pseudo-fs fallback styling
-        if(gameFrame){
-          try{
-            const el = gameFrame;
-            if(el.requestFullscreen) await el.requestFullscreen();
-            else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-          }catch(_){}
-        }
-        if(fsBtn) fsBtn.textContent = 'EXIT FULL SCREEN';
-      }
-
-      async function exitFs(){
-        try{
-          if(document.exitFullscreen) await document.exitFullscreen();
-          else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
-        }catch(_){}
-        document.body.classList.remove('is-fs');
-        if(fsBtn) fsBtn.textContent = 'FULL SCREEN';
-      }
-
-      if(fsBtn){
-        fsBtn.addEventListener('click', ()=>{
-          if(isFs()) exitFs();
-          else enterFs();
-        });
-      }
-
-      document.addEventListener('fullscreenchange', ()=>{
-        if(!isFs()){
-          document.body.classList.remove('is-fs');
-          if(fsBtn) fsBtn.textContent = 'FULL SCREEN';
-        }else{
-          document.body.classList.add('is-fs');
-          if(fsBtn) fsBtn.textContent = 'EXIT FULL SCREEN';
-        }
-      });
-
-      // ---- Tap to restart when GAME OVER is visible ----
-      // If the React overlay is showing "GAME OVER", a tap/click on the game area reloads.
-      function gameOverVisible(){
-        const txt = document.body.innerText || "";
-        return txt.toUpperCase().indexOf("GAME OVER") !== -1;
-      }
-      if(gameFrame){
-        gameFrame.addEventListener('click', ()=>{
-          if(gameOverVisible()) location.reload();
-        }, {passive:true});
-        gameFrame.addEventListener('touchend', ()=>{
-          if(gameOverVisible()) location.reload();
-        }, {passive:true});
-      }
-
-
-      // ---- Block duplicate /api/score submissions (even if React game tries) ----
-      // We allow ONE real POST per page-load for this slug.
-      let sentOnce = false;
-
-      function shouldBlockScorePost(url, bodyText){
-        if(!url || typeof url !== "string") return false;
-        if(url.indexOf("/api/score") === -1) return false;
-        try{
-          const obj = bodyText ? JSON.parse(bodyText) : null;
-          const slug = obj && (obj.game_slug || obj.gameSlug);
-          if(slug && String(slug) !== SLUG) return false;
-        }catch(_){
-          // If we can't parse, still treat as score post and gate it.
-        }
-        if(sentOnce) return true;
-        sentOnce = true;
-        return false;
-      }
-
-      const _fetch = window.fetch ? window.fetch.bind(window) : null;
-      if(_fetch){
-        window.fetch = async function(input, init){
-          const url = (typeof input === "string") ? input : (input && input.url) || "";
-          const bodyText = init && init.body ? String(init.body) : "";
-          if(shouldBlockScorePost(url, bodyText)){
-            console.warn("[Millipede wrapper] blocked duplicate /api/score");
-            return new Response("", {status: 204});
-          }
-          return _fetch(input, init);
-        };
-      }
-
-      // XHR guard (some bundles still use it)
-      const _open = XMLHttpRequest.prototype.open;
-      const _send = XMLHttpRequest.prototype.send;
-      XMLHttpRequest.prototype.open = function(method, url){
-        this.__px_url = url;
-        this.__px_method = method;
-        return _open.apply(this, arguments);
-      };
-      XMLHttpRequest.prototype.send = function(body){
-        const url = this.__px_url || "";
-        const bodyText = body ? String(body) : "";
-        if(shouldBlockScorePost(url, bodyText)){
-          console.warn("[Millipede wrapper] blocked duplicate XHR /api/score");
-          try{ this.abort(); }catch(_){}
-          return;
-        }
-        return _send.apply(this, arguments);
-      };
-
-      // ---- LEADERBOARD RENDER ----
-      async function renderLeaderboard(){
-        const status = document.getElementById("lb-status");
-        const L = document.getElementById("lb-left");
-        const R = document.getElementById("lb-right");
-        const statusM = document.getElementById("lb-status-m");
-        const LM = document.getElementById("lb-left-m");
-        const RM = document.getElementById("lb-right-m");
-        if(L) L.innerHTML=""; if(R) R.innerHTML="";
-        if(LM) LM.innerHTML=""; if(RM) RM.innerHTML="";
-        try{
-          const rows = await PixelNet.getLeaderboard(SLUG);
-          const top = (rows || []).slice(0,10);
-          if(!top.length){ if(status) status.textContent="No scores yet."; if(statusM) statusM.textContent="No scores yet."; return; }
-          top.forEach((row,i)=>{
-            const ini = norm(row.initials || row.name || "???");
-            const sc = Number(row.score ?? row.points ?? row.value ?? 0) || 0;
-            const li=document.createElement("li");
-            li.className="lb-item";
-            li.innerHTML=`<span class="lb-rank">${i+1}.</span><span>${ini}</span><span class="lb-score">${sc}</span>`;
-            (i<5?L:R).appendChild(li);
-            if(LM && RM){
-              const li2 = li.cloneNode(true);
-              (i<5?LM:RM).appendChild(li2);
-            }
-          });
-          if(status) status.textContent="Auto-refreshing…"; if(statusM) statusM.textContent="Auto-refreshing…";
-        }catch(e){
-          console.error("[Millipede wrapper] leaderboard fetch failed:", e);
-          status.textContent="Failed to load leaderboard (backend sleeping?).";
-        }
-      }
-      renderLeaderboard();
-      setInterval(renderLeaderboard, 6000);
-
-      // ---- Auto-save on GAME OVER, remove SAVE UI, Enter to restart ----
-      let gameOverSeen = false;
-      let savedThisDeath = false;
-      let lastScoreSaved = -1;
-
-      function readScoreNow(){
-        // Overlay shows "SCORE: 1,344"
-        const txt = document.body.innerText || "";
-        const m = txt.match(/SCORE:\s*([0-9][0-9,]*)/i);
-        if(m && m[1]) return parseInt(m[1].replace(/,/g,""),10) || 0;
-
-        const overIdx = txt.toUpperCase().indexOf("GAME OVER");
-        const slice = overIdx>=0 ? txt.slice(overIdx, overIdx+220) : txt;
-        const m2 = slice.match(/([0-9][0-9,]{2,})/);
-        return m2 ? (parseInt(m2[1].replace(/,/g,""),10) || 0) : 0;
-      }
-
-      function hideSaveUI(){
-        const root = document.getElementById("root");
-        const killRe = /(ENTER\s+YOUR?\s*INITIALS|TYPE\s+YOUR?\s*INITIALS|ENTER\s+INITIALS|YOUR\s+INITIALS)/i;
-
-        for (const b of Array.from(document.querySelectorAll("button"))){
-          const t = ((b.textContent||"").trim()).toUpperCase();
-          if(t==="SAVE" || t==="ENTER INITIALS" || t==="SUBMIT" || t==="OK"){
-            b.style.display="none";
-            b.disabled=true;
-          }
-          if(killRe.test(t)){
-            b.style.display="none";
-            b.disabled=true;
-          }
-        }
-
-        for (const inp of Array.from(document.querySelectorAll("input"))){
-          const ml = inp.getAttribute("maxlength");
-          const ph = (inp.getAttribute("placeholder")||"").trim();
-          if(ml==="3" || ph.includes("_")){
-            inp.style.display="none";
-            inp.disabled=true;
-          }
-        }
-
-        if(root){
-          for (const el of Array.from(root.querySelectorAll("*"))){
-            if(el.childElementCount>0) continue;
-            const txt = (el.textContent||"").trim();
-            if(!txt || txt.length>80) continue;
-            if(killRe.test(txt)){
-              el.textContent = "";
-              el.style.display="none";
-              el.setAttribute("aria-hidden","true");
-            }
-          }
-        }
-      }
-
-      async function autoSaveIfGameOver(){
-        const buttons = Array.from(document.querySelectorAll("#root button, button"));
-        const hasSaveBtn = buttons.some(b => (b.textContent||"").trim().toUpperCase()==="SAVE");
-        const hasEnterInitials = Array.from(document.querySelectorAll("#root *")).some(el => (el.textContent||"").trim().toUpperCase()==="ENTER INITIALS");
-        const hasGameOverInRoot = Array.from(document.querySelectorAll("#root *")).some(el => (el.textContent||"").trim().toUpperCase()==="GAME OVER");
-
-        const isOver = hasSaveBtn || hasEnterInitials || hasGameOverInRoot;
-        if(!isOver) return;
-
-        gameOverSeen = true;
-        hideSaveUI();
-
-        const score = readScoreNow();
-        if(savedThisDeath) return;
-        if(score === lastScoreSaved) return;
-
-        savedThisDeath = true;
-        lastScoreSaved = score;
-
-        try{
-          console.log("[Millipede wrapper] auto-saving on death", {slug: SLUG, initials, score});
-          if(window.PixelNet && PixelNet.submitScore){
-            await PixelNet.submitScore(SLUG, score);
-          }
-          setTimeout(renderLeaderboard, 600);
-}catch(err){
-          console.error("[Millipede wrapper] auto-save failed:", err);
-}
-      }
-
-      const obs = new MutationObserver(()=>autoSaveIfGameOver());
-      obs.observe(document.body, {subtree:true, childList:true, characterData:true});
-      autoSaveIfGameOver();
-window.addEventListener("keydown", (e)=>{
-        if((e.code==="Enter" || e.key==="Enter") && gameOverSeen){
-          e.preventDefault();
-          location.reload();
-        }
-      }, {capture:true});
-    })();
-  </script>
-</body>
-</html>
