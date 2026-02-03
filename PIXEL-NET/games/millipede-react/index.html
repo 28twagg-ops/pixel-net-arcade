@@ -1,15 +1,16 @@
 <!-- FORCE_PAGES_REDEPLOY -->
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width,initial-scale=1" name="viewport"/>
-<title>MILLIPEDE CHAOS</title>
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&amp;display=swap" rel="stylesheet"/>
-<style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MILLIPEDE CHAOS</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+
+  <style>
 
 :root{
   --text:#e9ecff;
@@ -123,7 +124,7 @@ main.panel{padding-bottom:12px}
   justify-content:center;
 }
 .gameframe{
-  height:min(88dvh, 980px);
+  height:min(84dvh, 920px);
   max-height:100%;
   aspect-ratio:20/32;
   width:auto;
@@ -183,8 +184,6 @@ main.panel{padding-bottom:12px}
     align-items:center;
     flex-wrap:wrap;
   }
-  .mobile-tabs{position:sticky; top:calc(var(--topbarH) + 6px); z-index:20; backdrop-filter: blur(6px);}
-
   .tab-btn{
     flex:1 1 auto;
     min-width:110px;
@@ -198,12 +197,22 @@ main.panel{padding-bottom:12px}
     cursor:pointer;
   }
   .tab-btn.is-active{background:rgba(255,255,255,.10)}
-    /* Mobile: keep main panel, hide side panels; tabs swap views inside main */
+  .tab-fs{min-width:140px}
+  /* Mobile: keep main panel, hide side panels; tabs swap views inside main */
   aside.panel{display:none !important}
   main.panel{display:flex !important}
   /* Make game bigger on mobile */
   .gameframe{height:min(72dvh, 720px)}
 }
+
+/* Fullscreen mode helpers */
+body.is-fs .layout{padding-top:calc(var(--topbarH) + 10px)}
+body.is-fs .panel[data-panel="howto"],
+body.is-fs .panel[data-panel="lb"]{display:none !important}
+body.is-fs main.panel{display:flex !important}
+body.is-fs .gameframe{height:calc(100dvh - var(--topbarH) - 28px); max-width:100%}
+
+
 
 /* Tab views (inside main, used on mobile) */
 .tabviews{width:100%}
@@ -214,147 +223,346 @@ main.panel{padding-bottom:12px}
   .view[data-view="howto"], .view[data-view="lb"]{display:none !important}
   .view[data-view="game"]{display:block}
 }
-.hidden{display:none !important}
 
-/* Initials modal */
-.px-init-modal{
-  position:fixed; inset:0;
-  display:flex; align-items:center; justify-content:center;
-  z-index:200;
-}
-.px-init-modal.hidden{display:none !important}
-.px-init-backdrop{position:absolute; inset:0; background:rgba(0,0,0,.55); backdrop-filter: blur(4px);}
-.px-init-card{
-  position:relative;
-  width:min(420px, calc(100vw - 26px));
-  background:linear-gradient(180deg,var(--card1),var(--card2));
-  border:1px solid var(--stroke);
-  border-radius:18px;
-  box-shadow:var(--shadow);
-  padding:14px;
-}
-.px-init-header{display:flex; align-items:center; justify-content:space-between; font:900 13px/1 Orbitron, ui-sans-serif, system-ui; letter-spacing:.12em;}
-#px-init-close{border:0;background:transparent;color:var(--text);font-size:22px;cursor:pointer; padding:0 6px;}
-#px-init-input{
-  width:100%;
-  margin-top:12px;
-  padding:12px 14px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(0,0,0,.25);
-  color:var(--text);
-  font:900 28px/1.1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-  letter-spacing:.18em;
-  text-transform:uppercase;
-}
-#px-init-save{
-  width:100%;
-  margin-top:12px;
-  padding:12px 14px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(255,255,255,.10);
-  color:var(--text);
-  font:900 13px/1 Orbitron, ui-sans-serif, system-ui;
-  letter-spacing:.12em;
-  cursor:pointer;
-}
-#px-init-save:hover{background:rgba(255,255,255,.14)}
-.px-init-hint{margin-top:10px; color:var(--muted); font-size:12px;}
+/* V1.9: hide in-game bottom legend strip from the React bundle (DDT/POISON) */
+#root .mt-4.flex.gap-6{display:none !important;}
+/* Some builds wrap that legend in a container right after the control panel */
+#root .mt-4{margin-top:0 !important;}
 
+/* V1.9: force true 3-column desktop layout (prevents LB dropping to bottom) */
+@media (min-width: 1100px){
+  .shell{display:grid !important; grid-template-columns: 340px minmax(520px,1fr) 340px !important; gap:18px !important; align-items:stretch !important;}
+  main.panel{min-height: calc(100dvh - 92px) !important;}
+  aside.panel{display:flex !important; flex-direction:column !important; min-height: calc(100dvh - 92px) !important;}
+}
+/* Never let the center game overlap outside its panel */
+.gamebox{overflow:hidden !important;}
+.gameframe{position:relative !important; overflow:hidden !important;}
 
-/* V1.9 fixes */
-.px-init-modal{position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center;}
-.px-init-modal.hidden{display:none !important;}
-.panel{min-width:0;}
-.layout{grid-template-areas:'howto game lb';}
-.layout > aside[data-panel='howto']{grid-area:howto;}
-.layout > main[data-panel='game']{grid-area:game;}
-.layout > aside[data-panel='lb']{grid-area:lb;}
+/* V1.9: vertically center the game area within the middle panel */
+@media (min-width: 1100px){
+  main.panel{display:flex !important; flex-direction:column !important;}
+  main.panel .gamebox{flex:1 1 auto !important; display:flex !important; align-items:center !important; justify-content:center !important; padding:18px 0 !important;}
+}
+
 </style>
-<!-- React build -->
-<script crossorigin="" src="./assets/index-BTthQfIO.js" type="module"></script>
+
+  <!-- React build -->
+  <script type="module" crossorigin src="./assets/index-BTthQfIO.js"></script>
 </head>
 <body>
-<section aria-hidden="true" class="px-init-modal hidden" id="px-init-modal">
-<div class="px-init-backdrop"></div>
-<div aria-label="Enter Initials" aria-modal="true" class="px-init-card" role="dialog">
-<div class="px-init-header">
-<span>ENTER INITIALS</span>
-<button aria-label="Close" id="px-init-close" type="button">×</button>
-</div>
-<input autocapitalize="characters" autocomplete="off" id="px-init-input" maxlength="3" placeholder="_ _ _" spellcheck="false" type="text"/>
-<button id="px-init-save" type="button">SAVE</button>
-<div class="px-init-hint">Press Enter to save</div>
-</div>
+
+<section id="px-init-modal" class="px-init-modal hidden" aria-hidden="true">
+  <div class="px-init-backdrop"></div>
+  <div class="px-init-card" role="dialog" aria-modal="true" aria-label="Enter Initials">
+    <div class="px-init-header">
+      <span>ENTER INITIALS</span>
+      <button id="px-init-close" type="button" aria-label="Close">×</button>
+    </div>
+    <input id="px-init-input" type="text" maxlength="3" placeholder="_ _ _" autocomplete="off"
+      autocapitalize="characters" spellcheck="false" />
+    <button id="px-init-save" type="button">SAVE</button>
+    <div class="px-init-hint">Press Enter to save</div>
+  </div>
 </section>
 <div id="pn-version-pill">V1.9</div>
-<div class="topbar">
-<button class="btn" id="px-exit">EXIT</button>
-<div class="badge" id="px-badge" title="Click to change initials">???</div>
-</div>
-<div class="layout">
-<aside class="panel" data-panel="howto">
-<h3 class="title">HOW TO PLAY</h3>
-<div class="muted">
-<p><b>Move:</b> Arrow Keys / WASD</p>
-<p><b>Shoot:</b> Space</p>
-<p><b>Goal:</b> Clear the swarm, survive, score high.</p>
-<p><b>DDT Bomb:</b> shoot it to create a gas cloud that clears enemies.</p>
-<p><b>Poison:</b> poisoned mushrooms make the millipede dive downward.</p>
-</div>
-<div class="hint">Initials are set on the homepage. Click the badge (top-right) to change.</div>
-<div class="hint"><b>Game Over:</b> score auto-saves. Press <b>Enter</b> to restart.</div>
-</aside>
-<main class="panel" data-panel="game">
-<h3 class="title">MILLIPEDE CHAOS</h3>
-<div aria-label="Millipede tabs" class="mobile-tabs" role="tablist">
-<button class="tab-btn is-active" data-tab="game" type="button">GAME</button>
-<button class="tab-btn" data-tab="howto" type="button">HOW TO PLAY</button>
-<button class="tab-btn" data-tab="lb" type="button">LEADERBOARD</button>
-</div>
-<div class="tabviews">
-<section class="view is-active" data-view="game">
-<div class="gamebox">
-<div class="gameframe" id="px-gameframe">
-<div id="root"></div>
-</div>
-</div>
-</section></div>
-<div class="muted">Leaderboard refreshes automatically.</div>
 
-<section class="view" data-view="howto">
-<h3 class="title">HOW TO PLAY</h3>
-<div class="muted">
-<p><b>Move:</b> Arrow Keys / WASD</p>
-<p><b>Shoot:</b> Space</p>
-<p><b>Goal:</b> Clear the swarm, survive, score high.</p>
-<p><b>DDT Bomb:</b> shoot it to create a gas cloud that clears enemies.</p>
-<p><b>Poison:</b> poisoned mushrooms make the millipede dive downward.</p>
-</div>
-<div class="hint">Initials are set on the homepage. Click the badge (top-right) to change.</div>
-<div class="hint"><b>Game Over:</b> score auto-saves. Press <b>Enter</b> to restart.</div>
-</section>
-<section class="view" data-view="lb">
-<h3 class="title">LEADERBOARD</h3>
-<div class="muted">Top 10</div>
-<div class="lb-grid">
-<ol class="lb-col" id="lb-left-m"></ol>
-<ol class="lb-col" id="lb-right-m"></ol>
-</div>
-<div class="lb-meta" id="lb-status-m">Loading…</div>
-</section>
-</main><aside class="panel" data-panel="lb">
-<h3 class="title">LEADERBOARD</h3>
-<div class="muted">Top 10</div>
-<div class="lb-grid">
-<ol class="lb-col" id="lb-left"></ol>
-<ol class="lb-col" id="lb-right"></ol>
-</div>
-<div class="lb-meta" id="lb-status">Loading…</div>
-</aside></div>
+  <div class="topbar">
+    <a class="btn" id="px-exit" href="../../index.html">EXIT</a>
+    <div class="badge" id="px-badge" title="Click to change initials on home page">???</div>
+  </div>
+
+  <div class="layout">
+    <aside class="panel" data-panel="howto">
+      <h3 class="title">HOW TO PLAY</h3>
+      <div class="muted">
+        <p><b>Move:</b> Arrow Keys / WASD</p>
+        <p><b>Shoot:</b> Space</p>
+        <p><b>Goal:</b> Clear the swarm, survive, score high.</p>
+      </div>
+      <div class="hint">Initials are set on the homepage. Click the badge (top-right) to change.</div>
+      <div class="hint"><b>Game Over:</b> score auto-saves. Press <b>Enter</b> to restart.</div>
+    </aside>
+
+    <main class="panel" data-panel="game">
+      <h3 class="title">MILLIPEDE CHAOS</h3>
+      <div class="mobile-tabs" role="tablist" aria-label="Millipede tabs">
+        <button class="tab-btn is-active" data-tab="game" type="button">GAME</button>
+        <button class="tab-btn" data-tab="howto" type="button">HOW TO PLAY</button>
+        <button class="tab-btn" data-tab="lb" type="button">LEADERBOARD</button>
+        <button class="tab-btn tab-fs" data-action="fs" type="button">FULL SCREEN</button>
+      </div>
+      <div class="tabviews">
+        <section class="view is-active" data-view="game">
 
 
+      <div class="gamebox">
+        <div class="gameframe" id="px-gameframe">
+          <div id="root"></div>
+        </div>
+</div>
+      </div>
+      
+    
+        </section>
+        <section class="view" data-view="howto">
 
-<script src="../../js/engine.js"></script>
-<script></script></body></html>
+      <h3 class="title">HOW TO PLAY</h3>
+      <div class="muted">
+        <p><b>Move:</b> Arrow Keys / WASD</p>
+        <p><b>Shoot:</b> Space</p>
+        <p><b>Goal:</b> Clear the swarm, survive, score high.</p>
+      </div>
+      <div class="hint">Initials are set on the homepage. Click the badge (top-right) to change.</div>
+      <div class="hint"><b>Game Over:</b> score auto-saves. Press <b>Enter</b> to restart.</div>
+    
+        </section>
+        <section class="view" data-view="lb">
+          <h3 class="title">LEADERBOARD</h3>
+          <div class="muted">Top 10</div>
+          <div class="lb-grid">
+            <ol class="lb-col" id="lb-left-m"></ol>
+            <ol class="lb-col" id="lb-right-m"></ol>
+          </div>
+          <div class="lb-meta" id="lb-status-m">Loading…</div>
+        </section>
+      </div>
+
+    </main>
+
+    <aside class="panel" data-panel="lb">
+      <h3 class="title">LEADERBOARD</h3>
+      <div class="muted">Top 10</div>
+      <div class="lb-grid">
+        <ol class="lb-col" id="lb-left"></ol>
+        <ol class="lb-col" id="lb-right"></ol>
+      </div>
+      <div class="lb-meta" id="lb-status">Loading…</div>
+    </aside>
+  </div>
+
+  <script src="../../js/engine.js"></script>
+  <script>
+    (function(){
+      const SLUG = "millipede-react";
+
+      function norm(v){ return String(v||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,3) || "???"; }
+      const initials = norm(localStorage.getItem("px_player_initials") || sessionStorage.getItem("playerInitials") || "???");
+
+      // Keep storages in sync for PixelNet + the React build (various keys observed)
+      sessionStorage.setItem("playerInitials", initials);
+      try{
+        localStorage.setItem("p", initials);
+        localStorage.setItem("u", initials);
+        localStorage.setItem("n", initials);
+        localStorage.setItem("nm", initials);
+      }catch(_){}
+
+      if(window.PixelNet && PixelNet.init) PixelNet.init();
+
+      const badge = document.getElementById("px-badge");
+      badge.textContent = initials || "???";
+      document.getElementById("px-exit").onclick = () => location.href = "../../index.html";
+
+      // ---- Mobile tabs ----
+      const views = Array.from(document.querySelectorAll('.tabviews .view[data-view]'));
+      const tabBtns = Array.from(document.querySelectorAll('.mobile-tabs .tab-btn[data-tab]'));
+
+      function setActive(tab){
+        // swap views (inside main)
+        views.forEach(v=>{
+          v.classList.toggle('is-active', v.getAttribute('data-view') === tab);
+        });
+        tabBtns.forEach(b=>{
+          b.classList.toggle('is-active', b.getAttribute('data-tab') === tab);
+        });
+      }
+
+      // Default: show GAME view
+      setActive('game');
+
+      tabBtns.forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const tab = btn.getAttribute('data-tab');
+          if(tab) setActive(tab);
+        });
+      });
+
+      // ---- Fullscreen (game-only) ---- (game-only) ----
+      const fsBtn = document.querySelector('.mobile-tabs .tab-btn[data-action="fs"]');
+      const gameFrame = document.getElementById('px-gameframe');
+
+      function isFs(){
+        return !!(document.fullscreenElement || document.webkitFullscreenElement);
+      }
+
+      async function enterFs(){
+        document.body.classList.add('is-fs'); // pseudo-fs fallback styling
+        if(gameFrame){
+          try{
+            const el = gameFrame;
+            if(el.requestFullscreen) await el.requestFullscreen();
+            else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+          }catch(_){}
+        }
+        if(fsBtn) fsBtn.textContent = 'EXIT FULL SCREEN';
+      }
+
+      async function exitFs(){
+        try{
+          if(document.exitFullscreen) await document.exitFullscreen();
+          else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
+        }catch(_){}
+        document.body.classList.remove('is-fs');
+        if(fsBtn) fsBtn.textContent = 'FULL SCREEN';
+      }
+
+      if(fsBtn){
+        fsBtn.addEventListener('click', ()=>{
+          if(isFs()) exitFs();
+          else enterFs();
+        });
+      }
+
+      document.addEventListener('fullscreenchange', ()=>{
+        if(!isFs()){
+          document.body.classList.remove('is-fs');
+          if(fsBtn) fsBtn.textContent = 'FULL SCREEN';
+        }else{
+          document.body.classList.add('is-fs');
+          if(fsBtn) fsBtn.textContent = 'EXIT FULL SCREEN';
+        }
+      });
+
+      // ---- Tap to restart when GAME OVER is visible ----
+      // If the React overlay is showing "GAME OVER", a tap/click on the game area reloads.
+      function gameOverVisible(){
+        const txt = document.body.innerText || "";
+        return txt.toUpperCase().indexOf("GAME OVER") !== -1;
+      }
+      if(gameFrame){
+        gameFrame.addEventListener('click', ()=>{
+          if(gameOverVisible()) location.reload();
+        }, {passive:true});
+        gameFrame.addEventListener('touchend', ()=>{
+          if(gameOverVisible()) location.reload();
+        }, {passive:true});
+      }
+
+
+      // ---- Block duplicate /api/score submissions (even if React game tries) ----
+      // We allow ONE real POST per page-load for this slug.
+      let sentOnce = false;
+
+      function shouldBlockScorePost(url, bodyText){
+        if(!url || typeof url !== "string") return false;
+        if(url.indexOf("/api/score") === -1) return false;
+        try{
+          const obj = bodyText ? JSON.parse(bodyText) : null;
+          const slug = obj && (obj.game_slug || obj.gameSlug);
+          if(slug && String(slug) !== SLUG) return false;
+        }catch(_){
+          // If we can't parse, still treat as score post and gate it.
+        }
+        if(sentOnce) return true;
+        sentOnce = true;
+        return false;
+      }
+
+      const _fetch = window.fetch ? window.fetch.bind(window) : null;
+      if(_fetch){
+        window.fetch = async function(input, init){
+          const url = (typeof input === "string") ? input : (input && input.url) || "";
+          const bodyText = init && init.body ? String(init.body) : "";
+          if(shouldBlockScorePost(url, bodyText)){
+            console.warn("[Millipede wrapper] blocked duplicate /api/score");
+            return new Response("", {status: 204});
+          }
+          return _fetch(input, init);
+        };
+      }
+
+      // XHR guard (some bundles still use it)
+      const _open = XMLHttpRequest.prototype.open;
+      const _send = XMLHttpRequest.prototype.send;
+      XMLHttpRequest.prototype.open = function(method, url){
+        this.__px_url = url;
+        this.__px_method = method;
+        return _open.apply(this, arguments);
+      };
+      XMLHttpRequest.prototype.send = function(body){
+        const url = this.__px_url || "";
+        const bodyText = body ? String(body) : "";
+        if(shouldBlockScorePost(url, bodyText)){
+          console.warn("[Millipede wrapper] blocked duplicate XHR /api/score");
+          try{ this.abort(); }catch(_){}
+          return;
+        }
+        return _send.apply(this, arguments);
+      };
+
+      // ---- LEADERBOARD RENDER ----
+      async function renderLeaderboard(){
+        const status = document.getElementById("lb-status");
+        const L = document.getElementById("lb-left");
+        const R = document.getElementById("lb-right");
+        const statusM = document.getElementById("lb-status-m");
+        const LM = document.getElementById("lb-left-m");
+        const RM = document.getElementById("lb-right-m");
+
+        // Always show something immediately (prevents blank panel)
+        if(status) status.textContent = "Loading…";
+        if(statusM) statusM.textContent = "Loading…";
+
+        // Clear lists safely
+        if(L) L.innerHTML=""; if(R) R.innerHTML="";
+        if(LM) LM.innerHTML=""; if(RM) RM.innerHTML="";
+
+        // Wait for PixelNet helper (engine.js) to be ready
+        const hasPn = () => window.PixelNet && typeof PixelNet.getLeaderboard === "function";
+        for(let i=0; i<10 && !hasPn(); i++){
+          await new Promise(r=>setTimeout(r, 250));
+        }
+        if(!hasPn()){
+          if(status) status.textContent = "Leaderboard unavailable (engine not loaded).";
+          if(statusM) statusM.textContent = "Leaderboard unavailable.";
+          return;
+        }
+
+        try{
+          const rows = await PixelNet.getLeaderboard(SLUG);
+          const top = (rows || []).slice(0,10);
+          if(!top.length){
+            if(status) status.textContent="No scores yet.";
+            if(statusM) statusM.textContent="No scores yet.";
+            return;
+          }
+          top.forEach((row,i)=>{
+            const ini = norm(row.initials || row.name || "???");
+            const sc = Number(row.score ?? row.points ?? row.value ?? 0) || 0;
+            const li=document.createElement("li");
+            li.className="lb-item";
+            li.innerHTML=`<span class="lb-rank">${i+1}.</span><span>${ini}</span><span class="lb-score">${sc}</span>`;
+            const target = (i<5?L:R);
+            if(target) target.appendChild(li);
+
+            if(LM && RM){
+              const li2 = li.cloneNode(true);
+              (i<5?LM:RM).appendChild(li2);
+            }
+          });
+          if(status) status.textContent="Auto-refreshing…";
+          if(statusM) statusM.textContent="Auto-refreshing…";
+        }catch(e){
+          console.error("[Millipede wrapper] leaderboard fetch failed:", e);
+          if(status) status.textContent="Failed to load leaderboard (backend sleeping?).";
+          if(statusM) statusM.textContent="Failed to load leaderboard.";
+        }
+      }
+      renderLeaderboard();
+      setInterval(renderLeaderboard, 6000);
+
+      // V1.9: game over autosave / UI hiding removed (native game UI preserved)
+  </script>
+</body>
+</html>
