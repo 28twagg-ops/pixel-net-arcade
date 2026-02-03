@@ -1,5 +1,5 @@
 <!-- PIXEL-NET Millipede Wrapper -->
-<!-- Version: V2.2 -->
+<!-- Version: V2.3 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -502,7 +502,7 @@ main.panel {
      VERSION BANNER
      ============================================================ -->
 <div id="pn-version-banner">
-  PIXEL-NET · Millipede · <strong>V2.2</strong>
+  PIXEL-NET · Millipede · <strong>V2.3</strong>
 </div>
 
 <!-- ============================================================
@@ -1046,6 +1046,37 @@ main.panel {
       location.reload();
     }
   }, { capture: true });
+
+  // --------------------------------------------------------
+  // TAP/CLICK-TO-RESTART  (mobile-friendly)
+  // After GAME OVER, tapping/clicking the game area reloads the page
+  // so the user can immediately start again (no keyboard required).
+  // --------------------------------------------------------
+  function restartNowFromPointer(e) {
+    if (!gameOverSeen) return;
+    if (!modal.classList.contains("hidden")) return; // don't hijack modal taps
+    // Don't treat dragging/swiping as a restart.
+    if (e && e.type === "pointerup" && e.pointerType === "touch") {
+      // no-op; pointerup is fine
+    }
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    gameOverSeen   = false;
+    savedThisDeath = false;
+    sentOnce       = false;
+    location.reload();
+  }
+
+  // Bind to both desktop + mobile game containers (even if one is hidden).
+  Array.from(document.querySelectorAll(".gamebox")).forEach(function (box) {
+    // Use pointerup to avoid blocking gameplay taps while alive.
+    box.addEventListener("pointerup", restartNowFromPointer, { passive: false });
+    box.addEventListener("click", restartNowFromPointer, { passive: false });
+    box.addEventListener("touchend", restartNowFromPointer, { passive: false });
+  });
+
 
   // --------------------------------------------------------
   // MOBILE TAB SWITCHING
