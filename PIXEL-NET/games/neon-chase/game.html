@@ -366,7 +366,61 @@
       .mobile-hint { display: block; }
     }
   
-  </style>
+  
+    /* =========================================================
+       PIXEL-NET EMBED MODE (wrapper owns UI)
+       When loaded inside an iframe, show ONLY the playable game.
+       ========================================================= */
+    html.pn-embed, html.pn-embed body{
+      height:100%;
+      overflow:hidden !important;
+      background: transparent !important;
+    }
+    html.pn-embed body{
+      margin:0 !important;
+      padding:0 !important;
+    }
+    html.pn-embed header.topbar,
+    html.pn-embed .layout > aside,
+    html.pn-embed .center-head,
+    html.pn-embed .hint,
+    html.pn-embed .leaderboard,
+    html.pn-embed #px-exit{
+      display:none !important;
+    }
+    html.pn-embed .layout{
+      display:block !important;
+      height:100% !important;
+      padding:0 !important;
+      margin:0 !important;
+    }
+    html.pn-embed main.panel.center{
+      height:100% !important;
+      min-height:0 !important;
+      padding:0 !important;
+      margin:0 !important;
+      border:0 !important;
+      border-radius:0 !important;
+      background: transparent !important;
+      box-shadow:none !important;
+    }
+    html.pn-embed .gamewrap,
+    html.pn-embed .gamebox,
+    html.pn-embed #px-gamebox,
+    html.pn-embed #game-container{
+      width:100% !important;
+      height:100% !important;
+      max-width:none !important;
+      max-height:none !important;
+      margin:0 !important;
+    }
+    html.pn-embed canvas{
+      width:100% !important;
+      height:100% !important;
+      display:block !important;
+    }
+    
+</style>
 
 <style id="pn-embed-css">
 html, body { height:100%; margin:0; overflow:hidden; background:#000; }
