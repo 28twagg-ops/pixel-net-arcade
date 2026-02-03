@@ -1,5 +1,5 @@
-<!-- PIXEL-NET neon-arena-assault Wrapper -->
-<!-- Version: V3.1 -->
+<!-- PIXEL-NET Millipede Wrapper -->
+<!-- Version: V3.2 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,8 +11,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet"/>
-
-
 <style>
 /* ========================================================
    PIXEL-NET · Millipede Wrapper · V2.0
@@ -31,21 +29,22 @@
   --glow-cyan:   rgba(0, 255, 247, .15);
   --font-ui:     system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   --font-arcade: "Orbitron", var(--font-ui);
-    --topbar-h:    38px;
+  --banner-h:    0px;   /* version banner height */
+  --topbar-h:    38px;
   --gap:         14px;
 
   /* ── Millipede game-theme palette ── */
   /* Deep mossy greens for panel fills */
-  --game-card-top:  rgba(28, 8, 14, .84);   /* dark forest */
-  --game-card-bot:  rgba(18, 6, 10, .68);   /* deeper moss */
+  --game-card-top:  rgba(26, 8, 10, .86);   /* dark forest */
+  --game-card-bot:  rgba(14, 4, 6, .72);   /* deeper moss */
   /* Warm mushroom-cap accent (the red-orange caps in-game) */
-  --game-accent:    rgba(255, 60, 120, .44);  /* burnt mushroom */
-  --game-glow:      rgba(255, 60, 120, .18);  /* subtle warm glow */
+  --game-accent:  rgba(255, 60, 60, .55);  /* burnt mushroom */
+  --game-glow:  rgba(255, 160, 0, .18);  /* subtle warm glow */
   /* Leaf-green stroke */
-  --game-stroke:    rgba(0, 255, 247, .16); /* soft green edge */
+  --game-stroke:  rgba(255, 60, 60, .26); /* soft green edge */
   /* Leaderboard item tint — very faint green wash */
-  --game-item-bg:   rgba(255, 60, 120, .12);
-  --game-item-stroke: rgba(0, 255, 247, .12);
+  --game-item-bg:  rgba(255, 60, 60, .14);
+  --game-item-stroke:  rgba(255, 160, 0, .20);
 }
 
 /* --- Reset --- */
@@ -58,7 +57,7 @@ body {
   overflow: auto;                          /* page-level scroll allowed */
   display: flex;
   flex-direction: column;
-  padding: 10px 0 10px;         /* top pad = banner height */
+  padding: var(--banner-h) 0 10px;         /* top pad = banner height */
   color: var(--text);
   font-family: var(--font-ui);
   background:
@@ -228,6 +227,10 @@ main.panel {
 .game-stage-inner #root            { width: 100%; height: 100%; min-height: 0; }
 .game-stage-inner #root > div      { height: 100%; }
 .game-stage-inner #root canvas     { width: 100% !important; height: 100% !important; display: block; }
+
+/* Suppress any legend / initials-entry UI rendered by the React bundle */
+#root .legend,
+#root [class*="legend"] { display: none !important; }
 
 /* --------------------------------------------------------
    LEADERBOARD  (right column)
@@ -428,7 +431,7 @@ main.panel {
   #m-game .gamebox {
     width: 100%;
     /* height = viewport − banner − topbar − tabs − panel-pad − some breathing room */
-    height: calc(100dvh - var(--topbar-h) - 34px - 28px - 60px);
+    height: calc(100dvh - var(--banner-h) - var(--topbar-h) - 34px - 28px - 60px);
     position: relative;
     border-radius: 14px;
     overflow: hidden;
@@ -443,7 +446,6 @@ main.panel {
   #m-game .game-stage-inner #root            { width: 100%; height: 100%; min-height: 0; }
   #m-game .game-stage-inner #root > div      { height: 100%; }
   #m-game .game-stage-inner #root canvas     { width: 100% !important; height: 100% !important; display: block; }
-  #m-game .game-stage-inner iframe{width:100%;height:100%;border:0;display:block;}
 
   /* ── Mobile modal: matches the screenshot exactly ── */
   .px-init-card {
@@ -535,15 +537,15 @@ main.panel {
   <aside class="panel">
     <h3 class="title">HOW TO PLAY</h3>
     <div class="muted">
-      <p><b>Move:</b> Arrow Keys / WASD</p>
-      <p><b>Fire:</b> Space / Click</p>
-      <p><b>Goal:</b> Clear enemies and push for a high score.</p>
+      <p><b>Move:</b> WASD / Arrow Keys</p>
+      <p><b>Aim / Shoot:</b> Mouse / Click (or Space if available)</p>
+      <p><b>Goal:</b> Survive waves, stack combos, score high.</p>
     </div>
     <div class="hint">
       Initials are set on the homepage. Click the badge (top-right) to change them here.
     </div>
     <div class="hint">
-      <b>Game Over:</b> your score auto-saves. Press <b>Enter</b> (or tap the game) to restart.
+      <b>Game Over:</b> your score auto-saves. Press <b>Enter</b> to restart.
     </div>
   </aside>
 
@@ -553,7 +555,7 @@ main.panel {
     <div class="gamebox">
       <div class="game-stage" id="pn-stage">
         <div class="game-stage-inner" id="pn-stage-inner">
-          <iframe id="pn-iframe" src="./game.html" title="NEON ARENA ASSAULT" allow="autoplay; fullscreen" loading="eager"></iframe>
+          <div id="root"></div>
         </div>
       </div>
     </div>
@@ -580,12 +582,12 @@ main.panel {
 <div id="m-howto" class="m-panel hidden">
   <h3 class="title">HOW TO PLAY</h3>
   <div class="muted">
-    <p><b>Move:</b> Arrow Keys / WASD</p>
-      <p><b>Fire:</b> Space / Click</p>
-      <p><b>Goal:</b> Clear enemies and push for a high score.</p>
+    <p><b>Move:</b> WASD / Arrow Keys</p>
+    <p><b>Aim / Shoot:</b> Mouse / Click (or Space if available)</p>
+    <p><b>Goal:</b> Survive waves, stack combos, score high.</p>
   </div>
   <div class="hint">Click the badge (top-right) to change initials.</div>
-  <div class="hint"><b>Game Over:</b> score auto-saves. Press <b>Enter</b> (or tap the game) to restart.</div>
+  <div class="hint"><b>Game Over:</b> score auto-saves. Press <b>Enter</b> to restart.</div>
 </div>
 
 <div id="m-game" class="m-panel hidden">
@@ -594,7 +596,8 @@ main.panel {
          The React app mounts into #root wherever it is in the DOM. -->
     <div class="game-stage">
       <div class="game-stage-inner" id="pn-stage-inner-mobile">
-        <!-- The game iframe lives in the desktop panel; on mobile we move it here. -->
+        <!-- #root lives in the desktop panel; mobile just shows the same viewport.
+             See note in script: on mobile we move #root here. -->
       </div>
     </div>
   </div>
@@ -627,21 +630,21 @@ main.panel {
   // CONFIG  ←  change these per game, leave everything else alone
   // ============================================================
   var GAME_CONFIG = {
-    // Slugs: leaderboard fetch tries each in order; first one that returns results is used for display + submission.
-    slugs:        ["neon-arena-assault", "arena-assault", "neonarena"],
+    // Slugs: leaderboard fetch tries each in order; first one is used for score submission.
+    slugs:        ["neon-arena-assault", "arena-assault"],
 
-    // Most non-React canvas games should fill the panel (no aspect lock).
-    lockAspect:   false,
-
-    // If lockAspect is ever set true for a game, these define the native aspect.
+    // Native grid dimensions (columns × rows).
+    // fitStage() uses width/height to lock the aspect ratio.
+    //   Millipede  →  20 × 32
+    //   Example 4:3 game → e.g. 40 × 30
+    //   Example 16:9 game → e.g. 16 × 9
     gridCols:     20,
-    gridRows:     32
+    gridRows:     32,
+    lockAspect:  false
   };
-
   // Derived — don't edit these.
   var SLUGS = GAME_CONFIG.slugs;
   var SLUG  = SLUGS[0];
-  var ACTIVE_SLUG = SLUG;
   var ACTIVE_SLUG = SLUG;   // updated when leaderboard fetch finds a live slug
   var GAME_ASPECT = GAME_CONFIG.gridCols / GAME_CONFIG.gridRows;  // width / height
 
@@ -764,7 +767,6 @@ main.panel {
       inner.style.height = "100%";
       return;
     }
-
     var W     = box.clientWidth;
     var H     = box.clientHeight;
     var ratio = GAME_ASPECT;             // set in GAME_CONFIG above
@@ -786,6 +788,34 @@ main.panel {
 
   fitStage();
   window.addEventListener("resize", fitStage);
+
+  // --------------------------------------------------------
+  // GAME MOUNT (iframe)
+  // Keeps the canonical wrapper HTML identical across games.
+  // --------------------------------------------------------
+  function pxMountIframe() {
+    var root = document.getElementById("root");
+    if (!root) return;
+    if (root.querySelector("iframe.px-gameframe")) return;
+
+    var f = document.createElement("iframe");
+    f.className = "px-gameframe";
+    f.src = "./game.html";
+    f.title = "Game";
+    f.loading = "eager";
+    f.setAttribute("allow", "autoplay; fullscreen; gamepad");
+    f.style.width = "100%";
+    f.style.height = "100%";
+    f.style.border = "0";
+    f.style.display = "block";
+    f.tabIndex = 0;
+
+    root.appendChild(f);
+    // Focus so keyboard works immediately.
+    try { f.focus(); } catch(_){}
+  }
+  pxMountIframe();
+
 
   // --------------------------------------------------------
   // DUPLICATE-SCORE GUARD
@@ -914,51 +944,160 @@ main.panel {
   setInterval(renderLeaderboard, 6000);
 
   // --------------------------------------------------------
-  // GAME-OVER DETECTION (generic)
-  // For iframe/canvas games, we detect GAME OVER by scanning iframe text.
-  // This is intentionally conservative; it ONLY enables tap-to-restart when GAME OVER is detected.
+  // GAME-OVER DETECTION + AUTO-SAVE
+  // We poll periodically instead of a MutationObserver to keep things
+  // simple and stable.  6-second LB refresh already proves the interval
+  // approach works; we just need a faster cadence for the GAME OVER moment.
   // --------------------------------------------------------
-  var gameOverSeen = false;
+  var gameOverSeen    = false;
+  var isGameOverNow   = false;
+  var savedThisDeath  = false;
+  var lastScoreSaved  = -1;
 
-  function iframeText() {
+  /** Read the visible score out of the page text (React renders it). */
+  function readScoreNow() {
+    var txt = document.body.innerText || "";
+
+    // Primary: "SCORE: 1,234" anywhere on page
+    var m = txt.match(/SCORE:\s*([0-9][0-9,]*)/i);
+    if (m && m[1]) return parseInt(m[1].replace(/,/g, ""), 10) || 0;
+
+    // Fallback: first large number near "GAME OVER"
+    var overIdx = txt.toUpperCase().indexOf("GAME OVER");
+    var slice   = overIdx >= 0 ? txt.slice(overIdx, overIdx + 220) : txt;
+    var m2      = slice.match(/([0-9][0-9,]{2,})/);
+    return m2 ? (parseInt(m2[1].replace(/,/g, ""), 10) || 0) : 0;
+  }
+
+  /** Hide any "SAVE" / "ENTER INITIALS" UI the React bundle renders on death. */
+  function hideSaveUI() {
+    var killRe = /(ENTER\s+YOUR?\s*INITIALS|TYPE\s+YOUR?\s*INITIALS|ENTER\s+INITIALS|YOUR\s+INITIALS)/i;
+
+    // Kill matching buttons
+    Array.from(document.querySelectorAll("button")).forEach(function (b) {
+      if (b.id === "px-init-save") return;   // leave OUR modal SAVE button alone
+      var t = (b.textContent || "").trim().toUpperCase();
+      if (t === "SAVE" || t === "ENTER INITIALS" || t === "SUBMIT" || t === "OK" || killRe.test(t)) {
+        b.style.display = "none";
+        b.disabled = true;
+      }
+    });
+
+    // Kill 3-char inputs (initials entry)
+    Array.from(document.querySelectorAll("input")).forEach(function (inp) {
+      if (inp.id === "px-init-input") return;   // leave OUR modal input alone
+      var ml = inp.getAttribute("maxlength");
+      var ph = (inp.getAttribute("placeholder") || "").trim();
+      if (ml === "3" || ph.includes("_")) {
+        inp.style.display = "none";
+        inp.disabled = true;
+      }
+    });
+
+    // Kill bare text nodes that match the prompt
+    var root = document.getElementById("root");
+    if (root) {
+      Array.from(root.querySelectorAll("*")).forEach(function (el) {
+        if (el.childElementCount > 0) return;
+        var txt = (el.textContent || "").trim();
+        if (!txt || txt.length > 80) return;
+        if (killRe.test(txt)) {
+          el.textContent = "";
+          el.style.display = "none";
+          el.setAttribute("aria-hidden", "true");
+        }
+      });
+    }
+  }
+
+  /** Core check — called on every poll tick. */
+  async function checkGameOver() {
+    var rootButtons = Array.from(document.querySelectorAll("#root button"));
+    var hasSaveBtn = rootButtons.some(function (b) {
+      return (b.textContent || "").trim().toUpperCase() === "SAVE";
+    });
+    var rootEls = Array.from(document.querySelectorAll("#root *"));
+    var hasInitialsPrompt = rootEls.some(function (el) {
+      return (el.textContent || "").trim().toUpperCase() === "ENTER INITIALS";
+    });
+    var hasGameOver = rootEls.some(function (el) {
+      return (el.textContent || "").trim().toUpperCase() === "GAME OVER";
+    });
+
+    isGameOverNow = (hasSaveBtn || hasInitialsPrompt || hasGameOver);
+
+    if (!isGameOverNow) return;   // not dead yet
+
+    // --- We are in GAME OVER state ---
+    gameOverSeen = true;
+    hideSaveUI();
+
+    if (savedThisDeath) return;   // already submitted this death
+
+    var score = readScoreNow();
+    if (score === lastScoreSaved) return;   // same score, no-op
+
+    savedThisDeath  = true;
+    lastScoreSaved  = score;
+
     try {
-      var f = document.getElementById("pn-iframe");
-      if (!f || !f.contentDocument) return "";
-      return (f.contentDocument.body && f.contentDocument.body.innerText) ? f.contentDocument.body.innerText : "";
-    } catch(_) { return ""; }
+      console.log("[Millipede V2] auto-saving score", { slug: ACTIVE_SLUG, initials: initials, score: score });
+      if (window.PixelNet && PixelNet.submitScore) {
+        await PixelNet.submitScore(ACTIVE_SLUG, score);
+      }
+      // Refresh leaderboard after a short delay so the backend has time.
+      setTimeout(renderLeaderboard, 700);
+    } catch (err) {
+      console.error("[Millipede V2] auto-save failed:", err);
+    }
   }
 
-  function checkGameOver() {
-    var txt = iframeText().toUpperCase();
-    if (txt.indexOf("GAME OVER") !== -1) gameOverSeen = true;
-  }
-
-  setInterval(checkGameOver, 700);
-  checkGameOver();
-
-  // Tap/click-to-restart: ONLY when gameOverSeen is true
-  function restartGame() {
-    gameOverSeen = false;
-    sentOnce = false;
-    var f = document.getElementById("pn-iframe");
-    if (f) f.src = f.src;
-  }
-  document.querySelector(".gamebox").addEventListener("pointerdown", function () {
-    if (gameOverSeen) restartGame();
-  });
+  // Poll every 800 ms.  Lightweight and reliable.
+  setInterval(checkGameOver, 800);
+  checkGameOver();   // run once immediately
 
   // --------------------------------------------------------
   // ENTER-TO-RESTART  (only after game over seen)
   // --------------------------------------------------------
   document.addEventListener("keydown", function (e) {
     if ((e.code === "Enter" || e.key === "Enter") && gameOverSeen) {
+      // If our initials modal is open, let the modal handle it.
       if (!modal.classList.contains("hidden")) return;
       e.preventDefault();
-      restartGame();
+      // Reset death-tracking flags so the next death submits again.
+      gameOverSeen   = false;
+      isGameOverNow  = false;
+      savedThisDeath = false;
+      sentOnce       = false;
+      ACTIVE_SLUG   = SLUG;
+      location.reload();
     }
   }, { capture: true });
 
-    // Bind to both desktop + mobile game containers (even if one is hidden).
+  // --------------------------------------------------------
+  // TAP/CLICK-TO-RESTART  (mobile-friendly)
+  // After GAME OVER, tapping/clicking the game area reloads the page
+  // so the user can immediately start again (no keyboard required).
+  // --------------------------------------------------------
+  function restartNowFromPointer(e) {
+    if (!gameOverSeen || !isGameOverNow) return;
+    if (!modal.classList.contains("hidden")) return; // don't hijack modal taps
+    // Don't treat dragging/swiping as a restart.
+    if (e && e.type === "pointerup" && e.pointerType === "touch") {
+      // no-op; pointerup is fine
+    }
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    gameOverSeen   = false;
+    isGameOverNow  = false;
+    savedThisDeath = false;
+    sentOnce       = false;
+    location.reload();
+  }
+
+  // Bind to both desktop + mobile game containers (even if one is hidden).
   Array.from(document.querySelectorAll(".gamebox")).forEach(function (box) {
     // Use pointerup to avoid blocking gameplay taps while alive.
     box.addEventListener("pointerup", restartNowFromPointer, { passive: false });
@@ -970,7 +1109,7 @@ main.panel {
   // --------------------------------------------------------
   // MOBILE TAB SWITCHING
   // --------------------------------------------------------
-  var pnFrame = document.getElementById("pn-iframe");
+  var mobileRoot = document.getElementById("root");
   var tabButtons = document.querySelectorAll("#m-tabs button");
   var mGame      = document.getElementById("m-game");
   var mHowTo     = document.getElementById("m-howto");
@@ -1002,7 +1141,7 @@ main.panel {
   }
 
   // Cache the #root element for potential re-parenting on mobile.
-  var mRoot = document.getElementById("pn-iframe");
+  var mRoot = document.getElementById("root");
 
   tabButtons.forEach(function (btn) {
     btn.addEventListener("click", function () {

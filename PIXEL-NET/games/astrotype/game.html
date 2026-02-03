@@ -1,249 +1,492 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Astrotype</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ASTROTYPE - Lunar Defense</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000000;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            user-select: none;
+        }
 
-  <!-- PIXEL-NET Engine -->
-  <script src="../../js/engine.js"></script>
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-  <style>
-    :root{
-      --pn-bg:#07140a;
-      --pn-panel: rgba(8, 25, 12, 0.78);
-      --pn-border: rgba(255,255,255,0.10);
-      --pn-accent:#4ade80;
-      --pn-accent2:#fbbf24;
-      --pn-muted:#b7d6c1;
-    }
+        canvas { display: block; }
 
-    body{
-      margin:0;
-      background: radial-gradient(900px 600px at 20% 10%, rgba(74, 222, 128, 0.20), transparent 60%),
-                  radial-gradient(700px 500px at 85% 25%, rgba(251, 191, 36, 0.15), transparent 60%),
-                  linear-gradient(180deg,#061108 0%,#040a05 100%);
-      color:#eaffef;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      overflow:auto;
-      touch-action: pan-y;
-    }
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 20px;
+            box-sizing: border-box;
+        }
 
-    .play-shell{min-height:100vh;display:flex;flex-direction:column}
+        .hud-text {
+            font-size: 22px;
+            font-weight: bold;
+            text-shadow: 0 0 5px #000;
+            font-family: 'Monaco', 'Consolas', monospace;
+        }
 
-    .play-topbar{
-      display:flex;align-items:center;justify-content:space-between;gap:12px;
-      padding:10px 12px;
-      background: rgba(2, 10, 4, 0.75);
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      position:sticky;top:0;z-index:50;
-      backdrop-filter: blur(8px);
-    }
+        #score-display { color: #fff; }
+        #lives-display { color: #ff5555; text-align: right;}
+        #streak-display { color: #00eaff; text-align: left; margin-top: 10px;}
+        #level-display { color: #ffff00; text-align: center; width: 100%; position: absolute; top: 20px;}
 
-    .exit-btn{
-      text-decoration:none;
-      color: var(--pn-accent);
-      border: 1px solid rgba(74,222,128,0.45);
-      padding:6px 10px;
-      border-radius:10px;
-      box-shadow: 0 0 12px rgba(74,222,128,0.18);
-      font-weight:800;
-      letter-spacing:0.08em;
-      font-size:12px;
-      display:inline-flex;align-items:center;gap:6px;
-    }
+        #menu-screen, #game-over-screen {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            backdrop-filter: blur(4px);
+            pointer-events: auto;
+            overflow: hidden;
+        }
 
-    .player-pill{
-      display:inline-flex;align-items:center;gap:10px;
-      padding:6px 10px;border-radius:999px;
-      border:1px solid rgba(255,255,255,0.10);
-      background: rgba(8, 25, 12, 0.60);
-      font-weight:800;
-      font-size:12px;
-      letter-spacing:0.08em;
-      white-space:nowrap;
-    }
-    .dot{width:8px;height:8px;border-radius:99px;background:var(--pn-accent);box-shadow:0 0 10px rgba(74,222,128,.55)}
-    .player-pill .muted{color:var(--pn-muted);font-weight:700}
-    .player-pill strong{color:var(--pn-accent)}
+        h1 {
+            font-size: 80px;
+            margin: 0 0 10px 0;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 10px;
+            text-shadow: 0px 5px 0px #444, 0 0 20px rgba(0, 234, 255, 0.5);
+            position: relative;
+            z-index: 20;
+        }
 
-    .play-grid{
-      flex:1 1 auto;
-      display:grid;
-      grid-template-columns: 300px 1fr 300px;
-      gap:12px;
-      padding:12px;
-      box-sizing:border-box;
-      align-items:stretch;
-      min-height:0;
-    }
+        p {
+            font-size: 18px;
+            color: #ccc;
+            margin-bottom: 40px;
+            text-align: center;
+            line-height: 1.5;
+            max-width: 600px;
+            position: relative;
+            z-index: 20;
+        }
 
-    .panel{
-      background: var(--pn-panel);
-      border: 1px solid var(--pn-border);
-      border-radius:14px;
-      padding:12px;
-      box-sizing:border-box;
-      min-height:0;
-      overflow:auto;
-      box-shadow: 0 18px 50px rgba(0,0,0,0.35);
-    }
+        button {
+            background: #00eaff;
+            color: #000;
+            border: none;
+            padding: 15px 50px;
+            font-size: 22px;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 5px 0 #0088aa;
+            transition: all 0.1s;
+            position: relative;
+            z-index: 20;
+        }
 
-    .panel h3{
-      margin:0 0 10px 0;
-      font-size:14px;
-      letter-spacing:0.12em;
-      color: var(--pn-accent2);
-      text-transform:uppercase;
-    }
+        button:active { transform: translateY(5px); box-shadow: 0 0 0 #0088aa; }
+        button:hover { background: #fff; box-shadow: 0 5px 0 #888; }
 
-    .howto{display:flex;flex-direction:column;gap:10px;font-size:12px;line-height:1.45;color:#d8f7e0}
-    .howto .row{display:flex;gap:10px;align-items:flex-start}
-    .ico{
-      width:30px;height:30px;border-radius:10px;
-      border:1px solid rgba(255,255,255,0.14);
-      background: rgba(0,0,0,0.22);
-      display:grid;place-items:center;
-      box-shadow: inset 0 0 0 1px rgba(74,222,128,0.10);
-      flex:0 0 auto;
-    }
+        .hidden { display: none !important; }
 
-    .game-panel{display:flex;flex-direction:column;gap:10px;min-height:0}
-    .game-title{font-weight:900;letter-spacing:0.12em;text-transform:uppercase;color:var(--pn-accent)}
+        .alien-peeker {
+            position: absolute;
+            bottom: -200px;
+            width: 250px;
+            height: 250px;
+            transition: bottom 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 15;
+            pointer-events: none;
+        }
+        .alien-left { left: -50px; transform: rotate(15deg); }
+        .alien-right { right: -50px; transform: rotate(-15deg); }
 
-    .gamebox{
-      position:relative;
-      border-radius:16px;
-      overflow:hidden;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(0,0,0,0.30);
-      min-height:0;
-      flex: 1 1 auto;
-    }
+        #game-over-screen:not(.hidden) .alien-peeker { bottom: -40px; }
 
-    /* NOTE: no on-page D-pad + no extra tip text; game is full-height inside this box */
-    iframe{
-      width:100%;height:100%;border:0;display:block;
-      touch-action:none;
-    }
-
-    .lb-status{font-size:11px;color:var(--pn-muted);margin-bottom:8px}
-    .lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .lb-col{list-style:none;margin:0;padding:0}
-    .lb-item{
-      display:flex;justify-content:space-between;gap:10px;
-      padding:6px 8px;border-radius:12px;
-      border:1px solid rgba(255,255,255,0.10);
-      background: rgba(0,0,0,0.18);
-      font-size:12px;
-      font-weight:800;
-    }
-
-    @media (max-width: 980px){
-      .play-grid{grid-template-columns:1fr}
-      .panel{order:0}
-      .gamebox{height:min(72vh,720px)}
-    }
-  </style>
+        .alien-eye { animation: blink 3s infinite; }
+        @keyframes blink {
+            0%, 96%, 100% { transform: scaleY(1); }
+            98% { transform: scaleY(0.1); }
+        }
+    </style>
 </head>
 <body>
-  <div class="play-shell">
-    <header class="play-topbar">
-      <a class="exit-btn" href="../../index.html">✕ EXIT</a>
-      <div class="player-pill" title="Initials are set on the PIXEL-NET home page">
-        <span class="dot"></span>
-        <span class="muted">PLAYER</span>
-        <strong id="playInitials">???</strong>
-      </div>
-    </header>
 
-    <div class="play-grid">
-      <aside class="panel">
-        <h3>HOW TO PLAY</h3>
-        <div class="howto">
-          <div class="row"><div class="ico">🍰</div><div><b>Eat Cake</b><br>Gain energy + short speed boost (+50 pts).</div></div>
-          <div class="row"><div class="ico">🐭</div><div><b>Catch the Mouse</b><br>Finish the level for a big bonus.</div></div>
-          <div class="row"><div class="ico">🚫</div><div><b>Avoid Hazards</b><br>Dogs, mud slows you, sprinklers drain energy.</div></div>
-          <div class="row"><div class="ico">🎮</div><div><b>Controls</b><br>Arrow Keys / WASD. Touch D-pad appears inside the game on mobile.</div></div>
-        </div>
-      </aside>
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
 
-      <main class="panel game-panel">
-        <div class="game-title">ASTROTYPE</div>
-        <div class="gamebox">
-          <iframe id="gameFrame" src="./game.html" title="Astrotype"></iframe>
+    <div id="ui-layer">
+        <div style="display: flex; justify-content: space-between; width: 100%;">
+            <div>
+                <div id="score-display" class="hud-text">SCORE: 0</div>
+                <div id="streak-display" class="hud-text">STREAK: 0/5</div>
+            </div>
+            <div id="lives-display" class="hud-text">SHIELDS: 100%</div>
         </div>
-      </main>
-
-      <aside class="panel">
-        <h3>LEADERBOARD</h3>
-        <div id="lbStatus" class="lb-status">Loading…</div>
-        <div class="lb-grid">
-          <ol id="lbLeft" class="lb-col"></ol>
-          <ol id="lbRight" class="lb-col"></ol>
-        </div>
-      </aside>
+        <div id="level-display" class="hud-text">WAVE 1</div>
     </div>
-  </div>
 
-  <script>
-    (function(){
-      const SLUG = "astrotype";
+    <div id="menu-screen">
+        <h1>ASTROTYPE</h1>
+        <p>Alien codes are falling through the lunar atmosphere.<br>Zap the UFOs by typing the words accurately.<br>Type 5 words perfectly for an EMP Overdrive!</p>
+        <button id="start-btn">ENGAGE SYSTEMS</button>
+    </div>
 
-      function norm(v){
-        return String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0,3) || "???";
-      }
+    <div id="game-over-screen" class="hidden">
+        <div class="alien-peeker alien-left">
+            <svg viewBox="0 0 200 200">
+                <path d="M50,200 Q40,50 100,50 Q160,50 150,200 Z" fill="#44ff44" stroke="#228822" stroke-width="4"/>
+                <g class="alien-eye" style="transform-origin: 100px 100px;">
+                    <circle cx="80" cy="100" r="20" fill="white" stroke="#228822" stroke-width="2"/>
+                    <circle cx="80" cy="100" r="8" fill="black"/><circle cx="120" cy="100" r="20" fill="white" stroke="#228822" stroke-width="2"/>
+                    <circle cx="120" cy="100" r="8" fill="black"/><circle cx="100" cy="70" r="15" fill="white" stroke="#228822" stroke-width="2"/>
+                    <circle cx="100" cy="70" r="6" fill="black"/>
+                </g>
+                <path d="M85,140 Q100,150 115,140" fill="none" stroke="#228822" stroke-width="3" stroke-linecap="round"/>
+                <ellipse cx="40" cy="180" rx="15" ry="10" fill="#44ff44" stroke="#228822" stroke-width="2"/>
+                <ellipse cx="160" cy="180" rx="15" ry="10" fill="#44ff44" stroke="#228822" stroke-width="2"/>
+            </svg>
+        </div>
 
-      const initials = norm(
-        localStorage.getItem("px_player_initials") ||
-        localStorage.getItem("px_initials") ||
-        localStorage.getItem("pixelnet_initials") ||
-        sessionStorage.getItem("playerInitials") ||
-        "???"
-      );
+        <div class="alien-peeker alien-right">
+            <svg viewBox="0 0 200 200">
+                 <path d="M50,200 Q40,40 100,40 Q160,40 150,200 Z" fill="#44ff44" stroke="#228822" stroke-width="4"/>
+                 <g class="alien-eye" style="transform-origin: 100px 90px;">
+                     <circle cx="100" cy="90" r="35" fill="white" stroke="#228822" stroke-width="2"/>
+                     <circle cx="100" cy="90" r="12" fill="black"/><circle cx="110" cy="80" r="5" fill="white" opacity="0.5"/>
+                 </g>
+                 <path d="M80,150 Q100,130 120,150" fill="none" stroke="#228822" stroke-width="3" stroke-linecap="round"/>
+                 <ellipse cx="40" cy="180" rx="15" ry="10" fill="#44ff44" stroke="#228822" stroke-width="2"/>
+                 <ellipse cx="160" cy="180" rx="15" ry="10" fill="#44ff44" stroke="#228822" stroke-width="2"/>
+                 <path d="M100,40 L100,10" stroke="#44ff44" stroke-width="4"/><circle cx="100" cy="10" r="5" fill="#ff0055"/>
+            </svg>
+        </div>
 
-      document.getElementById("playInitials").textContent = initials;
-      sessionStorage.setItem("playerInitials", initials);
+        <h1 style="color: #44ff44; text-shadow: 0 0 10px #44ff44;">CAPTURED!</h1>
+        <p>The lunar perimeter has been breached.<br>The aliens are celebrating your capture!<br><br>Final Score: <span id="final-score" style="color: #fff; font-weight: bold;">0</span></p>
+        <button id="restart-btn">REBOOT SYSTEM</button>
+    </div>
+</div>
 
-      if (window.PixelNet && PixelNet.init) PixelNet.init();
+<!-- PIXEL-NET Engine -->
+<script src="../../js/engine.js"></script>
 
-      async function renderLeaderboard(){
-        const status = document.getElementById("lbStatus");
-        const L = document.getElementById("lbLeft");
-        const R = document.getElementById("lbRight");
-        L.innerHTML = ""; R.innerHTML = "";
+<script>
+    const GAME_SLUG = "astrotype";
+    let scoreSubmitted = false;
 
-        try{
-          const rows = await PixelNet.getLeaderboard(SLUG);
-          const arr = Array.isArray(rows) ? rows : (rows && rows.entries) ? rows.entries : [];
-          const top = (arr || []).slice(0,10);
-          if (!top.length){ status.textContent = "No scores yet."; return; }
+    const WORD_LIST = [
+        "ALIEN", "UFO", "LUNAR", "MOON", "ORBIT", "SPACE", "NASA", "APOLLO", "CRATER", "DUST",
+        "VOID", "STAR", "COMET", "MARS", "VENUS", "PLUTO", "EARTH", "SOLAR", "GALAXY", "NEBULA",
+        "ROCKET", "PROBE", "ROVER", "LANDER", "MODULE", "DOCK", "HATCH", "SUIT", "OXYGEN", "FUEL",
+        "ZERO", "GRAVITY", "LIGHT", "SPEED", "WARP", "HYPER", "LASER", "BEAM", "PLASMA", "SHIELD",
+        "RADAR", "SONAR", "SCAN", "DATA", "SIGNAL", "RADIO", "CODE", "CIPHER", "KEY", "LOCK",
+        "ALPHA", "BRAVO", "CHARLIE", "DELTA", "ECHO", "FOX", "GOLF", "HOTEL", "INDIA", "JULIET",
+        "KILO", "LIMA", "MIKE", "NOV", "OSCAR", "PAPA", "QUEBEC", "ROMEO", "SIERRA", "TANGO",
+        "UNIFORM", "VICTOR", "WHISKEY", "XRAY", "YANKEE", "ZULU", "VORTEX", "QUASAR", "PULSAR"
+    ];
 
-          top.forEach((row,i)=>{
-            const ini = norm(row.initials || row.name || row.user || "???");
-            const sc = Number(row.score ?? row.points ?? row.value ?? 0) || 0;
-            const li = document.createElement("li");
-            li.className = "lb-item";
-            li.innerHTML = `<span>${i+1}. ${ini}</span><span>${sc}</span>`;
-            (i < 5 ? L : R).appendChild(li);
-          });
+    const COLORS = {
+        bg: '#000000', landerMain: '#FFD700', landerLegs: '#888888', laser: '#ff0000',
+        text: '#ffffff', matched: '#44ff44', highlight: '#ff0000', ufo: '#00ff00',
+        ufoDome: '#aaffaa', moon: '#222222', moonHighlight: '#333333', emp: '#00eaff'
+    };
 
-          status.textContent = "";
-        }catch(e){
-          console.error("[CAKED-UP-CATS] leaderboard failed:", e);
-          status.textContent = "Failed to load leaderboard (backend sleeping?).";
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let stars = [];
+    let moonSurface = [];
+
+    let state = {
+        screen: 'MENU', score: 0, lives: 3, streak: 0, currentWordPerfect: true,
+        level: 1, words: [], particles: [], lasers: [], targetIndex: -1,
+        spawnTimer: 0, spawnRate: 120, wordSpeed: 0.5, shake: 0, empEffect: 0
+    };
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        initBackground();
+    }
+    window.addEventListener('resize', resize);
+
+    function initBackground() {
+        stars = [];
+        for(let i=0; i<150; i++) {
+            stars.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, size: Math.random() * 2 });
         }
-      }
+        moonSurface = [];
+        let h = canvas.height - 50;
+        let segments = 20;
+        let step = canvas.width / segments;
+        moonSurface.push({x: 0, y: h});
+        for(let i=1; i<=segments; i++) {
+            moonSurface.push({ x: i * step, y: h - (Math.random() * 40 - 20) });
+        }
+        moonSurface.push({x: canvas.width, y: canvas.height}, {x: 0, y: canvas.height});
+    }
 
-      renderLeaderboard();
-      setInterval(renderLeaderboard, 6000);
+    resize();
 
-      // Keep iframe focused for controls without breaking page scroll.
-      const frame = document.getElementById("gameFrame");
-      frame.addEventListener("load", () => {
-        try{ frame.contentWindow.focus(); }catch(_){ }
-      });
-    })();
-  </script>
+    class WordEnemy {
+        constructor() {
+            this.text = WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)];
+            this.x = Math.random() * (canvas.width - 150) + 75;
+            this.y = -60;
+            this.matchedIndex = 0;
+            this.wobble = Math.random() * Math.PI * 2;
+        }
+        update() { this.y += state.wordSpeed; this.wobble += 0.05; }
+        draw(ctx, isTarget) {
+            ctx.font = "bold 20px 'Courier New', monospace";
+            const textWidth = ctx.measureText(this.text).width;
+            const wobbleY = Math.sin(this.wobble) * 5;
+            const ufoX = this.x;
+            const ufoY = this.y - 15 + wobbleY;
+
+            ctx.fillStyle = COLORS.ufoDome;
+            ctx.beginPath(); ctx.arc(ufoX, ufoY - 5, 15, Math.PI, 0); ctx.fill();
+            ctx.fillStyle = isTarget ? COLORS.highlight : COLORS.ufo;
+            ctx.beginPath(); ctx.ellipse(ufoX, ufoY, 30, 10, 0, 0, Math.PI * 2); ctx.fill();
+
+            if (isTarget) {
+                ctx.strokeStyle = COLORS.highlight; ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.arc(ufoX, ufoY, 40, 0, Math.PI * 2); ctx.stroke();
+            }
+
+            const startX = this.x - textWidth / 2;
+            const textY = ufoY + 30;
+            ctx.fillStyle = COLORS.matched; ctx.fillText(this.text.substring(0, this.matchedIndex), startX, textY);
+            const matchedWidth = ctx.measureText(this.text.substring(0, this.matchedIndex)).width;
+            ctx.fillStyle = isTarget ? COLORS.highlight : COLORS.text;
+            ctx.fillText(this.text.substring(this.matchedIndex), startX + matchedWidth, textY);
+        }
+        isFinished() { return this.matchedIndex >= this.text.length; }
+    }
+
+    class Particle {
+        constructor(x, y, color) {
+            this.x = x; this.y = y;
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 4 + 1;
+            this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed;
+            this.life = 1.0; this.decay = Math.random() * 0.03 + 0.02;
+            this.color = color || '#fff'; this.size = Math.random() * 3 + 1;
+        }
+        update() { this.x += this.vx; this.y += this.vy; this.life -= this.decay; }
+        draw(ctx) { ctx.globalAlpha = this.life; ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.size, this.size); ctx.globalAlpha = 1.0; }
+    }
+
+    class Laser {
+        constructor(tx, ty) {
+            this.sx = canvas.width / 2; this.sy = canvas.height - 90;
+            this.tx = tx; this.ty = ty; this.life = 8;
+        }
+        draw(ctx) {
+            if (this.life <= 0) return;
+            ctx.beginPath(); ctx.moveTo(this.sx, this.sy); ctx.lineTo(this.tx, this.ty);
+            ctx.strokeStyle = `rgba(255, 0, 0, ${this.life/8})`; ctx.lineWidth = 2; ctx.stroke();
+            this.life--;
+        }
+    }
+
+    window.addEventListener('keydown', (e) => {
+        if (state.screen !== 'PLAYING') return;
+        const key = e.key.toUpperCase();
+        if (/^[A-Z]$/.test(key)) handleInput(key);
+    });
+
+    function handleInput(char) {
+        if (state.targetIndex !== -1) {
+            const target = state.words[state.targetIndex];
+            if (!target) { state.targetIndex = -1; handleInput(char); return; }
+
+            if (char === target.text[target.matchedIndex]) {
+                target.matchedIndex++;
+                createLaser(target.x, target.y);
+                if (target.isFinished()) {
+                    if (state.currentWordPerfect) {
+                        state.streak++;
+                        if (state.streak >= 5) triggerEMP();
+                    } else {
+                        state.streak = 0;
+                    }
+                    destroyWord(state.targetIndex);
+                    state.targetIndex = -1;
+                    state.score += 10 + (target.text.length * 2);
+                    checkLevelUp();
+                }
+            } else {
+                state.shake = 5;
+                state.streak = 0;
+                state.currentWordPerfect = false;
+            }
+        } else {
+            let bestIndex = -1; let maxY = -1000;
+            for (let i = 0; i < state.words.length; i++) {
+                if (state.words[i].text.startsWith(char) && state.words[i].y > maxY) {
+                    maxY = state.words[i].y; bestIndex = i;
+                }
+            }
+            if (bestIndex !== -1) {
+                state.targetIndex = bestIndex;
+                state.currentWordPerfect = true;
+                handleInput(char);
+            }
+        }
+        updateHUD();
+    }
+
+    function triggerEMP() {
+        state.empEffect = 1;
+        state.streak = 0;
+        state.shake = 30;
+        for (let i = state.words.length - 1; i >= 0; i--) {
+            state.score += 20;
+            destroyWord(i);
+        }
+    }
+
+    function initGame() {
+        scoreSubmitted = false;
+        state = { ...state, screen: 'PLAYING', score: 0, lives: 3, streak: 0, level: 1, words: [], particles: [], lasers: [], targetIndex: -1, spawnTimer: 0, spawnRate: 120, wordSpeed: 0.4, shake: 0, empEffect: 0 };
+        document.getElementById('menu-screen').classList.add('hidden');
+        document.getElementById('game-over-screen').classList.add('hidden');
+        updateHUD();
+        loop();
+    }
+
+    function destroyWord(index) {
+        const w = state.words[index];
+        for(let i=0; i<15; i++) state.particles.push(new Particle(w.x, w.y, COLORS.ufo));
+        state.words.splice(index, 1);
+        if (state.targetIndex === index) state.targetIndex = -1;
+        else if (state.targetIndex > index) state.targetIndex--;
+    }
+
+    function createLaser(x, y) { state.lasers.push(new Laser(x, y)); }
+
+    function checkLevelUp() {
+        const newLevel = Math.floor(state.score / 250) + 1;
+        if (newLevel > state.level) {
+            state.level = newLevel;
+            state.spawnRate = Math.max(40, 120 - (state.level * 8));
+            state.wordSpeed = 0.4 + (state.level * 0.1);
+            document.getElementById('level-display').innerText = `WAVE ${state.level}`;
+        }
+    }
+
+    function updateHUD() {
+        document.getElementById('score-display').innerText = `SCORE: ${state.score}`;
+        document.getElementById('streak-display').innerText = `STREAK: ${state.streak}/5`;
+        let shields = Math.max(0, Math.round((state.lives/3)*100));
+        document.getElementById('lives-display').innerText = `SHIELDS: ${shields}%`;
+        document.getElementById('lives-display').style.color = shields < 40 ? '#ff0000' : '#44ff44';
+    }
+
+    function gameOver() {
+        state.screen = 'GAMEOVER';
+
+        if (!scoreSubmitted && window.PixelNet && typeof PixelNet.submitScore === "function") {
+            scoreSubmitted = true;
+            try { PixelNet.submitScore(GAME_SLUG, Math.floor(Number(state.score) || 0)); } catch (e) {}
+        }
+
+        document.getElementById('final-score').innerText = state.score;
+        document.getElementById('game-over-screen').classList.remove('hidden');
+    }
+
+    function drawBackground() {
+        ctx.fillStyle = '#fff';
+        stars.forEach(s => {
+            ctx.globalAlpha = 0.3 + Math.sin(Date.now() * 0.002 + s.x) * 0.7;
+            ctx.fillRect(s.x, s.y, s.size, s.size);
+        });
+        ctx.globalAlpha = 1.0;
+        ctx.fillStyle = COLORS.moon;
+        ctx.beginPath();
+        ctx.moveTo(moonSurface[0].x, moonSurface[0].y);
+        for(let i=1; i<moonSurface.length; i++) ctx.lineTo(moonSurface[i].x, moonSurface[i].y);
+        ctx.fill();
+    }
+
+    function drawLander() {
+        const cx = canvas.width / 2, cy = canvas.height - 40;
+        ctx.strokeStyle = COLORS.landerLegs; ctx.lineWidth = 3; ctx.beginPath();
+        ctx.moveTo(cx - 20, cy - 20); ctx.lineTo(cx - 35, cy + 10); ctx.lineTo(cx - 45, cy + 10);
+        ctx.moveTo(cx + 20, cy - 20); ctx.lineTo(cx + 35, cy + 10); ctx.lineTo(cx + 45, cy + 10); ctx.stroke();
+        ctx.fillStyle = COLORS.landerMain; ctx.beginPath();
+        ctx.moveTo(cx - 25, cy - 20); ctx.lineTo(cx + 25, cy - 20); ctx.lineTo(cx + 30, cy - 40); ctx.lineTo(cx + 20, cy - 60); ctx.lineTo(cx - 20, cy - 60); ctx.lineTo(cx - 30, cy - 40); ctx.fill();
+    }
+
+    function loop() {
+        if (state.screen !== 'PLAYING') return;
+        ctx.fillStyle = COLORS.bg; ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (state.shake > 0) {
+            ctx.save(); ctx.translate((Math.random()-0.5)*state.shake, (Math.random()-0.5)*state.shake);
+            state.shake *= 0.9; if (state.shake < 0.5) state.shake = 0;
+        }
+
+        drawBackground();
+        drawLander();
+
+        if (state.empEffect > 0) {
+            ctx.beginPath(); ctx.arc(canvas.width/2, canvas.height-60, state.empEffect * canvas.width * 1.5, 0, Math.PI*2);
+            ctx.strokeStyle = COLORS.emp; ctx.lineWidth = 20; ctx.globalAlpha = 1 - state.empEffect;
+            ctx.stroke(); ctx.globalAlpha = 1.0;
+            state.empEffect += 0.02;
+            if (state.empEffect >= 1) state.empEffect = 0;
+        }
+
+        state.spawnTimer++;
+        if (state.spawnTimer > state.spawnRate) { state.words.push(new WordEnemy()); state.spawnTimer = 0; }
+
+        for (let i = state.words.length - 1; i >= 0; i--) {
+            const w = state.words[i]; w.update(); w.draw(ctx, i === state.targetIndex);
+            if (w.y > canvas.height - 60) {
+                state.lives--; state.shake = 15; state.streak = 0; destroyWord(i); updateHUD();
+                if (state.lives <= 0) { if (state.shake > 0) ctx.restore(); gameOver(); return; }
+            }
+        }
+
+        for (let i = state.particles.length - 1; i >= 0; i--) {
+            const p = state.particles[i]; p.update(); p.draw(ctx);
+            if (p.life <= 0) state.particles.splice(i, 1);
+        }
+
+        for (let i = state.lasers.length - 1; i >= 0; i--) {
+            const l = state.lasers[i]; l.draw(ctx);
+            if (l.life <= 0) state.lasers.splice(i, 1);
+        }
+
+        if (state.shake > 0) ctx.restore();
+        requestAnimationFrame(loop);
+    }
+
+    document.getElementById('start-btn').addEventListener('click', initGame);
+    document.getElementById('restart-btn').addEventListener('click', initGame);
+</script>
 </body>
 </html>
