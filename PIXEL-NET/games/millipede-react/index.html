@@ -87,7 +87,14 @@ body{
 }
 
 /* Layout grid */
-.layout{display:grid;grid-template-areas:"how game lb";grid-template-columns:320px 1fr 320px;gap:18px;align-items:start;max-width:1500px;width:100%;margin:0 auto;padding:18px 18px 22px}
+.layout{
+  height:100dvh;
+  padding:calc(var(--topbarH) + 10px) 14px 14px;
+  display:grid;
+  grid-template-columns: minmax(260px, 360px) minmax(420px, 1fr) minmax(260px, 360px);
+  gap:var(--gap);
+  align-items:start;
+}
 .panel{
   background:linear-gradient(180deg,var(--card1),var(--card2));
   border:1px solid var(--stroke);
@@ -162,7 +169,8 @@ main.panel{padding-bottom:12px}
 .mobile-tabs{display:none}
 
 /* Mobile / narrow screens */
-@media (max-width:860px){.layout{grid-template-areas:"game" "how" "lb";grid-template-columns:1fr;gap:12px;padding:12px}.mobile-bar{display:flex}}
+@media (max-width: 860px){
+  :root{--gap:12px}
   .layout{
     grid-template-columns: 1fr;
     padding:calc(var(--topbarH) + 10px) 10px 10px;
@@ -197,12 +205,6 @@ main.panel{padding-bottom:12px}
   .gameframe{height:min(72dvh, 720px)}
 }
 
-/* Fullscreen mode helpers */
-body.is-fs .layout{padding-top:calc(var(--topbarH) + 10px)}
-body.is-fs .panel[data-panel="howto"],
-body.is-fs .panel[data-panel="lb"]{display:none !important}
-body.is-fs main.panel{display:flex !important}
-body.is-fs .gameframe{height:calc(100dvh - var(--topbarH) - 28px); max-width:100%}
 
 
 
@@ -211,17 +213,21 @@ body.is-fs .gameframe{height:calc(100dvh - var(--topbarH) - 28px); max-width:100
 .view{display:none;width:100%}
 .view.is-active{display:block}
 @media (min-width: 861px){
-  /* Desktop: always show game view; hide mobile-only views */
-  .view[data-view="howto"], .view[data-view="lb"]{display:none !important}
+  .mobile-tabs{display:none !important}
+  .tabviews{display:none !important}
+  .panel[data-panel="howto"], .panel[data-panel="lb"]{display:flex !important}
+  .layout{grid-template-columns: minmax(280px, 360px) minmax(520px, 1fr) minmax(280px, 360px) !important}
+}
+
   .view[data-view="game"]{display:block}
 }
 
-/* V1.10: hide in-game bottom legend strip from the React bundle (DDT/POISON) */
+/* V1.9: hide in-game bottom legend strip from the React bundle (DDT/POISON) */
 #root .mt-4.flex.gap-6{display:none !important;}
 /* Some builds wrap that legend in a container right after the control panel */
 #root .mt-4{margin-top:0 !important;}
 
-/* V1.10: force true 3-column desktop layout (prevents LB dropping to bottom) */
+/* V1.9: force true 3-column desktop layout (prevents LB dropping to bottom) */
 @media (min-width: 1100px){
   .shell{display:grid !important; grid-template-columns: 340px minmax(520px,1fr) 340px !important; gap:18px !important; align-items:stretch !important;}
   main.panel{min-height: calc(100dvh - 92px) !important;}
@@ -231,42 +237,21 @@ body.is-fs .gameframe{height:calc(100dvh - var(--topbarH) - 28px); max-width:100
 .gamebox{overflow:hidden !important;}
 .gameframe{position:relative !important; overflow:hidden !important;}
 
-/* V1.10: vertically center the game area within the middle panel */
+/* V1.9: vertically center the game area within the middle panel */
 @media (min-width: 1100px){
   main.panel{display:flex !important; flex-direction:column !important;}
   main.panel .gamebox{flex:1 1 auto !important; display:flex !important; align-items:center !important; justify-content:center !important; padding:18px 0 !important;}
 }
 
 
-.hidden{display:none!important}
+.hidden{display:none !important}
 
-/* Initials modal */
-#px-init-modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
-  background:rgba(0,0,0,.55);backdrop-filter:blur(6px);z-index:9999}
-#px-init-modal.hidden{display:none!important}
-.px-init-card{width:min(520px,92vw);background:rgba(10,14,22,.92);border:1px solid rgba(255,255,255,.12);
-  border-radius:14px;padding:16px 16px 14px;box-shadow:0 20px 60px rgba(0,0,0,.55)}
-.px-init-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.px-init-header span{font-family:ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  letter-spacing:.08em;font-weight:800;color:#fff;font-size:14px;text-transform:uppercase}
-#px-init-close{appearance:none;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);
-  color:#fff;border-radius:10px;padding:6px 10px;cursor:pointer}
-{display:flex;gap:10px;align-items:center}
-#px-init-input{flex:1;min-width:0;border-radius:12px;border:1px solid rgba(255,255,255,.18);
-  background:rgba(0,0,0,.35);color:#fff;padding:12px 14px;font-size:18px;letter-spacing:.25em;
-  text-transform:uppercase;font-weight:900;outline:none}
-#px-init-save{border-radius:12px;border:1px solid rgba(255,255,255,.18);
-  background:#fff;color:#000;padding:12px 14px;font-weight:900;letter-spacing:.12em;cursor:pointer}
-.px-init-hint{margin-top:8px;color:rgba(255,255,255,.65);font-size:12px}
+main.panel{position:relative;overflow:hidden}
 
-.panel.how{grid-area:how}
-.panel.game{grid-area:game}
-.panel.lb{grid-area:lb}
+.gameframe{max-width: min(520px, 100%); margin: 0 auto;}
 
-.panel{position:relative;z-index:1}
-
-/* Hide in-game DDT/Poison legend (react build) */
-#root div[class*="mt-4"][class*="gap-6"][class*="text-[9px]"]{display:none!important}
+/* Hide any legacy legend strip */
+.legend, .game-legend{display:none !important}
 </style>
 
   <!-- React build -->
@@ -287,7 +272,7 @@ body.is-fs .gameframe{height:calc(100dvh - var(--topbarH) - 28px); max-width:100
     <div class="px-init-hint">Press Enter to save</div>
   </div>
 </section>
-<div id="pn-version-pill">V1.10</div>
+<div id="pn-version-pill">V1.11</div>
 
   <div class="topbar">
     <a class="btn" id="px-exit" href="../../index.html">EXIT</a>
@@ -368,54 +353,7 @@ body.is-fs .gameframe{height:calc(100dvh - var(--topbarH) - 28px); max-width:100
     (function(){
       const SLUG = "millipede-react";
 
-      
-  // --- Initials modal (wrapper) ---
-  const initModal = document.getElementById("px-init-modal");
-  const initInput = document.getElementById("px-init-input");
-  const initSave = document.getElementById("px-init-save");
-  const initClose = document.getElementById("px-init-close");
-  const badge = document.getElementById("badgeInitials");
-  const LS_KEY = "PIXELNET_INITIALS";
-
-  function getInitials(){
-    return (localStorage.getItem(LS_KEY) || "TJW").toUpperCase().slice(0,3);
-  }
-  function setInitials(v){
-    const clean = (v || "").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,3);
-    localStorage.setItem(LS_KEY, clean || "TJW");
-    if(badge) badge.textContent = getInitials();
-    // also let engine know if it supports it
-    if(window.PIXELNET && typeof window.PIXELNET.setInitials === "function"){
-      try{ window.PIXELNET.setInitials(getInitials()); }catch(e){}
-    }
-    return getInitials();
-  }
-  function openInitModal(){
-    if(!initModal) return;
-    initModal.classList.remove("hidden");
-    if(initInput){
-      initInput.value = getInitials();
-      initInput.focus();
-      initInput.select();
-    }
-  }
-  function closeInitModal(){
-    if(!initModal) return;
-    initModal.classList.add("hidden");
-  }
-  // ensure hidden on load (fixes top-left overlay)
-  if(initModal) initModal.classList.add("hidden");
-  if(badge){
-    badge.textContent = getInitials();
-    badge.style.cursor = "pointer";
-    badge.addEventListener("click", openInitModal);
-  }
-  if(initClose) initClose.addEventListener("click", closeInitModal);
-  if(initModal) initModal.addEventListener("click", (e)=>{ if(e.target===initModal) closeInitModal(); });
-  if(initSave) initSave.addEventListener("click", ()=>{ setInitials(initInput?.value); closeInitModal(); });
-  if(initInput) initInput.addEventListener("keydown", (e)=>{ if(e.key==="Enter"){ setInitials(initInput.value); closeInitModal(); } });
-
-function norm(v){ return String(v||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,3) || "???"; }
+      function norm(v){ return String(v||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,3) || "???"; }
       const initials = norm(localStorage.getItem("px_player_initials") || sessionStorage.getItem("playerInitials") || "???");
 
       // Keep storages in sync for PixelNet + the React build (various keys observed)
@@ -458,48 +396,8 @@ function norm(v){ return String(v||"").toUpperCase().replace(/[^A-Z0-9]/g,"").sl
       });
 
       // ---- Fullscreen (game-only) ---- (game-only) ----
-      const fsBtn = document.querySelector('.mobile-tabs .tab-btn[data-action="fs"]');
       const gameFrame = document.getElementById('px-gameframe');
-
-      function isFs(){
-        return !!(document.fullscreenElement || document.webkitFullscreenElement);
-      }
-
-      async function enterFs(){
-        document.body.classList.add('is-fs'); // pseudo-fs fallback styling
-        if(gameFrame){
-          try{
-            const el = gameFrame;
-            if(el.requestFullscreen) await el.requestFullscreen();
-            else if(el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-          }catch(_){}
-        }
-        if(fsBtn) fsBtn.textContent = 'EXIT FULL SCREEN';
-      }
-
-      async function exitFs(){
-        try{
-          if(document.exitFullscreen) await document.exitFullscreen();
-          else if(document.webkitExitFullscreen) document.webkitExitFullscreen();
-        }catch(_){}
-        document.body.classList.remove('is-fs');
-        if(fsBtn) fsBtn.textContent = 'FULL SCREEN';
-      }
-
-      if(fsBtn){
-        fsBtn.addEventListener('click', ()=>{
-          if(isFs()) exitFs();
-          else enterFs();
-        });
-      }
-
-      document.addEventListener('fullscreenchange', ()=>{
-        if(!isFs()){
-          document.body.classList.remove('is-fs');
-          if(fsBtn) fsBtn.textContent = 'FULL SCREEN';
         }else{
-          document.body.classList.add('is-fs');
-          if(fsBtn) fsBtn.textContent = 'EXIT FULL SCREEN';
         }
       });
 
@@ -631,7 +529,22 @@ function norm(v){ return String(v||"").toUpperCase().replace(/[^A-Z0-9]/g,"").sl
       renderLeaderboard();
       setInterval(renderLeaderboard, 6000);
 
-      // V1.10: game over autosave / UI hiding removed (native game UI preserved)
-  </script>
+      // V1.9: game over autosave / UI hiding removed (native game UI preserved)
+  
+// Remove on-canvas legend (DDT/POISON) from React UI if present
+(function stripLegend(){
+  const kill = ()=>{
+    document.querySelectorAll('div,span,p').forEach(el=>{
+      const t=(el.innerText||'').trim();
+      if(t==='DDT Bomb' || t==='DDT BOMB' || t==='POISON' || t==='DDT BOMB  POISON' || t==='DDT BOMB\nPOISON' || (t.includes('DDT BOMB') && t.includes('POISON'))){
+        const parent=el.closest('div');
+        if(parent && parent.parentElement) parent.remove();
+      }
+    });
+  };
+  kill();
+  setTimeout(kill, 800);
+})();
+</script>
 </body>
 </html>
