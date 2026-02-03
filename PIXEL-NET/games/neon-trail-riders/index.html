@@ -1,261 +1,177 @@
-<!-- PIXEL-NET NEON TRAIL RIDERS Wrapper -->
-<!-- Version: V3.6 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>NEON TRAIL RIDERS</title>
+<title>NEON TRAIL RIDERS | PIXEL-NET</title>
 
-<!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet"/>
 
-
 <style>
-/* ========================================================
-   PIXEL-NET · Millipede Wrapper · V2.0
-   Single consolidated stylesheet — no hotfix layers.
-   ======================================================== */
-
-/* --- Design Tokens --- */
-:root {
-  --text:        #e9ecff;
-  --muted:       #a7b0d6;
-  --card-top:    rgba(15, 19, 36, .72);
-  --card-bot:    rgba(10, 12, 26, .55);
-  --stroke:      rgba(255, 255, 255, .10);
-  --shadow:      0 14px 40px rgba(0, 0, 0, .35);
-  --accent-cyan: rgba(0, 255, 247, .35);
-  --glow-cyan:   rgba(0, 255, 247, .15);
-  --font-ui:     system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  --font-arcade: "Orbitron", var(--font-ui);
-  --banner-h:    0px;
-  --topbar-h:    38px;
-  --gap:         14px;
-
-  /* ── Millipede game-theme palette ── */
-  /* Deep mossy greens for panel fills */
-  --game-card-top:  rgba(10, 28, 16, .80);   /* dark forest */
-  --game-card-bot:  rgba(6,  16, 10, .65);   /* deeper moss */
-  /* Warm mushroom-cap accent (the red-orange caps in-game) */
-  --game-accent:    rgba(255, 0, 200, .34);
-  --game-glow:      rgba(180, 60, 30, .18);  /* subtle warm glow */
-  /* Leaf-green stroke */
-  --game-stroke:    rgba(80, 200, 100, .22); /* soft green edge */
-  /* Leaderboard item tint — very faint green wash */
-  --game-item-bg:   rgba(20, 55, 30, .35);
-  --game-item-stroke: rgba(80, 200, 100, .12);
+:root{--text:#e9ecff;--muted:#a7b0d6;--card1:rgba(15,19,36,.72);--card2:rgba(10,12,26,.55);--stroke:rgba(255,255,255,.10);--shadow:0 14px 40px rgba(0,0,0,.35)
+  /* Game theme overrides */
+  --game-card-top: rgba(8, 18, 18, .82);
+  --game-card-bot: rgba(5, 10, 14, .70);
+  --game-accent: rgba(0, 255, 200, .45);
+  --game-glow: rgba(0, 255, 200, .16);
+  --game-stroke: rgba(0, 255, 200, .22);
+  --game-item-bg: rgba(0, 55, 40, .28);
+  --game-item-stroke: rgba(0, 255, 200, .10);
 }
 
-/* --- Reset --- */
-*, *::before, *::after { box-sizing: border-box; }
+*{box-sizing:border-box}
+html,body{height:100%}
 
-/* --- Root / Body --- */
-html, body { height: 100%; margin: 0; }
-body {
-  min-height: 100dvh;
-  overflow: auto;                          /* page-level scroll allowed */
-  display: flex;
-  flex-direction: column;
-  padding: 0 0 10px;         /* top pad = banner height */
-  color: var(--text);
-  font-family: var(--font-ui);
+/* ✅ allow scrolling + normal touch on the page */
+body{
+  margin:0;
+  min-height:100dvh;
+  overflow:auto;
+  display:flex;
+  flex-direction:column;
+  padding:10px 0 10px;
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
   background:
     radial-gradient(1200px 700px at 20% 10%, rgba(255,0,122,.14), transparent 60%),
     radial-gradient(900px 500px at 85% 20%, rgba(0,255,247,.12), transparent 55%),
-    linear-gradient(180deg, #050611 0%, #060716 100%);
-  color-scheme: dark;
-  touch-action: auto;
-  overscroll-behavior: auto;
+    linear-gradient(180deg,#050611 0%,#060716 100%);
+  color-scheme:dark;
+  touch-action:auto;
+  overscroll-behavior:auto;
 }
 
-/* --------------------------------------------------------
-   TOP BAR  (Exit left · Badge right)
-   -------------------------------------------------------- */
-.topbar {
-  width: min(1300px, 94vw);
-  margin: 0 auto 8px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex: 0 0 auto;
+.topbar{
+  width:min(1300px,94vw);
+  margin:0 auto 8px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex:0 0 auto;
 }
-.btn, .badge {
-  height: var(--topbar-h);
-  padding: 0 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(10,12,26,.72);
-  color: var(--text);
-  font: 700 13px/1 var(--font-arcade);
-  letter-spacing: .10em;
-  cursor: pointer;
-  transition: filter .15s;
+.btn,.badge{
+  height:38px;
+  padding:0 12px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(10,12,26,.72);
+  color:var(--text);
+  font:700 13px/1 "Orbitron",system-ui,sans-serif;
+  letter-spacing:.10em;
+  cursor:pointer;
 }
-.btn:hover, .badge:hover { filter: brightness(1.12); }
-.badge {
-  min-width: 54px;
-  display: inline-grid;
-  place-items: center;
+.badge{min-width:54px;display:inline-grid;place-items:center}
+.layout{
+  width:min(1300px,94vw);
+  margin:0 auto;
+  display:grid;
+  grid-template-columns: minmax(260px, 320px) minmax(520px, 1fr) minmax(260px, 320px);
+  gap:14px;
+  align-items:stretch;
+  flex:1 1 auto;
+  min-height:0;
+}
+@media (max-width:1100px){.layout{grid-template-columns: minmax(260px, 320px) minmax(520px, 1fr) minmax(260px, 320px);gap:10px}}
+.panel{
+  background:linear-gradient(180deg,var(--card1),var(--card2));
+  border:1px solid var(--stroke);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+  padding:14px;
+  min-height:0;
+  overflow:auto;
+}
+.title{font-family:"Orbitron",system-ui,sans-serif;letter-spacing:.10em;margin:0 0 10px;font-size:14px}
+.muted{color:var(--muted)}
+.hint{color:var(--muted);font-size:12px;margin-top:10px}
+
+main.panel{display:flex;flex-direction:column;min-height:0}
+
+/* ✅ lock touch + overscroll ONLY inside the game box */
+.gamebox{
+  position:relative;
+  border-radius:16px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.10);
+  background:rgba(0,0,0,.28);
+  min-height:0;
+  touch-action:none;
+  overscroll-behavior:contain;
+  flex:1 1 auto;
 }
 
-/* --------------------------------------------------------
-   THREE-COLUMN LAYOUT  (desktop)
-   -------------------------------------------------------- */
-.layout {
-  width: min(1300px, 94vw);
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: minmax(220px, 280px)  /* How To Play */
-                         minmax(360px, 1fr)     /* Game        */
-                         minmax(220px, 280px);  /* Leaderboard */
-  gap: var(--gap);
-  align-items: stretch;
-  flex: 1 1 auto;
-  min-height: 0;
+#root{width:100%;height:100%;min-height:0}
+#root > div{height:100%}
+#root canvas{display:block}
+
+.lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.lb-col{list-style:none;padding:0;margin:0}
+.lb-item{display:flex;justify-content:space-between;gap:10px;padding:6px 8px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.18);margin-bottom:8px;font-family:"Orbitron",system-ui,sans-serif;letter-spacing:.06em;font-size:12px}
+.lb-rank{opacity:.85;min-width:22px}.lb-score{font-weight:800}
+.lb-meta{color:var(--muted);font-size:11px;margin-top:10px}
+
+@media (max-width:1100px){
+  .panel{max-height:18vh}
+  main.panel{max-height:none;flex:1 1 auto}
+  main.panel .gamebox{flex:1 1 auto}
 }
 
-/* --------------------------------------------------------
-   PANELS  (shared chrome)
-   -------------------------------------------------------- */
-.panel {
-  background: linear-gradient(180deg, var(--card-top), var(--card-bot));
-  border: 1px solid var(--stroke);
-  border-radius: 18px;
-  box-shadow: var(--shadow);
-  padding: 14px;
-  min-height: 0;
-  overflow: auto;
+/* VERSION BANNER */
+#pn-version-banner{
+  position:fixed;
+  left:0; right:0; top:0;
+  z-index:999999;
+  font:12px/1.2 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  padding:6px 10px;
+  background:rgba(0,0,0,0.78);
+  color:#e9ecff;
+  border-bottom:1px solid rgba(255,255,255,0.15);
+  pointer-events:none;
 }
-.panel.leaderboard { overflow: hidden; }
+body{ padding-top:28px; }
 
-/* --------------------------------------------------------
-   GAME-THEMED PANELS  (How To Play + Leaderboard)
-   Deep moss greens + warm mushroom-cap accents
-   -------------------------------------------------------- */
-aside.panel {
-  background: linear-gradient(180deg, var(--game-card-top), var(--game-card-bot));
-  border-color: var(--game-stroke);
-  box-shadow: 0 14px 40px rgba(0,0,0,.35), 0 0 18px var(--game-glow);
-}
-aside.panel .title {
-  color: #7fdf8a;                          /* leaf-green heading */
-  text-shadow: 0 0 8px rgba(80, 200, 100, .25);
-}
-aside.panel .muted,
-aside.panel .hint  { color: #8aac8f; }     /* muted moss-green body text */
-aside.panel .hint b { color: #b8e6bf; }    /* slightly brighter emphasis */
 
-/* Leaderboard items: green-washed cards with subtle warm top border on #1 */
-.lb-item {
-  background: var(--game-item-bg);
-  border-color: var(--game-item-stroke);
-}
-.lb-item:first-child {
-  border-top: 2px solid var(--game-accent);  /* mushroom-cap gold-line on rank 1 */
-}
-.lb-rank  { color: #7fdf8a; }
-.lb-score { color: #f0c87a; }              /* warm amber scores */
-.lb-meta  { color: #6a8a70; }
+/* V1.15 fixes */
+.layout > *{min-width:0;}
+.panel{min-height:0;}
+.panel.leaderboard{overflow:hidden;}
+.panel.leaderboard .lb-grid{height:100%; overflow:auto;}
+/* keep game contained */
+.game-shell{position:relative; overflow:hidden;}
+#root{width:100%; height:100%;}
+/* hide in-game DDT/POISON legend strip */
+#root *{box-sizing:border-box;}
+/* try to hide legend row if present */
+#root .legend, #root [class*="legend"]{display:none !important;}
+/* initials modal (wrapper) */
 
-.title {
-  font-family: var(--font-arcade);
-  letter-spacing: .10em;
-  margin: 0 0 10px;
-  font-size: 14px;
-}
-.muted { color: var(--muted); }
-.hint  { color: var(--muted); font-size: 12px; margin-top: 10px; }
-
-/* --------------------------------------------------------
-   GAME PANEL  (center column)
-   -------------------------------------------------------- */
-main.panel {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-}
-
-/* Outer container — fills the panel, clips nothing except overflow */
-.gamebox {
-  position: relative;
-  flex: 1 1 auto;
-  min-height: 0;
-  border-radius: 16px;
-  overflow: hidden;
-  border: 1px solid var(--stroke);
-  background: rgba(0,0,0,.28);
-  touch-action: none;                      /* block scroll ONLY here */
-  overscroll-behavior: contain;
-}
-
-/* Centering stage — fills gamebox, centers the inner aspect-locked shell */
-.game-stage {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* V1.15 fixes */
+.game-stage{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
   z-index: 1;
 }
-
-/* Aspect-locked shell — width + height set by JS (fitStage) */
-.game-stage-inner {
-  position: relative;
-  overflow: hidden;
+.game-stage-inner{
+  position:relative;
+  overflow:hidden;
   border-radius: 12px;
 }
-.game-stage-inner #root            { width: 100%; height: 100%; min-height: 0; }
-.game-stage-inner #root > div      { height: 100%; }
-.game-stage-inner #root canvas     { width: 100% !important; height: 100% !important; display: block; }
+.game-stage-inner #root{width:100%;height:100%;min-height:0;}
+.game-stage-inner #root > div{height:100%}
+.game-stage-inner #root canvas{width:100% !important; height:100% !important; display:block;}
 
-/* Suppress any legend / initials-entry UI rendered by the React bundle */
-#root .legend,
-#root [class*="legend"] { display: none !important; }
+/* Leaderboard: true 2-column list, no clipping */
+.lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.lb-item{min-width:0}
+.lb-item span:nth-child(2){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-score{white-space:nowrap}
 
-/* --------------------------------------------------------
-   LEADERBOARD  (right column)
-   -------------------------------------------------------- */
-.lb-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 10px;
-  height: 100%;
-  overflow: auto;
-}
-.lb-col { list-style: none; padding: 0; margin: 0; }
-.lb-item {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 6px 8px;
-  margin-bottom: 8px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,.08);
-  background: rgba(0,0,0,.18);
-  font-family: var(--font-arcade);
-  letter-spacing: .06em;
-  font-size: 12px;
-  min-width: 0;
-}
-.lb-item .lb-name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.lb-rank  { opacity: .85; min-width: 22px; }
-.lb-score { font-weight: 800; white-space: nowrap; }
-.lb-meta  { color: var(--muted); font-size: 11px; margin-top: 10px; }
-
-/* --------------------------------------------------------
-   INITIALS MODAL  (compact banner-style, Enter to save)
-   -------------------------------------------------------- */
 .px-init-modal {
   position: fixed;
   inset: 0;
@@ -264,223 +180,94 @@ main.panel {
   align-items: center;
   justify-content: center;
 }
-.px-init-modal.hidden { display: none; }
+
+.px-init-modal.hidden {
+  display: none;
+}
 
 .px-init-backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,.75);
+  background: rgba(0, 0, 0, 0.75);
   backdrop-filter: blur(4px);
 }
 
 .px-init-card {
   position: relative;
   z-index: 1;
-  width: 300px;
-  padding: 16px 18px 14px;
+  width: 320px;
+  padding: 18px 18px 20px;
   border-radius: 16px;
-  background: linear-gradient(180deg, rgba(15,19,36,.95), rgba(10,12,26,.95));
-  border: 1px solid var(--accent-cyan);
-  box-shadow: 0 0 24px var(--glow-cyan);
+  background: linear-gradient(
+    180deg,
+    rgba(15, 19, 36, 0.95),
+    rgba(10, 12, 26, 0.95)
+  );
+  border: 1px solid rgba(0, 255, 247, 0.35);
+  box-shadow: 0 0 24px rgba(0, 255, 247, 0.15);
   text-align: center;
 }
 
-/* Header row: label left, close right */
 .px-init-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-family: var(--font-arcade);
-  letter-spacing: .10em;
+  font-family: "Orbitron", system-ui, sans-serif;
+  letter-spacing: 0.10em;
   font-weight: 700;
   font-size: 13px;
   margin-bottom: 10px;
 }
+
 #px-init-close {
-  width: 30px;
-  height: 30px;
-  border-radius: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
   border: 1px solid rgba(255,255,255,.14);
   background: rgba(10,12,26,.72);
   color: var(--text);
-  font-size: 18px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: filter .15s;
 }
-#px-init-close:hover { filter: brightness(1.15); }
 
-/* 3-char input — the only interactive element */
 #px-init-input {
   width: 100%;
-  height: 42px;
+  height: 44px;
   border-radius: 14px;
   border: 1px solid rgba(255,255,255,.12);
   background: rgba(0,0,0,.20);
   color: var(--text);
-  font: 700 18px/1 var(--font-arcade);
-  letter-spacing: .24em;
+  font: 700 16px/1 "Orbitron", system-ui, sans-serif;
+  letter-spacing: .20em;
   text-align: center;
   outline: none;
-  margin: 4px 0 6px;
-  transition: border-color .2s;
-}
-#px-init-input:focus { border-color: var(--accent-cyan); }
-
-/* Subtle "Press Enter to save" hint — no big SAVE button */
-.px-init-hint {
-  font-size: 11px;
-  color: var(--muted);
-  letter-spacing: .04em;
+  margin: 8px 0 10px;
 }
 
-
-/* SAVE button: hidden on desktop (Enter-to-save UX), shown on mobile */
 #px-init-save {
-  display: none;
+  width: 100%;
+  height: 42px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(10,12,26,.72);
+  color: var(--text);
+  font: 800 13px/1 "Orbitron", system-ui, sans-serif;
+  letter-spacing: .10em;
+  cursor: pointer;
 }
-/* --------------------------------------------------------
-   MOBILE LAYOUT  (single column + tabs)
-   -------------------------------------------------------- */
-.mobile-tabs        { display: none; }                /* hidden on desktop */
-.m-panel              { display: none; }                /* hidden on desktop, shown by tab JS on mobile */
-.mobile-tabs button { /* styled below in the media query */ }
 
-@media (max-width: 1000px) {
-  /* --- hide desktop grid, show mobile stack --- */
-  .layout { display: none; }
+#px-init-save:hover { filter: brightness(1.08); }
 
-  .topbar { width: 96vw; margin-bottom: 6px; }
-
-  /* Tab bar */
-  .mobile-tabs {
-    display: flex;
-    width: 96vw;
-    margin: 0 auto 6px;
-    gap: 4px;
-  }
-  .mobile-tabs button {
-    flex: 1;
-    height: 34px;
-    border-radius: 10px;
-    border: 1px solid var(--stroke);
-    background: rgba(10,12,26,.55);
-    color: var(--muted);
-    font: 700 11px/1 var(--font-arcade);
-    letter-spacing: .08em;
-    cursor: pointer;
-    transition: background .18s, color .18s;
-  }
-  .mobile-tabs button.active {
-    background: rgba(0,255,247,.15);
-    border-color: var(--accent-cyan);
-    color: var(--text);
-  }
-
-  /* Mobile panels — stacked, each shown/hidden by JS */
-  .m-panel {
-    display: block;                          /* re-enable; .hidden toggles per-tab */
-    width: 96vw;
-    margin: 0 auto 8px;
-    border-radius: 16px;
-    background: linear-gradient(180deg, var(--card-top), var(--card-bot));
-    border: 1px solid var(--stroke);
-    box-shadow: var(--shadow);
-    padding: 14px;
-  }
-  .m-panel.hidden { display: none; }
-
-  /* Game-themed colors on mobile How To Play + Leaderboard */
-  #m-howto, #m-lb {
-    background: linear-gradient(180deg, var(--game-card-top), var(--game-card-bot));
-    border-color: var(--game-stroke);
-    box-shadow: 0 14px 40px rgba(0,0,0,.35), 0 0 18px var(--game-glow);
-  }
-  #m-howto .title, #m-lb .title {
-    color: #7fdf8a;
-    text-shadow: 0 0 8px rgba(80, 200, 100, .25);
-  }
-  #m-howto .muted, #m-howto .hint,
-  #m-lb .muted    { color: #8aac8f; }
-  #m-howto .hint b { color: #b8e6bf; }
-  #m-lb .lb-item  { background: var(--game-item-bg); border-color: var(--game-item-stroke); }
-  #m-lb .lb-item:first-child { border-top: 2px solid var(--game-accent); }
-  #m-lb .lb-rank  { color: #7fdf8a; }
-  #m-lb .lb-score { color: #f0c87a; }
-  #m-lb .lb-meta  { color: #6a8a70; }
-
-  /* Game panel: let the gamebox fill remaining viewport height */
-  #m-game .gamebox {
-    width: 100%;
-    /* height = viewport − banner − topbar − tabs − panel-pad − some breathing room */
-    height: calc(100dvh - var(--banner-h) - var(--topbar-h) - 34px - 28px - 60px);
-    position: relative;
-    border-radius: 14px;
-    overflow: hidden;
-    border: 1px solid var(--stroke);
-    background: rgba(0,0,0,.28);
-    touch-action: none;
-    overscroll-behavior: contain;
-  }
-  /* Reuse the same stage classes; fitStage JS targets #pn-stage-inner */
-  #m-game .game-stage        { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index:1; }
-  #m-game .game-stage-inner  { position: relative; overflow: hidden; border-radius: 12px; }
-  #m-game .game-stage-inner #root            { width: 100%; height: 100%; min-height: 0; }
-  #m-game .game-stage-inner #root > div      { height: 100%; }
-  #m-game .game-stage-inner #root canvas     { width: 100% !important; height: 100% !important; display: block; }
-
-  /* ── Mobile modal: matches the screenshot exactly ── */
-  .px-init-card {
-    width: 88vw;
-    max-width: 340px;
-    padding: 22px 20px 24px;
-  }
-  .px-init-header {
-    font-size: 14px;
-    margin-bottom: 14px;
-  }
-  #px-init-close {
-    width: 34px;
-    height: 34px;
-    border-radius: 12px;
-    font-size: 20px;
-  }
-  #px-init-input {
-    height: 48px;
-    font-size: 20px;
-    margin: 6px 0 12px;
-  }
-  /* Show the SAVE button on mobile */
-  #px-init-save {
-    display: block;
-    width: 100%;
-    height: 44px;
-    border-radius: 14px;
-    border: 1px solid rgba(255,255,255,.14);
-    background: rgba(10,12,26,.72);
-    color: var(--text);
-    font: 800 13px/1 var(--font-arcade);
-    letter-spacing: .10em;
-    cursor: pointer;
-    margin-bottom: 4px;
-    transition: filter .15s;
-  }
-  #px-init-save:hover { filter: brightness(1.12); }
-  .px-init-hint {
-    font-size: 13px;
-    margin-top: 2px;
-  }
+.px-init-hint {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--muted);
 }
 
 </style>
 </head>
 <body>
 
-<!-- ============================================================
-     INITIALS MODAL  (opened by badge click, not navigation)
-     ============================================================ -->
+<!-- PATCH_VERSION:MILLIPede_WRAPPER_scrollfix_v2026-02-02_1625cst -->
 <section id="px-init-modal" class="px-init-modal hidden" aria-hidden="true">
   <div class="px-init-backdrop"></div>
   <div class="px-init-card" role="dialog" aria-modal="true" aria-label="Enter Initials">
@@ -488,171 +275,75 @@ main.panel {
       <span>ENTER INITIALS</span>
       <button id="px-init-close" type="button" aria-label="Close">×</button>
     </div>
-    <input id="px-init-input" type="text" maxlength="3" placeholder="_ _ _"
-           autocomplete="off" autocapitalize="characters" spellcheck="false"/>
+    <input id="px-init-input" type="text" maxlength="3" placeholder="_ _ _" autocomplete="off"
+      autocapitalize="characters" spellcheck="false" />
     <button id="px-init-save" type="button">SAVE</button>
     <div class="px-init-hint">Press Enter to save</div>
   </div>
 </section>
 
-<!-- ============================================================
-     TOP BAR
-     ============================================================ -->
 <div class="topbar">
-  <button class="btn" id="px-exit">EXIT</button>
-  <div  class="badge" id="px-badge" title="Click to change initials">???</div>
+<button class="btn" id="px-exit">EXIT</button>
+<div class="badge" id="px-badge" title="Click to change initials">???</div>
 </div>
-
-<!-- ============================================================
-     MOBILE TAB BAR  (visible only ≤ 768px)
-     ============================================================ -->
-<div class="mobile-tabs" id="m-tabs">
-  <button class="active" data-tab="game">GAME</button>
-  <button            data-tab="howto">HOW TO PLAY</button>
-  <button            data-tab="lb">LEADERBOARD</button>
-</div>
-
-<!-- ============================================================
-     DESKTOP: THREE-COLUMN GRID
-     ============================================================ -->
 <div class="layout">
-
-  <!-- LEFT: How To Play -->
-  <aside class="panel">
-    <h3 class="title">HOW TO PLAY</h3>
-    <div class="muted">
+<aside class="panel">
+<h3 class="title">HOW TO PLAY</h3>
+<div class="muted">
       <p><b>Move:</b> Arrow Keys / WASD</p>
       <p><b>Shoot:</b> Space</p>
-      <p><b>Goal:</b> Clear the swarm, survive, score high.</p>
-    </div>
-    <div class="hint">
-      Initials are set on the homepage. Click the badge (top-right) to change them here.
-    </div>
-    <div class="hint">
-      <b>Game Over:</b> your score auto-saves. Press <b>Enter</b> to restart.
-    </div>
-  </aside>
-
-  <!-- CENTER: Game -->
-  <main class="panel">
-    <h3 class="title">NEON TRAIL RIDERS</h3>
-    <div class="gamebox">
-      <div class="game-stage" id="pn-stage">
-        <div class="game-stage-inner" id="pn-stage-inner">
-          <div id="root"><iframe id="pn-embed" src="./game.html" title="Game" loading="eager" style="width:100%;height:100%;border:0;display:block;background:transparent;" allow="fullscreen"></iframe></div>
-        </div>
-      </div>
-    </div>
-    <div class="muted" style="font-size:11px; margin-top:6px;">Leaderboard refreshes automatically.</div>
-  </main>
-
-  <!-- RIGHT: Leaderboard -->
-  <aside class="panel leaderboard">
-    <h3 class="title">LEADERBOARD</h3>
-    <div class="muted">Top 10</div>
-    <div class="lb-grid">
-      <ol class="lb-col" id="lb-left"></ol>
-      <ol class="lb-col" id="lb-right"></ol>
-    </div>
-    <div class="lb-meta" id="lb-status">Loading…</div>
-  </aside>
+      <p><b>Goal:</b> Survive and score high.</p>
+    
+<div class="hint">Initials are set on the homepage. Click the badge (top-right) to change.</div>
+<div class="hint"><b>Game Over:</b> score auto-saves. Press <b>Enter</b> to restart.</div>
+</aside>
+<main class="panel">
+<h3 class="title">NEON TRAIL RIDERS</h3>
+<div class="gamebox">
+<div class="game-stage" id="pn-stage"><div class="game-stage-inner" id="pn-stage-inner"><iframe id="pn-iframe" src="./game.html?embed=1" title="Game" style="border:0;width:100%;height:100%;display:block;" loading="eager"></iframe></div></div>
+<div class="muted">Leaderboard refreshes automatically.</div>
+</main>
+<aside class="panel">
+<h3 class="title">LEADERBOARD</h3>
+<div class="muted">Top 10</div>
+<div class="lb-grid">
+<ol class="lb-col" id="lb-left"></ol>
+<ol class="lb-col" id="lb-right"></ol>
+</div>
+<div class="lb-meta" id="lb-status">Loading…</div>
+</aside>
 </div>
 
-<!-- ============================================================
-     MOBILE PANELS  (shown/hidden by tab JS; ≤ 768px only)
-     They duplicate the content above so the desktop grid stays
-     untouched and the React #root lives in one place.
-     ============================================================ -->
-<div id="m-howto" class="m-panel hidden">
-  <h3 class="title">HOW TO PLAY</h3>
-  <div class="muted">
-    <p><b>Move:</b> Arrow Keys / WASD</p>
-    <p><b>Shoot:</b> Space</p>
-    <p><b>Goal:</b> Clear the swarm, survive, score high.</p>
-  </div>
-  <div class="hint">Click the badge (top-right) to change initials.</div>
-  <div class="hint"><b>Game Over:</b> score auto-saves. Press <b>Enter</b> to restart.</div>
-</div>
-
-<div id="m-game" class="m-panel hidden">
-  <div class="gamebox">
-    <!-- On mobile, fitStage targets this inner shell via #pn-stage-inner.
-         The React app mounts into #root wherever it is in the DOM. -->
-    <div class="game-stage">
-      <div class="game-stage-inner" id="pn-stage-inner-mobile">
-        <!-- #root lives in the desktop panel; mobile just shows the same viewport.
-             See note in script: on mobile we move #root here. -->
-      </div>
-    </div>
-  </div>
-</div>
-
-<div id="m-lb" class="m-panel hidden">
-  <h3 class="title">LEADERBOARD</h3>
-  <div class="muted">Top 10</div>
-  <div class="lb-grid">
-    <ol class="lb-col" id="m-lb-left"></ol>
-    <ol class="lb-col" id="m-lb-right"></ol>
-  </div>
-  <div class="lb-meta" id="m-lb-status">Loading…</div>
-</div>
-
-<!-- ============================================================
-     ENGINE  (PixelNet SDK — provides getLeaderboard / submitScore)
-     ============================================================ -->
 <script src="../../js/engine.js"></script>
-
-<!-- ============================================================
-     WRAPPER LOGIC  (V2.0 — single consolidated IIFE)
-     ============================================================ -->
 <script>
+
 (function () {
   "use strict";
 
-  // --------------------------------------------------------
-  // ============================================================
-  // CONFIG  ←  change these per game, leave everything else alone
-  // ============================================================
-  var GAME_CONFIG = {
-    // Slugs: leaderboard fetch tries each in order; first one is used for score submission.
-    slugs:        ["neon-trail-riders", "neon trail riders"],
-
-    // Native grid dimensions (columns × rows).
-    // fitStage() uses width/height to lock the aspect ratio.
-    //   Millipede  →  20 × 32
-    //   Example 4:3 game → e.g. 40 × 30
-    //   Example 16:9 game → e.g. 16 × 9
-    gridCols:     4,
-    gridRows:     3
-  };
-  // Derived — don't edit these.
-  var SLUGS = GAME_CONFIG.slugs;
-  var SLUG  = SLUGS[0];
-  var ACTIVE_SLUG = SLUG;   // updated when leaderboard fetch finds a live slug
-  var GAME_ASPECT = GAME_CONFIG.gridCols / GAME_CONFIG.gridRows;  // width / height
+  const SLUGS = ["neon-trail-riders"];
+  const SLUG  = SLUGS[0];
 
   // --------------------------------------------------------
   // HELPERS
   // --------------------------------------------------------
-  /** Normalise initials: uppercase, alphanumeric only, max 3 chars. */
   function norm(v) {
     return String(v || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 3) || "???";
   }
 
   // --------------------------------------------------------
-  // INITIALS BOOTSTRAP  (sync localStorage ↔ sessionStorage)
+  // INITIALS SYNC (homepage ↔ game)
   // --------------------------------------------------------
-  var initials = norm(
+  let initials = norm(
     localStorage.getItem("px_player_initials") ||
-    sessionStorage.getItem("playerInitials")   ||
+    sessionStorage.getItem("playerInitials")  ||
     "???"
   );
 
-  // Write to every key the React bundle might read.
   function syncInitials(val) {
     val = norm(val);
     try { localStorage.setItem("px_player_initials", val); } catch(_){}
     try { sessionStorage.setItem("playerInitials",   val); } catch(_){}
+    // legacy fallbacks some games used
     try { localStorage.setItem("p",  val); } catch(_){}
     try { localStorage.setItem("u",  val); } catch(_){}
     try { localStorage.setItem("n",  val); } catch(_){}
@@ -660,38 +351,26 @@ main.panel {
   }
   syncInitials(initials);
 
-  // Boot PixelNet SDK if available.
   if (window.PixelNet && PixelNet.init)   PixelNet.init();
   if (window.PixelNet && PixelNet.uiInit) PixelNet.uiInit();
 
   // --------------------------------------------------------
-  // TOP-BAR WIRING
+  // TOP BAR
   // --------------------------------------------------------
-  var badge = document.getElementById("px-badge");
+  const badge = document.getElementById("px-badge");
   badge.textContent = initials;
 
-  // Cross-tab / homepage sync: if the homepage updates px_player_initials, reflect it here.
-  window.addEventListener("storage", function (e) {
-    if (!e) return;
-    if (e.key === "px_player_initials" && e.newValue) {
-      var v = norm(e.newValue);
-      if (v && v !== initials) {
-        initials = v;
-        syncInitials(v);
-        badge.textContent = v;
-      }
-    }
-  });
   document.getElementById("px-exit").onclick = function () {
     location.href = "../../index.html";
   };
 
   // --------------------------------------------------------
-  // INITIALS MODAL  (badge click → open, Enter / close → save & sync)
+  // INITIALS MODAL
   // --------------------------------------------------------
-  var modal   = document.getElementById("px-init-modal");
-  var input   = document.getElementById("px-init-input");
-  var closBtn = document.getElementById("px-init-close");
+  const modal   = document.getElementById("px-init-modal");
+  const input   = document.getElementById("px-init-input");
+  const closBtn = document.getElementById("px-init-close");
+  const saveBtn = document.getElementById("px-init-save");
 
   function openModal() {
     input.value = initials !== "???" ? initials : "";
@@ -704,7 +383,7 @@ main.panel {
     modal.setAttribute("aria-hidden", "true");
   }
   function saveInitials() {
-    var v = norm(input.value);
+    const v = norm(input.value);
     if (v && v !== "???") {
       initials = v;
       syncInitials(v);
@@ -714,145 +393,46 @@ main.panel {
   }
 
   badge.addEventListener("click", openModal);
-  closBtn.addEventListener("click", saveInitials);   // close = save
+  closBtn.addEventListener("click", saveInitials);
+  modal.querySelector(".px-init-backdrop").addEventListener("click", saveInitials);
+  if (saveBtn) saveBtn.addEventListener("click", saveInitials);
 
   input.addEventListener("keydown", function (e) {
-    if (e.key === "Enter") { e.preventDefault(); saveInitials(); }
+    if (e.key === "Enter")  { e.preventDefault(); saveInitials(); }
     if (e.key === "Escape") { e.preventDefault(); closeModal(); }
   });
 
-  // Click backdrop → save & close
-  modal.querySelector(".px-init-backdrop").addEventListener("click", saveInitials);
-
-  // SAVE button (visible on mobile) — same action as close/Enter
-  var saveBtn = document.getElementById("px-init-save");
-  if (saveBtn) saveBtn.addEventListener("click", saveInitials);
-
-  // --------------------------------------------------------
-  // ASPECT-FIT  (uses GAME_CONFIG.gridCols / gridRows)
-  // --------------------------------------------------------
-  var stageInner = document.getElementById("pn-stage-inner");
-  var gamebox    = document.querySelector(".gamebox");   // desktop gamebox
-
-  function fitStage() {
-    // On mobile the gamebox reference may differ; grab the visible one.
-    var box = gamebox;
-    var inner = stageInner;
-
-    if (window.innerWidth <= 1000) {
-      box   = document.querySelector("#m-game .gamebox");
-      inner = document.getElementById("pn-stage-inner-mobile");
+  // Cross-tab sync (optional but harmless)
+  window.addEventListener("storage", function (e) {
+    if (e && e.key === "px_player_initials") {
+      initials = norm(e.newValue);
+      badge.textContent = initials;
+      try { sessionStorage.setItem("playerInitials", initials); } catch(_){}
     }
-    if (!inner || !box) return;
-
-    var W     = box.clientWidth;
-    var H     = box.clientHeight;
-    var ratio = GAME_ASPECT;             // set in GAME_CONFIG above
-    var w, h;
-
-    if (W / H > ratio) {
-      // Container is wider than the game → fit to height
-      h = H;
-      w = Math.floor(H * ratio);
-    } else {
-      // Container is taller → fit to width
-      w = W;
-      h = Math.floor(W / ratio);
-    }
-
-    inner.style.width  = w + "px";
-    inner.style.height = h + "px";
-  }
-
-  fitStage();
-  window.addEventListener("resize", fitStage);
+  });
 
   // --------------------------------------------------------
-  // DUPLICATE-SCORE GUARD
-  // Allows exactly ONE real /api/score POST per page-load per slug,
-  // blocking any extra attempts the React bundle might make.
-  // --------------------------------------------------------
-  var sentOnce = false;
-
-  function shouldBlockScorePost(url, bodyText) {
-    if (!url || typeof url !== "string") return false;
-    if (url.indexOf("/api/score") === -1)  return false;
-
-    // If we can parse a slug and it's NOT ours, let it through.
-    try {
-      var obj  = bodyText ? JSON.parse(bodyText) : null;
-      var slug = obj && (obj.game_slug || obj.gameSlug);
-      if (slug && SLUGS.indexOf(String(slug)) === -1) return false;
-    } catch(_) { /* unparseable → treat as ours */ }
-
-    if (sentOnce) return true;   // already sent → block
-    sentOnce = true;
-    return false;                // first time  → allow
-  }
-
-  // Patch fetch
-  var _fetch = window.fetch ? window.fetch.bind(window) : null;
-  if (_fetch) {
-    window.fetch = function (input, init) {
-      var url      = (typeof input === "string") ? input : (input && input.url) || "";
-      var bodyText = init && init.body ? String(init.body) : "";
-      if (shouldBlockScorePost(url, bodyText)) {
-        console.warn("[Millipede V2] blocked duplicate /api/score (fetch)");
-        return Promise.resolve(new Response("", { status: 204 }));
-      }
-      return _fetch(input, init);
-    };
-  }
-
-  // Patch XHR
-  var _open = XMLHttpRequest.prototype.open;
-  var _send = XMLHttpRequest.prototype.send;
-  XMLHttpRequest.prototype.open = function (method, url) {
-    this.__px_url    = url;
-    this.__px_method = method;
-    return _open.apply(this, arguments);
-  };
-  XMLHttpRequest.prototype.send = function (body) {
-    var url      = this.__px_url || "";
-    var bodyText = body ? String(body) : "";
-    if (shouldBlockScorePost(url, bodyText)) {
-      console.warn("[Millipede V2] blocked duplicate /api/score (XHR)");
-      try { this.abort(); } catch(_) {}
-      return;
-    }
-    return _send.apply(this, arguments);
-  };
-
-  // --------------------------------------------------------
-  // LEADERBOARD  (fetch + render into both desktop & mobile lists)
+  // LEADERBOARD
   // --------------------------------------------------------
   async function renderLeaderboard() {
-    var status  = document.getElementById("lb-status");
-    var mStatus = document.getElementById("m-lb-status");
-    var L       = document.getElementById("lb-left");
-    var R       = document.getElementById("lb-right");
-    var mL      = document.getElementById("m-lb-left");
-    var mR      = document.getElementById("m-lb-right");
+    const status  = document.getElementById("lb-status");
+    const mStatus = document.getElementById("m-lb-status");
+    const L       = document.getElementById("lb-left");
+    const R       = document.getElementById("lb-right");
+    const mL      = document.getElementById("m-lb-left");
+    const mR      = document.getElementById("m-lb-right");
 
     L.innerHTML = ""; R.innerHTML = "";
     mL.innerHTML = ""; mR.innerHTML = "";
 
-    if (!(window.PixelNet && PixelNet.getLeaderboard)) {
-      var msg0 = "Leaderboard unavailable."; 
-      status.textContent  = msg0;
-      mStatus.textContent = msg0;
-      return;
-    }
-
     try {
-      var rows = [];
-      // Try each slug until we get results.
-      for (var i = 0; i < SLUGS.length; i++) {
+      let rows = [];
+      for (let i = 0; i < SLUGS.length; i++) {
         try { rows = await PixelNet.getLeaderboard(SLUGS[i]); } catch(_) { rows = []; }
-        if (Array.isArray(rows) && rows.length) { ACTIVE_SLUG = SLUGS[i]; break; }
+        if (Array.isArray(rows) && rows.length) break;
       }
 
-      var top = (rows || []).slice(0, 10);
+      const top = (rows || []).slice(0, 10);
       if (!top.length) {
         status.textContent  = "No scores yet.";
         mStatus.textContent = "No scores yet.";
@@ -860,31 +440,25 @@ main.panel {
       }
 
       top.forEach(function (row, idx) {
-        var ini = norm(row.initials || row.name || "???");
-        var sc  = Number(row.score != null ? row.score : (row.points != null ? row.points : (row.value != null ? row.value : 0))) || 0;
+        const ini = norm(row.initials || row.name || "???");
+        const sc  = Number(row.score != null ? row.score : (row.points != null ? row.points : (row.value != null ? row.value : 0))) || 0;
 
-        // Build <li> for desktop
-        var li = document.createElement("li");
+        const li = document.createElement("li");
         li.className = "lb-item";
         li.innerHTML =
           '<span class="lb-rank">' + (idx + 1) + '.</span>' +
           '<span class="lb-name">' + ini + '</span>' +
           '<span class="lb-score">' + sc + '</span>';
 
-        // Desktop: 1-5 left, 6-10 right
         (idx < 5 ? L : R).appendChild(li);
-
-        // Mobile copy
-        var mli = li.cloneNode(true);
-        (idx < 5 ? mL : mR).appendChild(mli);
+        (idx < 5 ? mL : mR).appendChild(li.cloneNode(true));
       });
 
       status.textContent  = "Auto-refreshing…";
       mStatus.textContent = "Auto-refreshing…";
-
     } catch (e) {
-      console.error("[Millipede V2] leaderboard fetch failed:", e);
-      var msg = "Failed to load (backend sleeping?).";
+      console.error("[Wrapper] leaderboard failed:", e);
+      const msg = "Failed to load (backend sleeping?).";
       status.textContent  = msg;
       mStatus.textContent = msg;
     }
@@ -894,194 +468,84 @@ main.panel {
   setInterval(renderLeaderboard, 6000);
 
   // --------------------------------------------------------
-  // GAME-OVER DETECTION + AUTO-SAVE
-  // We poll periodically instead of a MutationObserver to keep things
-  // simple and stable.  6-second LB refresh already proves the interval
-  // approach works; we just need a faster cadence for the GAME OVER moment.
+  // ASPECT-FIT (dynamic from iframe canvas)
   // --------------------------------------------------------
-  var gameOverSeen    = false;
-  var isGameOverNow   = false;
-  var savedThisDeath  = false;
-  var lastScoreSaved  = -1;
+  let GAME_ASPECT = 1; // default until we can read the canvas ratio
 
-  /** Read the visible score out of the page text (React renders it). */
-  function readScoreNow() {
-    var txt = document.body.innerText || "";
+  const iframeEl = document.getElementById("pn-iframe");
 
-    // Primary: "SCORE: 1,234" anywhere on page
-    var m = txt.match(/SCORE:\s*([0-9][0-9,]*)/i);
-    if (m && m[1]) return parseInt(m[1].replace(/,/g, ""), 10) || 0;
-
-    // Fallback: first large number near "GAME OVER"
-    var overIdx = txt.toUpperCase().indexOf("GAME OVER");
-    var slice   = overIdx >= 0 ? txt.slice(overIdx, overIdx + 220) : txt;
-    var m2      = slice.match(/([0-9][0-9,]{2,})/);
-    return m2 ? (parseInt(m2[1].replace(/,/g, ""), 10) || 0) : 0;
-  }
-
-  /** Hide any "SAVE" / "ENTER INITIALS" UI the React bundle renders on death. */
-  function hideSaveUI() {
-    var killRe = /(ENTER\s+YOUR?\s*INITIALS|TYPE\s+YOUR?\s*INITIALS|ENTER\s+INITIALS|YOUR\s+INITIALS)/i;
-
-    // Kill matching buttons
-    Array.from(document.querySelectorAll("button")).forEach(function (b) {
-      if (b.id === "px-init-save") return;   // leave OUR modal SAVE button alone
-      var t = (b.textContent || "").trim().toUpperCase();
-      if (t === "SAVE" || t === "ENTER INITIALS" || t === "SUBMIT" || t === "OK" || killRe.test(t)) {
-        b.style.display = "none";
-        b.disabled = true;
-      }
-    });
-
-    // Kill 3-char inputs (initials entry)
-    Array.from(document.querySelectorAll("input")).forEach(function (inp) {
-      if (inp.id === "px-init-input") return;   // leave OUR modal input alone
-      var ml = inp.getAttribute("maxlength");
-      var ph = (inp.getAttribute("placeholder") || "").trim();
-      if (ml === "3" || ph.includes("_")) {
-        inp.style.display = "none";
-        inp.disabled = true;
-      }
-    });
-
-    // Kill bare text nodes that match the prompt
-    var root = document.getElementById("root");
-    if (root) {
-      Array.from(root.querySelectorAll("*")).forEach(function (el) {
-        if (el.childElementCount > 0) return;
-        var txt = (el.textContent || "").trim();
-        if (!txt || txt.length > 80) return;
-        if (killRe.test(txt)) {
-          el.textContent = "";
-          el.style.display = "none";
-          el.setAttribute("aria-hidden", "true");
-        }
-      });
-    }
-  }
-
-  /** Core check — called on every poll tick. */
-  async function checkGameOver() {
-    var rootButtons = Array.from(document.querySelectorAll("#root button"));
-    var hasSaveBtn = rootButtons.some(function (b) {
-      return (b.textContent || "").trim().toUpperCase() === "SAVE";
-    });
-    var rootEls = Array.from(document.querySelectorAll("#root *"));
-    var hasInitialsPrompt = rootEls.some(function (el) {
-      return (el.textContent || "").trim().toUpperCase() === "ENTER INITIALS";
-    });
-    var hasGameOver = rootEls.some(function (el) {
-      return (el.textContent || "").trim().toUpperCase() === "GAME OVER";
-    });
-
-    isGameOverNow = (hasSaveBtn || hasInitialsPrompt || hasGameOver);
-
-    if (!isGameOverNow) return;   // not dead yet
-
-    // --- We are in GAME OVER state ---
-    gameOverSeen = true;
-    hideSaveUI();
-
-    if (savedThisDeath) return;   // already submitted this death
-
-    var score = readScoreNow();
-    if (score === lastScoreSaved) return;   // same score, no-op
-
-    savedThisDeath  = true;
-    lastScoreSaved  = score;
-
+  function detectAspect() {
     try {
-      console.log("[Millipede V2] auto-saving score", { slug: ACTIVE_SLUG, initials: initials, score: score });
-      if (window.PixelNet && PixelNet.submitScore) {
-        await PixelNet.submitScore(ACTIVE_SLUG, score);
-      }
-      // Refresh leaderboard after a short delay so the backend has time.
-      setTimeout(renderLeaderboard, 700);
-    } catch (err) {
-      console.error("[Millipede V2] auto-save failed:", err);
-    }
+      if (!iframeEl || !iframeEl.contentWindow) return;
+      const doc = iframeEl.contentWindow.document;
+      if (!doc) return;
+      const c = doc.querySelector("canvas");
+      if (!c) return;
+      const w = c.width || c.clientWidth || 0;
+      const h = c.height || c.clientHeight || 0;
+      if (w > 0 && h > 0) GAME_ASPECT = w / h;
+    } catch(_) {}
   }
 
-  // Poll every 800 ms.  Lightweight and reliable.
-  setInterval(checkGameOver, 800);
-  checkGameOver();   // run once immediately
+  const stageInnerDesktop = document.getElementById("pn-stage-inner");
+  const gameboxDesktop    = document.querySelector(".gamebox");
 
-  // --------------------------------------------------------
-  // ENTER-TO-RESTART  (only after game over seen)
-  // --------------------------------------------------------
-  document.addEventListener("keydown", function (e) {
-    if ((e.code === "Enter" || e.key === "Enter") && gameOverSeen) {
-      // If our initials modal is open, let the modal handle it.
-      if (!modal.classList.contains("hidden")) return;
-      e.preventDefault();
-      // Reset death-tracking flags so the next death submits again.
-      gameOverSeen   = false;
-      isGameOverNow  = false;
-      savedThisDeath = false;
-      sentOnce       = false;
-      ACTIVE_SLUG   = SLUG;
-      location.reload();
-    }
-  }, { capture: true });
+  function fitStage() {
+    let box = gameboxDesktop;
+    let inner = stageInnerDesktop;
 
-  // --------------------------------------------------------
-  // TAP/CLICK-TO-RESTART  (mobile-friendly)
-  // After GAME OVER, tapping/clicking the game area reloads the page
-  // so the user can immediately start again (no keyboard required).
-  // --------------------------------------------------------
-  function restartNowFromPointer(e) {
-    if (!gameOverSeen || !isGameOverNow) return;
-    if (!modal.classList.contains("hidden")) return; // don't hijack modal taps
-    // Don't treat dragging/swiping as a restart.
-    if (e && e.type === "pointerup" && e.pointerType === "touch") {
-      // no-op; pointerup is fine
+    if (window.innerWidth <= 1000) {
+      box   = document.querySelector("#m-game .gamebox");
+      inner = document.getElementById("pn-stage-inner-mobile");
     }
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    gameOverSeen   = false;
-    isGameOverNow  = false;
-    savedThisDeath = false;
-    sentOnce       = false;
-    location.reload();
+    if (!inner || !box) return;
+
+    detectAspect();
+
+    const W = box.clientWidth;
+    const H = box.clientHeight;
+    const ratio = GAME_ASPECT || 1;
+    let w, h;
+
+    if (W / H > ratio) { h = H; w = Math.floor(H * ratio); }
+    else               { w = W; h = Math.floor(W / ratio); }
+
+    inner.style.width  = w + "px";
+    inner.style.height = h + "px";
   }
 
-  // Bind to both desktop + mobile game containers (even if one is hidden).
-  Array.from(document.querySelectorAll(".gamebox")).forEach(function (box) {
-    // Use pointerup to avoid blocking gameplay taps while alive.
-    box.addEventListener("pointerup", restartNowFromPointer, { passive: false });
-    box.addEventListener("click", restartNowFromPointer, { passive: false });
-    box.addEventListener("touchend", restartNowFromPointer, { passive: false });
-  });
+  if (iframeEl) {
+    iframeEl.addEventListener("load", function() {
+      detectAspect();
+      fitStage();
+    });
+  }
 
+  fitStage();
+  window.addEventListener("resize", fitStage);
 
   // --------------------------------------------------------
-  // MOBILE TAB SWITCHING
+  // MOBILE TABS (move iframe)
   // --------------------------------------------------------
-  var mobileRoot = document.getElementById("root");
-  var tabButtons = document.querySelectorAll("#m-tabs button");
-  var mGame      = document.getElementById("m-game");
-  var mHowTo     = document.getElementById("m-howto");
-  var mLb        = document.getElementById("m-lb");
+  const tabButtons = document.querySelectorAll("#m-tabs button");
+  const mGame      = document.getElementById("m-game");
+  const mHowTo     = document.getElementById("m-howto");
+  const mLb        = document.getElementById("m-lb");
+  const mRoot      = iframeEl;
 
   function showMobileTab(tab) {
-    // Deactivate all
-    tabButtons.forEach(function (b) { b.classList.remove("active"); });
+    tabButtons.forEach(b => b.classList.remove("active"));
     mGame.classList.add("hidden");
     mHowTo.classList.add("hidden");
     mLb.classList.add("hidden");
 
-    // Activate chosen
-    document.querySelector('#m-tabs button[data-tab="' + tab + '"]').classList.add("active");
+    const btn = document.querySelector('#m-tabs button[data-tab="' + tab + '"]');
+    if (btn) btn.classList.add("active");
 
     if (tab === "game") {
       mGame.classList.remove("hidden");
-      // Move #root into the mobile gamebox if not already there.
-      var mInner = document.getElementById("pn-stage-inner-mobile");
-      if (mInner && mRoot && mInner !== mRoot.parentNode) {
-        mInner.appendChild(mRoot);
-      }
+      const mInner = document.getElementById("pn-stage-inner-mobile");
+      if (mInner && mRoot && mInner !== mRoot.parentNode) mInner.appendChild(mRoot);
       fitStage();
     } else if (tab === "howto") {
       mHowTo.classList.remove("hidden");
@@ -1090,36 +554,26 @@ main.panel {
     }
   }
 
-  // Cache the #root element for potential re-parenting on mobile.
-  var mRoot = document.getElementById("root");
-
-  tabButtons.forEach(function (btn) {
+  tabButtons.forEach(btn => {
     btn.addEventListener("click", function () {
       showMobileTab(btn.getAttribute("data-tab"));
     });
   });
 
-  // On mobile, default to GAME tab and move #root into mobile container.
-  if (window.innerWidth <= 1000) {
-    showMobileTab("game");
-  }
+  if (window.innerWidth <= 1000) showMobileTab("game");
 
-  // Also re-check on resize (desktop ↔ mobile transition)
   window.addEventListener("resize", function () {
     fitStage();
     if (window.innerWidth <= 1000) {
       showMobileTab("game");
     } else {
-      // Move #root back to desktop panel if it was relocated.
-      var desktopInner = document.getElementById("pn-stage-inner");
-      if (desktopInner && mRoot && desktopInner !== mRoot.parentNode) {
-        desktopInner.appendChild(mRoot);
-      }
+      const desktopInner = document.getElementById("pn-stage-inner");
+      if (desktopInner && mRoot && desktopInner !== mRoot.parentNode) desktopInner.appendChild(mRoot);
     }
   });
 
 })();
-</script>
 
+</script>
 </body>
 </html>

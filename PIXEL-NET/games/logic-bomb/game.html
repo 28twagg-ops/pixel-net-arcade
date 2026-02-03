@@ -154,23 +154,57 @@
     }
   </style>
 
-<style id="pn-embed-css">
-html, body { height:100%; margin:0; overflow:hidden; background:#000; }
-canvas { display:block; margin:auto; max-width:100%; max-height:100%; }
-.pn-embed-hide { display:none !important; }
-@media (min-width:1000px) and (pointer:fine){
-  /* try to kill touch overlays on desktop */
-  [id*="joy" i], [class*="joy" i], [id*="stick" i], [class*="stick" i], [id*="joystick" i], [class*="joystick" i],
-  [id*="touch" i], [class*="touch" i], [id*="pad" i], [class*="pad" i] { display:none !important; }
-}
-</style>
+<!-- PIXEL-NET EMBED MODE (wrapper uses this) -->
 <script>
 (function(){
-  try{
-    if (window.self !== window.top) document.documentElement.classList.add('pn-embed');
-  }catch(e){}
+  try {
+    var embed = (window.self !== window.top) || /[?&]embed=1\b/.test(location.search);
+    if (embed) document.documentElement.classList.add("pn-embed");
+  } catch(e) {
+    document.documentElement.classList.add("pn-embed");
+  }
 })();
 </script>
+<style>
+/* When embedded inside the canonical wrapper, show ONLY the game surface */
+.pn-embed, .pn-embed body {
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  background: transparent !important;
+}
+.pn-embed body > * { display: none !important; }
+.pn-embed body {}
+/* Keep the game surface visible */
+.pn-embed #game-container, 
+.pn-embed #game-container * {
+  display: revert !important;
+}
+.pn-embed #game-container {
+  position: fixed !important;
+  inset: 0 !important;
+  margin: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+}
+/* Canvas fills; preserves internal scaling */
+.pn-embed canvas {
+  display: block !important;
+}
+/* Mobile controls only on mobile */
+@media (min-width: 1001px) {
+  .pn-embed .joystick,
+  .pn-embed #mobile-controls,
+  .pn-embed .mobile-controls,
+  .pn-embed [class*="joystick"],
+  .pn-embed [id*="joystick"] {
+    display: none !important;
+    pointer-events: none !important;
+  }
+}
+</style>
 
 </head>
 <body>
