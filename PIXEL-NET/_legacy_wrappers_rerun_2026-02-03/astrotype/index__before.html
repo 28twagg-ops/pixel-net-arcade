@@ -1,0 +1,682 @@
+<!-- PIXEL-NET Gold Standard Wrapper (derived from Millipede) -->
+<!-- Version: V2.4-GS -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>ASTROTYPE</title>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet"/>
+
+<style>
+/* ========================================================
+   PIXEL-NET · Gold Standard Wrapper · V2.4-GS
+   (Same structure/behavior as Millipede wrapper)
+   ======================================================== */
+
+:root {
+  --text:        #e9ecff;
+  --muted:       #a7b0d6;
+  --card-top:    rgba(15, 19, 36, .72);
+  --card-bot:    rgba(10, 12, 26, .55);
+  --stroke:      rgba(255, 255, 255, .10);
+  --shadow:      0 14px 40px rgba(0, 0, 0, .35);
+  --accent-cyan: rgba(0, 255, 247, .35);
+  --glow-cyan:   rgba(0, 255, 247, .15);
+  --font-ui:     system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  --font-arcade: "Orbitron", var(--font-ui);
+  --banner-h:    28px;
+  --topbar-h:    38px;
+  --gap:         14px;
+
+  /* Gold-standard panel palette (same as Millipede wrapper) */
+  --game-card-top:  rgba(10, 28, 16, .80);
+  --game-card-bot:  rgba(6,  16, 10, .65);
+  --game-accent:    rgba(180, 60, 30, .45);
+  --game-glow:      rgba(180, 60, 30, .18);
+  --game-stroke:    rgba(80, 200, 100, .22);
+  --game-item-bg:   rgba(20, 55, 30, .35);
+  --game-item-stroke: rgba(80, 200, 100, .12);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+
+body {
+  min-height: 100dvh;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  padding: var(--banner-h) 0 10px;
+  color: var(--text);
+  font-family: var(--font-ui);
+  background:
+    radial-gradient(1200px 700px at 20% 10%, rgba(255,0,122,.14), transparent 60%),
+    radial-gradient(900px 500px at 85% 20%, rgba(0,255,247,.12), transparent 55%),
+    linear-gradient(180deg, #050611 0%, #060716 100%);
+  color-scheme: dark;
+  touch-action: auto;
+  overscroll-behavior: auto;
+}
+
+#pn-version-banner {
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: var(--banner-h);
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font: 12px/1.2 var(--font-ui);
+  background: rgba(0, 0, 0, .78);
+  color: var(--text);
+  border-bottom: 1px solid var(--stroke);
+  pointer-events: none;
+}
+
+.topbar {
+  width: min(1300px, 94vw);
+  margin: 0 auto 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+.btn, .badge {
+  height: var(--topbar-h);
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(10,12,26,.72);
+  color: var(--text);
+  font: 700 13px/1 var(--font-arcade);
+  letter-spacing: .10em;
+  cursor: pointer;
+  transition: filter .15s;
+}
+.btn:hover, .badge:hover { filter: brightness(1.12); }
+.badge { min-width: 54px; display: inline-grid; place-items: center; }
+
+.layout {
+  width: min(1300px, 94vw);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(360px, 1fr) minmax(220px, 280px);
+  gap: var(--gap);
+  align-items: stretch;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.panel {
+  background: linear-gradient(180deg, var(--card-top), var(--card-bot));
+  border: 1px solid var(--stroke);
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  padding: 14px;
+  min-height: 0;
+  overflow: auto;
+}
+.panel.leaderboard { overflow: hidden; }
+
+aside.panel {
+  background: linear-gradient(180deg, var(--game-card-top), var(--game-card-bot));
+  border-color: var(--game-stroke);
+  box-shadow: 0 14px 40px rgba(0,0,0,.35), 0 0 18px var(--game-glow);
+}
+aside.panel .title {
+  color: #7fdf8a;
+  text-shadow: 0 0 8px rgba(80, 200, 100, .25);
+}
+aside.panel .muted,
+aside.panel .hint { color: #8aac8f; }
+aside.panel .hint b { color: #b8e6bf; }
+
+.title {
+  font-family: var(--font-arcade);
+  letter-spacing: .10em;
+  margin: 0 0 10px;
+  font-size: 14px;
+}
+.muted { color: var(--muted); }
+.hint  { color: var(--muted); font-size: 12px; margin-top: 10px; }
+
+main.panel { display: flex; flex-direction: column; min-height: 0; }
+
+.gamebox {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--stroke);
+  background: rgba(0,0,0,.28);
+  touch-action: none;
+  overscroll-behavior: contain;
+}
+
+.game-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+.game-stage-inner {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+/* IFRAME fills the aspect-locked shell */
+.game-stage-inner iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+/* Leaderboard */
+.lb-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+  height: 100%;
+  overflow: auto;
+}
+.lb-col { list-style: none; padding: 0; margin: 0; }
+.lb-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 8px;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  border: 1px solid var(--game-item-stroke);
+  background: var(--game-item-bg);
+  font-family: var(--font-arcade);
+  letter-spacing: .06em;
+  font-size: 12px;
+  min-width: 0;
+}
+.lb-item:first-child { border-top: 2px solid var(--game-accent); }
+.lb-item .lb-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lb-rank  { color: #7fdf8a; opacity: .85; min-width: 22px; }
+.lb-score { color: #f0c87a; font-weight: 800; white-space: nowrap; }
+.lb-meta  { color: #6a8a70; font-size: 11px; margin-top: 10px; }
+
+/* Initials modal */
+.px-init-modal { position: fixed; inset: 0; z-index: 10000; display: flex; align-items: center; justify-content: center; }
+.px-init-modal.hidden { display: none; }
+.px-init-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.75); backdrop-filter: blur(4px); }
+.px-init-card {
+  position: relative; z-index: 1; width: 300px; padding: 16px 18px 14px; border-radius: 16px;
+  background: linear-gradient(180deg, rgba(15,19,36,.95), rgba(10,12,26,.95));
+  border: 1px solid var(--accent-cyan); box-shadow: 0 0 24px var(--glow-cyan); text-align: center;
+}
+.px-init-header { display:flex; justify-content:space-between; align-items:center; font-family: var(--font-arcade);
+  letter-spacing:.10em; font-weight:700; font-size:13px; margin-bottom:10px; }
+#px-init-close {
+  width: 30px; height: 30px; border-radius: 10px; border: 1px solid rgba(255,255,255,.14);
+  background: rgba(10,12,26,.72); color: var(--text); font-size: 18px; cursor: pointer;
+  display:flex; align-items:center; justify-content:center; transition: filter .15s;
+}
+#px-init-close:hover { filter: brightness(1.15); }
+#px-init-input {
+  width: 100%; height: 42px; border-radius: 14px; border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.20); color: var(--text);
+  font: 700 18px/1 var(--font-arcade); letter-spacing: .24em; text-align: center; outline: none;
+  margin: 4px 0 6px; transition: border-color .2s;
+}
+#px-init-input:focus { border-color: var(--accent-cyan); }
+.px-init-hint { font-size: 11px; color: var(--muted); letter-spacing: .04em; }
+#px-init-save { display: none; }
+
+/* Mobile tabs */
+.mobile-tabs { display: none; }
+.m-panel { display: none; }
+
+@media (max-width: 1000px) {
+  .layout { display: none; }
+  .topbar { width: 96vw; margin-bottom: 6px; }
+
+  .mobile-tabs { display: flex; width: 96vw; margin: 0 auto 6px; gap: 4px; }
+  .mobile-tabs button {
+    flex: 1; height: 34px; border-radius: 10px; border: 1px solid var(--stroke);
+    background: rgba(10,12,26,.55); color: var(--muted);
+    font: 700 11px/1 var(--font-arcade); letter-spacing: .08em;
+    cursor: pointer; transition: background .18s, color .18s;
+  }
+  .mobile-tabs button.active {
+    background: rgba(0,255,247,.15); border-color: var(--accent-cyan); color: var(--text);
+  }
+
+  .m-panel {
+    display: block; width: 96vw; margin: 0 auto 8px; border-radius: 16px;
+    background: linear-gradient(180deg, var(--card-top), var(--card-bot));
+    border: 1px solid var(--stroke); box-shadow: var(--shadow); padding: 14px;
+  }
+  .m-panel.hidden { display: none; }
+
+  #m-howto, #m-lb {
+    background: linear-gradient(180deg, var(--game-card-top), var(--game-card-bot));
+    border-color: var(--game-stroke);
+    box-shadow: 0 14px 40px rgba(0,0,0,.35), 0 0 18px var(--game-glow);
+  }
+  #m-howto .title, #m-lb .title { color: #7fdf8a; text-shadow: 0 0 8px rgba(80, 200, 100, .25); }
+  #m-howto .muted, #m-howto .hint, #m-lb .muted { color: #8aac8f; }
+  #m-howto .hint b { color: #b8e6bf; }
+
+  #m-game .gamebox {
+    width: 100%;
+    height: calc(100dvh - var(--banner-h) - var(--topbar-h) - 34px - 28px - 60px);
+    position: relative; border-radius: 14px; overflow: hidden;
+    border: 1px solid var(--stroke); background: rgba(0,0,0,.28);
+    touch-action: none; overscroll-behavior: contain;
+  }
+
+  .px-init-card { width: 88vw; max-width: 340px; padding: 22px 20px 24px; }
+  .px-init-header { font-size: 14px; margin-bottom: 14px; }
+  #px-init-close { width: 34px; height: 34px; border-radius: 12px; font-size: 20px; }
+  #px-init-input { height: 48px; font-size: 20px; margin: 6px 0 12px; }
+  #px-init-save {
+    display: block; width: 100%; height: 44px; border-radius: 14px;
+    border: 1px solid rgba(255,255,255,.14); background: rgba(10,12,26,.72); color: var(--text);
+    font: 800 13px/1 var(--font-arcade); letter-spacing: .10em; cursor: pointer;
+    margin-bottom: 4px; transition: filter .15s;
+  }
+  #px-init-save:hover { filter: brightness(1.12); }
+  .px-init-hint { font-size: 13px; margin-top: 2px; }
+}
+</style>
+</head>
+<body>
+
+<div id="pn-version-banner">
+  PIXEL-NET · ASTROTYPE · <strong>V2.4</strong>
+</div>
+
+<section id="px-init-modal" class="px-init-modal hidden" aria-hidden="true">
+  <div class="px-init-backdrop"></div>
+  <div class="px-init-card" role="dialog" aria-modal="true" aria-label="Enter Initials">
+    <div class="px-init-header">
+      <span>ENTER INITIALS</span>
+      <button id="px-init-close" type="button" aria-label="Close">×</button>
+    </div>
+    <input id="px-init-input" type="text" maxlength="3" placeholder="_ _ _"
+           autocomplete="off" autocapitalize="characters" spellcheck="false"/>
+    <button id="px-init-save" type="button">SAVE</button>
+    <div class="px-init-hint">Press Enter to save</div>
+  </div>
+</section>
+
+<div class="topbar">
+  <button class="btn" id="px-exit">EXIT</button>
+  <div class="badge" id="px-badge" title="Click to change initials">???</div>
+</div>
+
+<div class="mobile-tabs" id="m-tabs">
+  <button class="active" data-tab="game">GAME</button>
+  <button data-tab="howto">HOW TO PLAY</button>
+  <button data-tab="lb">LEADERBOARD</button>
+</div>
+
+<div class="layout">
+  <aside class="panel">
+    <h3 class="title">HOW TO PLAY</h3>
+    <div class="muted">
+      <p><b>Controls:</b> Arrow Keys / WASD</p>
+      <p><b>Action:</b> Space / Enter (varies by game)</p>
+      <p><b>Goal:</b> Type alien codes to defend the lunar base.</p>
+    </div>
+    <div class="hint">Initials are set on the homepage. Click the badge (top-right) to change them here.</div>
+    <div class="hint"><b>Game Over:</b> your score auto-saves. Press <b>Enter</b> to restart.</div>
+  </aside>
+
+  <main class="panel">
+    <h3 class="title">ASTROTYPE</h3>
+    <div class="gamebox">
+      <div class="game-stage" id="pn-stage">
+        <div class="game-stage-inner" id="pn-stage-inner">
+          <iframe id="pn-iframe" src="./game.html?embed=1" title="Game" loading="eager"></iframe>
+        </div>
+      </div>
+    </div>
+    <div class="muted" style="font-size:11px; margin-top:6px;">Leaderboard refreshes automatically.</div>
+  </main>
+
+  <aside class="panel leaderboard">
+    <h3 class="title">LEADERBOARD</h3>
+    <div class="muted">Top 10</div>
+    <div class="lb-grid">
+      <ol class="lb-col" id="lb-left"></ol>
+      <ol class="lb-col" id="lb-right"></ol>
+    </div>
+    <div class="lb-meta" id="lb-status">Loading…</div>
+  </aside>
+</div>
+
+<div id="m-howto" class="m-panel hidden">
+  <h3 class="title">HOW TO PLAY</h3>
+  <div class="muted">
+    <p><b>Controls:</b> Arrow Keys / WASD</p>
+    <p><b>Action:</b> Space / Enter (varies by game)</p>
+    <p><b>Goal:</b> Type alien codes to defend the lunar base.</p>
+  </div>
+  <div class="hint">Click the badge (top-right) to change initials.</div>
+  <div class="hint"><b>Game Over:</b> score auto-saves. Press <b>Enter</b> to restart.</div>
+</div>
+
+<div id="m-game" class="m-panel hidden">
+  <div class="gamebox">
+    <div class="game-stage">
+      <div class="game-stage-inner" id="pn-stage-inner-mobile"></div>
+    </div>
+  </div>
+</div>
+
+<div id="m-lb" class="m-panel hidden">
+  <h3 class="title">LEADERBOARD</h3>
+  <div class="muted">Top 10</div>
+  <div class="lb-grid">
+    <ol class="lb-col" id="m-lb-left"></ol>
+    <ol class="lb-col" id="m-lb-right"></ol>
+  </div>
+  <div class="lb-meta" id="m-lb-status">Loading…</div>
+</div>
+
+<script src="../../js/engine.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  // ============================================================
+  // CONFIG (per-game)
+  // ============================================================
+  var GAME_CONFIG = {
+    slugs: ["astrotype"]
+  };
+
+  // ============================================================
+  // INITIALS
+  // ============================================================
+  function norm(v){
+    return String(v||"").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0,3) || "???";
+  }
+
+  var initials = norm(
+    localStorage.getItem("px_player_initials") ||
+    sessionStorage.getItem("playerInitials") ||
+    "???"
+  );
+
+  function syncInitials(val){
+    val = norm(val);
+    try{ localStorage.setItem("px_player_initials", val); }catch(_){ }
+    try{ sessionStorage.setItem("playerInitials", val); }catch(_){ }
+    try{ localStorage.setItem("p",  val); }catch(_){ }
+    try{ localStorage.setItem("u",  val); }catch(_){ }
+    try{ localStorage.setItem("n",  val); }catch(_){ }
+    try{ localStorage.setItem("nm", val); }catch(_){ }
+  }
+  syncInitials(initials);
+
+  if (window.PixelNet && PixelNet.init)   PixelNet.init();
+  if (window.PixelNet && PixelNet.uiInit) PixelNet.uiInit();
+
+  var badge = document.getElementById("px-badge");
+  badge.textContent = initials;
+
+  window.addEventListener("storage", function(e){
+    if (e && e.key === "px_player_initials" && e.newValue){
+      var v = norm(e.newValue);
+      if (v && v !== initials){
+        initials = v;
+        syncInitials(v);
+        badge.textContent = v;
+      }
+    }
+  });
+
+  document.getElementById("px-exit").onclick = function(){ location.href = "../../index.html"; };
+
+  // Modal wiring
+  var modal   = document.getElementById("px-init-modal");
+  var input   = document.getElementById("px-init-input");
+  var closeBtn= document.getElementById("px-init-close");
+  var saveBtn = document.getElementById("px-init-save");
+
+  function openModal(){
+    input.value = (initials !== "???") ? initials : "";
+    modal.classList.remove("hidden");
+    modal.setAttribute("aria-hidden", "false");
+    input.focus();
+  }
+  function closeModal(){
+    modal.classList.add("hidden");
+    modal.setAttribute("aria-hidden", "true");
+  }
+  function saveInitials(){
+    var v = norm(input.value);
+    if (v && v !== "???"){
+      initials = v;
+      syncInitials(v);
+      badge.textContent = v;
+    }
+    closeModal();
+  }
+
+  badge.addEventListener("click", openModal);
+  closeBtn.addEventListener("click", saveInitials);
+  if (saveBtn) saveBtn.addEventListener("click", saveInitials);
+  modal.querySelector(".px-init-backdrop").addEventListener("click", saveInitials);
+
+  input.addEventListener("keydown", function(e){
+    if (e.key === "Enter"){ e.preventDefault(); saveInitials(); }
+    if (e.key === "Escape"){ e.preventDefault(); closeModal(); }
+  });
+
+  // ============================================================
+  // IFRAME + ASPECT FIT
+  // ============================================================
+  var iframe = document.getElementById("pn-iframe");
+  var desktopInner = document.getElementById("pn-stage-inner");
+  var mobileInner  = document.getElementById("pn-stage-inner-mobile");
+  var desktopGamebox = document.querySelector(".layout main.panel .gamebox");
+
+  var GAME_ASPECT = 1; // updated from iframe canvas when available
+
+  function updateAspectFromIframe(){
+    try{
+      if (!iframe || !iframe.contentWindow) return;
+      var doc = iframe.contentWindow.document;
+      if (!doc) return;
+      var c = doc.querySelector("canvas");
+      if (!c) return;
+      var w = Number(c.width)  || c.getBoundingClientRect().width  || 1;
+      var h = Number(c.height) || c.getBoundingClientRect().height || 1;
+      if (w > 0 && h > 0) GAME_ASPECT = w / h;
+    }catch(_){ }
+  }
+
+  function activeBoxAndInner(){
+    if (window.innerWidth <= 1000){
+      return {
+        box: document.querySelector("#m-game .gamebox"),
+        inner: mobileInner
+      };
+    }
+    return { box: desktopGamebox, inner: desktopInner };
+  }
+
+  function fitStage(){
+    var ref = activeBoxAndInner();
+    var box = ref.box;
+    var inner = ref.inner;
+    if (!box || !inner) return;
+
+    var W = box.clientWidth;
+    var H = box.clientHeight;
+    var ratio = GAME_ASPECT || 1;
+    var w, h;
+
+    if (W / H > ratio){
+      h = H;
+      w = Math.floor(H * ratio);
+    } else {
+      w = W;
+      h = Math.floor(W / ratio);
+    }
+
+    inner.style.width  = w + "px";
+    inner.style.height = h + "px";
+  }
+
+  function placeIframeForViewport(){
+    // Ensure the iframe lives in the visible stage inner.
+    if (!iframe) return;
+    if (window.innerWidth <= 1000){
+      if (iframe.parentElement !== mobileInner){
+        mobileInner.appendChild(iframe);
+      }
+    } else {
+      if (iframe.parentElement !== desktopInner){
+        desktopInner.appendChild(iframe);
+      }
+    }
+  }
+
+  if (iframe){
+    iframe.addEventListener("load", function(){
+      updateAspectFromIframe();
+      placeIframeForViewport();
+      fitStage();
+    });
+  }
+
+  placeIframeForViewport();
+  fitStage();
+  window.addEventListener("resize", function(){
+    placeIframeForViewport();
+    // Re-sample aspect after resize (some games update canvas size on resize)
+    updateAspectFromIframe();
+    fitStage();
+  });
+
+  // ============================================================
+  // MOBILE TABS
+  // ============================================================
+  var tabs = document.getElementById("m-tabs");
+  var btns = tabs ? Array.from(tabs.querySelectorAll("button")) : [];
+  var mHow = document.getElementById("m-howto");
+  var mGame= document.getElementById("m-game");
+  var mLb  = document.getElementById("m-lb");
+
+  function showTab(which){
+    if (!tabs) return;
+    btns.forEach(function(b){ b.classList.toggle("active", b.dataset.tab === which); });
+    if (mHow) mHow.classList.toggle("hidden", which !== "howto");
+    if (mGame) mGame.classList.toggle("hidden", which !== "game");
+    if (mLb)  mLb.classList.toggle("hidden", which !== "lb");
+
+    // keep iframe mounted in visible container
+    placeIframeForViewport();
+    fitStage();
+  }
+
+  if (tabs){
+    tabs.addEventListener("click", function(e){
+      var t = e.target;
+      if (t && t.dataset && t.dataset.tab) showTab(t.dataset.tab);
+    });
+  }
+
+  // Default: show GAME on mobile
+  showTab("game");
+
+  // ============================================================
+  // LEADERBOARD
+  // ============================================================
+  async function renderLeaderboard(){
+    var status  = document.getElementById("lb-status");
+    var mStatus = document.getElementById("m-lb-status");
+    var L = document.getElementById("lb-left");
+    var R = document.getElementById("lb-right");
+    var mL = document.getElementById("m-lb-left");
+    var mR = document.getElementById("m-lb-right");
+
+    if (L) L.innerHTML = "";
+    if (R) R.innerHTML = "";
+    if (mL) mL.innerHTML = "";
+    if (mR) mR.innerHTML = "";
+
+    if (!(window.PixelNet && PixelNet.getLeaderboard)){
+      var msg0 = "Leaderboard unavailable.";
+      if (status) status.textContent = msg0;
+      if (mStatus) mStatus.textContent = msg0;
+      return;
+    }
+
+    try{
+      var rows = [];
+      for (var i=0;i<GAME_CONFIG.slugs.length;i++){
+        try{ rows = await PixelNet.getLeaderboard(GAME_CONFIG.slugs[i]); }catch(_){ rows = []; }
+        if (Array.isArray(rows) && rows.length) break;
+      }
+
+      var top = (rows || []).slice(0,10);
+      if (!top.length){
+        if (status) status.textContent = "No scores yet.";
+        if (mStatus) mStatus.textContent = "No scores yet.";
+        return;
+      }
+
+      top.forEach(function(row, idx){
+        var ini = norm(row.initials || row.name || "???");
+        var sc = Number(row.score != null ? row.score : (row.points != null ? row.points : (row.value != null ? row.value : 0))) || 0;
+
+        var li = document.createElement("li");
+        li.className = "lb-item";
+        li.innerHTML =
+          '<span class="lb-rank">' + (idx+1) + '.</span>' +
+          '<span class="lb-name">' + ini + '</span>' +
+          '<span class="lb-score">' + sc + '</span>';
+
+        (idx < 5 ? L : R).appendChild(li);
+
+        var mli = li.cloneNode(true);
+        (idx < 5 ? mL : mR).appendChild(mli);
+      });
+
+      if (status) status.textContent = "Auto-refreshing…";
+      if (mStatus) mStatus.textContent = "Auto-refreshing…";
+
+    }catch(e){
+      console.error("[Gold Wrapper] leaderboard fetch failed:", e);
+      var msg = "Failed to load (backend sleeping?).";
+      if (status) status.textContent = msg;
+      if (mStatus) mStatus.textContent = msg;
+    }
+  }
+
+  renderLeaderboard();
+  setInterval(renderLeaderboard, 6000);
+})();
+</script>
+
+</body>
+</html>
