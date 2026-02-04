@@ -1,65 +1,64 @@
 [
   {
     "name": "MILLIPEDE CHAOS",
-    "type": "iframe",
-    "path": "games/millipede-react/index.html",
+    "desc": "Defend the garden from the swarm.",
     "thumb": "assets/millipede_thumb.png",
-    "description": "Defend the garden from the swarm."
+    "path": "games/millipede-react/index.html",
+    "leaderboardKey": "millipede-react"
   },
   {
     "name": "NEON CHASE",
-    "type": "iframe",
-    "path": "games/neon-chase/index.html",
+    "desc": "High-speed neon survival.",
     "thumb": "assets/neon-chase_thumb.png",
-    "description": "High-speed neon survival."
+    "path": "games/neon-chase/index.html",
+    "leaderboardKey": "neon-chase"
   },
   {
     "name": "ROBO ARENA",
-    "type": "iframe",
-    "path": "games/robo-arena/index.html",
+    "desc": "Enter the arena. Win the fight.",
     "thumb": "assets/robo-arena_thumb.jpg",
-    "description": "Enter the arena. Win the fight."
+    "path": "games/robo-arena/index.html",
+    "leaderboardKey": "robo-arena"
   },
   {
     "name": "VECTOR DUEL",
-    "type": "iframe",
-    "path": "games/vector-duel/index.html",
+    "desc": "Retro vectors. Modern reflex.",
     "thumb": "assets/vector-duel_thumb.png",
-    "description": "Retro vectors. Modern reflex."
+    "path": "games/vector-duel/index.html",
+    "leaderboardKey": "vector-duel"
   },
   {
     "name": "CYBER PYTHON",
-    "type": "iframe",
-    "path": "games/cyber-python/index.html",
+    "desc": "Classic snake, cyber style.",
     "thumb": "assets/cyber-python_thumb.png",
-    "description": "Classic snake, cyber style."
+    "path": "games/cyber-python/index.html",
+    "leaderboardKey": "cyber-python"
   },
   {
     "name": "NEON MAZE CHASE",
-    "type": "iframe",
-    "path": "games/neon-maze-chase/index.html",
+    "desc": "Neon maze survival. Collect bits. Hack drones.",
     "thumb": "assets/neon-maze-chase_thumb.png",
-    "description": "Neon maze survival. Collect bits. Hack drones."
+    "path": "games/neon-maze-chase/index.html",
+    "leaderboardKey": "neon-maze-chase"
   },
   {
     "name": "CAKED UP CATS",
-    "type": "iframe",
-    "path": "games/caked-up-cats/index.html",
+    "desc": "Garden maze arcade. Eat cake, catch mice, avoid hazards.",
     "thumb": "assets/caked-up-cats_thumb.png",
-    "description": "Garden maze arcade. Eat cake, catch mice, avoid hazards."
+    "path": "games/caked-up-cats/index.html",
+    "leaderboardKey": "caked-up-cats"
   },
   {
     "name": "ASTROTYPE",
-    "type": "iframe",
-    "path": "games/astrotype/index.html",
+    "desc": "Type alien codes to defend the lunar base.",
     "thumb": "assets/astrotype_thumb.png",
-    "description": "Type alien codes to defend the lunar base."
+    "path": "games/astrotype/index.html",
+    "leaderboardKey": "astrotype"
   },
   {
-    "id": "creek-crosser",
-    "title": "Creek Crosser",
+    "name": "CREEK CROSSER",
     "desc": "Hop to the 5 nests. Avoid cars and the creek.",
-    "thumb": "assets/creek-crosser-thumb.png",
+    "thumb": "assets/creek-crosser_thumb.png",
     "path": "games/creek-crosser/index.html",
     "leaderboardKey": "creek-crosser",
     "controls": [
