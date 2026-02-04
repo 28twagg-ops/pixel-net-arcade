@@ -56,41 +56,6 @@
     "description": "Type alien codes to defend the lunar base."
   },
   {
-    "name": "CREEK CROSSER",
-    "type": "iframe",
-    "path": "games/creek-crosser/index.html",
-    "thumb": "assets/creek-crosser_thumb.png",
-    "description": "Cross the creek and survive the lanes."
-  },
-  {
-    "name": "LOGIC BOMB",
-    "type": "iframe",
-    "path": "games/logic-bomb/index.html",
-    "thumb": "assets/logic-bomb_thumb.png",
-    "description": "Defuse the logic bombs before time runs out."
-  },
-  {
-    "name": "NEON ARENA ASSAULT",
-    "type": "iframe",
-    "path": "games/neon-arena-assault/index.html",
-    "thumb": "assets/neon-arena-assault_thumb.png",
-    "description": "Fast-paced arena combat."
-  },
-  {
-    "name": "NEON TRAIL RIDERS",
-    "type": "iframe",
-    "path": "games/neon-trail-riders/index.html",
-    "thumb": "assets/neon-trail-riders_thumb.png",
-    "description": "Trail-riding neon action."
-  },
-  {
-    "name": "LAYOUT TESTER",
-    "type": "iframe",
-    "path": "games/layout-tester/index.html",
-    "thumb": "assets/layout-tester_thumb.svg",
-    "description": "Sandbox to test wrapper aspect ratios."
-  },
-  {
     "id": "creek-crosser",
     "title": "Creek Crosser",
     "desc": "Hop to the 5 nests. Avoid cars and the creek.",
@@ -101,5 +66,12 @@
       "Arrow Keys / WASD",
       "Touch D-pad (mobile)"
     ]
+  },
+  {
+    "name": "Layout Tester",
+    "path": "games/layout-tester/index.html",
+    "type": "iframe",
+    "thumb": "thumbnails/layout-tester_thumb.png",
+    "description": "Sandbox cabinet to preview wrapper aspect ratios."
   }
 ]

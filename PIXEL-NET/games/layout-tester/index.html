@@ -1,225 +1,186 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>PIXEL-NET | Layout Tester</title>
-<style>
-  :root{
-    --bg:#0a0e27; --bg2:#1a0933;
-    --neon-cyan:#00f5ff; --neon-pink:#ff006e; --muted:rgba(255,255,255,.65);
-    --panel:rgba(0,0,0,.35); --border:rgba(0,245,255,.35);
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0; min-height:100vh; color:#fff; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-    background:linear-gradient(135deg,var(--bg) 0%, var(--bg2) 100%);
-    overflow:hidden;
-  }
-  /* faint grid */
-  body:before{
-    content:""; position:fixed; inset:0;
-    background-image:linear-gradient(rgba(0,245,255,.10) 1px, transparent 1px),
-                     linear-gradient(90deg, rgba(0,245,255,.10) 1px, transparent 1px);
-    background-size:50px 50px;
-    transform:perspective(500px) rotateX(60deg);
-    opacity:.25; pointer-events:none;
-  }
-
-  .shell{
-    position:relative;
-    height:100vh; width:100vw;
-    display:flex; flex-direction:column;
-    padding:16px;
-    gap:12px;
-  }
-
-  .topbar{
-    display:flex; align-items:center; justify-content:space-between;
-    padding:10px 12px;
-    border:1px solid var(--border);
-    border-radius:12px;
-    background:rgba(0,0,0,.25);
-    backdrop-filter: blur(10px);
-  }
-  .brand{
-    font-weight:800; letter-spacing:2px;
-    color:var(--neon-cyan);
-    text-shadow:0 0 16px rgba(0,245,255,.6);
-    text-transform:uppercase;
-  }
-  .hint{color:var(--muted); font-size:12px}
-  .controls{
-    display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:flex-end;
-  }
-  .controls label{font-size:12px; color:var(--muted)}
-  select,input[type="number"]{
-    background:rgba(0,0,0,.45);
-    border:1px solid rgba(255,255,255,.18);
-    color:#fff;
-    border-radius:10px;
-    padding:8px 10px;
-    outline:none;
-  }
-  .btn{
-    background:linear-gradient(135deg,var(--neon-cyan), var(--neon-pink));
-    border:none; color:#050818;
-    padding:9px 12px;
-    border-radius:999px;
-    font-weight:800;
-    cursor:pointer;
-    letter-spacing:1px;
-  }
-
-  .stage-wrap{
-    flex:1;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    min-height:0;
-    border:1px solid var(--border);
-    border-radius:14px;
-    background:rgba(0,0,0,.22);
-    backdrop-filter: blur(10px);
-    overflow:hidden;
-  }
-
-  /* The thing you're testing */
-  .tester-outer{
-    width:min(1100px, 96vw);
-    height:min(720px, 84vh);
-    display:flex; align-items:center; justify-content:center;
-    padding:16px;
-  }
-
-  .ratio-box{
-    width:100%;
-    max-height:100%;
-    aspect-ratio: var(--ar, 16/9);
-    border-radius:14px;
-    border:2px solid rgba(255,255,255,.18);
-    background:
-      radial-gradient(circle at 20% 20%, rgba(0,245,255,.25), transparent 45%),
-      radial-gradient(circle at 80% 30%, rgba(255,0,110,.20), transparent 50%),
-      rgba(0,0,0,.35);
-    box-shadow: 0 0 32px rgba(0,245,255,.25), 0 0 22px rgba(255,0,110,.18);
-    position:relative;
-    overflow:hidden;
-  }
-  .ratio-box:before{
-    content:"";
-    position:absolute; inset:0;
-    background:
-      repeating-linear-gradient(0deg, rgba(255,255,255,.10), rgba(255,255,255,.10) 1px, transparent 1px, transparent 22px),
-      repeating-linear-gradient(90deg, rgba(255,255,255,.08), rgba(255,255,255,.08) 1px, transparent 1px, transparent 22px);
-    opacity:.35;
-    pointer-events:none;
-  }
-  .ratio-overlay{
-    position:absolute; inset:0;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    gap:10px;
-    text-align:center;
-    padding:18px;
-  }
-  .ratio-title{
-    font-weight:900;
-    font-size:28px;
-    letter-spacing:2px;
-    text-transform:uppercase;
-    color:#fff;
-    text-shadow:0 0 18px rgba(0,245,255,.25);
-  }
-  .ratio-readout{
-    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    color:var(--neon-cyan);
-    font-weight:800;
-    letter-spacing:1px;
-  }
-  .ratio-meta{
-    font-size:13px;
-    color:var(--muted);
-    max-width:720px;
-  }
-
-  @media (max-width:720px){
-    .topbar{gap:10px; flex-direction:column; align-items:flex-start}
-    .controls{justify-content:flex-start}
-    .tester-outer{height:min(640px, 78vh)}
-  }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PIXEL-NET | Layout Tester</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --neon-pink:#ff006e; --neon-cyan:#00f5ff; --deep-blue:#0a0e27; --dark-purple:#1a0933;
+      --grid-color: rgba(0,245,255,.12);
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      font-family:Rajdhani,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:linear-gradient(135deg,var(--deep-blue),var(--dark-purple));
+      color:#fff; min-height:100vh; overflow:hidden;
+    }
+    body::before{
+      content:""; position:fixed; inset:0;
+      background-image:
+        linear-gradient(var(--grid-color) 1px, transparent 1px),
+        linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+      background-size:50px 50px;
+      animation:gridScroll 20s linear infinite;
+      pointer-events:none; z-index:0;
+    }
+    @keyframes gridScroll{
+      0%{transform:perspective(500px) rotateX(60deg) translateY(0)}
+      100%{transform:perspective(500px) rotateX(60deg) translateY(50px)}
+    }
+    .wrap{position:relative; z-index:1; height:100vh; display:flex; flex-direction:column; padding:18px; gap:14px}
+    header{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:14px 16px; border-radius:14px;
+      border:2px solid rgba(0,245,255,.35); background:rgba(0,0,0,.35);
+      box-shadow:0 10px 35px rgba(0,245,255,.15);
+    }
+    h1{
+      font-family:Orbitron,system-ui; font-size:18px; letter-spacing:2px; text-transform:uppercase;
+      background:linear-gradient(90deg,#fff,var(--neon-cyan));
+      -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    }
+    .controls{display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:flex-end}
+    label{font-size:12px; opacity:.8}
+    select, input[type="number"]{
+      background:rgba(0,0,0,.45); color:#fff;
+      border:1px solid rgba(0,245,255,.35);
+      border-radius:10px; padding:10px 12px;
+      font-family:Rajdhani,sans-serif; font-size:14px;
+      outline:none;
+    }
+    button{
+      cursor:pointer;
+      border:none; border-radius:12px;
+      padding:10px 14px;
+      font-family:Orbitron,sans-serif; letter-spacing:1px; text-transform:uppercase;
+      background:linear-gradient(135deg,var(--neon-cyan),var(--neon-pink));
+      color:var(--deep-blue); font-weight:800;
+      box-shadow:0 8px 24px rgba(0,245,255,.25);
+    }
+    button:active{transform:translateY(1px)}
+    .stage{
+      flex:1; min-height:0;
+      display:flex; align-items:center; justify-content:center;
+      border-radius:18px;
+      border:2px solid rgba(255,0,110,.35);
+      background:rgba(0,0,0,.35);
+      box-shadow:0 14px 45px rgba(255,0,110,.12);
+      overflow:hidden;
+      position:relative;
+    }
+    .box{
+      width:min(78vw, 980px);
+      aspect-ratio: 16 / 9;
+      border-radius:16px;
+      border:3px solid rgba(0,245,255,.75);
+      box-shadow:0 0 0 1px rgba(255,255,255,.1), 0 12px 45px rgba(0,245,255,.18);
+      background:rgba(10,14,39,.6);
+      display:flex; align-items:center; justify-content:center;
+      position:relative;
+    }
+    .box::after{
+      content:"GAME VIEWPORT PREVIEW";
+      position:absolute; top:12px; left:14px;
+      font-family:Orbitron,sans-serif; font-size:11px; letter-spacing:2px;
+      color:rgba(255,255,255,.75);
+    }
+    .dims{
+      position:absolute; bottom:10px; right:12px;
+      font-family:Orbitron,sans-serif; font-size:11px; letter-spacing:1px;
+      color:rgba(0,245,255,.9);
+      text-shadow:0 0 18px rgba(0,245,255,.35);
+    }
+    .hint{
+      text-align:center; opacity:.75; font-size:14px; line-height:1.4;
+      padding:0 18px;
+    }
+    @media (max-width:700px){
+      header{flex-direction:column; align-items:flex-start}
+      .controls{justify-content:flex-start}
+      .box{width:94vw}
+    }
+  </style>
 </head>
 <body>
-  <div class="shell">
-    <div class="topbar">
-      <div>
-        <div class="brand">PIXEL-NET Layout Tester</div>
-        <div class="hint">This is a sandbox “game” for trying wrappers. No leaderboard, no instructions — just aspect ratios.</div>
-      </div>
-
-      <div class="controls" aria-label="Aspect ratio controls">
-        <label>Preset</label>
+  <div class="wrap">
+    <header>
+      <h1>PIXEL-NET • Layout Tester</h1>
+      <div class="controls">
+        <label for="preset">Preset</label>
         <select id="preset">
           <option value="16/9">16:9</option>
           <option value="4/3">4:3</option>
           <option value="1/1">1:1</option>
-          <option value="3/4">3:4 (portrait)</option>
-          <option value="9/16">9:16 (phone)</option>
-          <option value="21/9">21:9 (ultrawide)</option>
-          <option value="custom">Custom</option>
+          <option value="21/9">21:9</option>
+          <option value="9/16">9:16</option>
+          <option value="custom">Custom…</option>
         </select>
 
-        <label>W</label><input id="w" type="number" min="1" max="999" value="16" style="width:86px"/>
-        <label>H</label><input id="h" type="number" min="1" max="999" value="9" style="width:86px"/>
+        <label for="w">W</label>
+        <input id="w" type="number" min="200" max="1600" step="10" value="960" />
+        <label for="h">H</label>
+        <input id="h" type="number" min="200" max="1600" step="10" value="540" />
 
-        <button class="btn" id="apply">APPLY</button>
+        <button id="apply">Apply</button>
       </div>
-    </div>
+    </header>
 
-    <div class="stage-wrap">
-      <div class="tester-outer">
-        <div class="ratio-box" id="box">
-          <div class="ratio-overlay">
-            <div class="ratio-title">Game Stage Preview</div>
-            <div class="ratio-readout" id="readout">Aspect ratio: 16 / 9</div>
-            <div class="ratio-meta" id="meta">
-              Use this to decide what your universal wrapper should target. Try 4:3 for retro, 16:9 for modern, or portrait for mobile.
-            </div>
-          </div>
+    <div class="stage">
+      <div class="box" id="box">
+        <div class="hint">
+          Use presets (or custom W/H) to preview how the <b>center game viewport</b> will look inside the wrapper.
+          <br/>This is a sandbox-only cabinet.
         </div>
+        <div class="dims" id="dims"></div>
       </div>
     </div>
   </div>
 
 <script>
+  const box = document.getElementById('box');
+  const dims = document.getElementById('dims');
   const preset = document.getElementById('preset');
   const w = document.getElementById('w');
   const h = document.getElementById('h');
   const apply = document.getElementById('apply');
-  const box = document.getElementById('box');
-  const readout = document.getElementById('readout');
 
-  function setAR(num, den){
-    const n = Math.max(1, parseInt(num||'16',10));
-    const d = Math.max(1, parseInt(den||'9',10));
-    box.style.setProperty('--ar', n + '/' + d);
-    readout.textContent = 'Aspect ratio: ' + n + ' / ' + d;
-    w.value = n; h.value = d;
-    preset.value = 'custom';
+  const presets = {
+    "16/9":[960,540],
+    "4/3":[800,600],
+    "1/1":[700,700],
+    "21/9":[1050,450],
+    "9/16":[540,960]
+  };
+
+  function setBox(pxW, pxH){
+    const clampedW = Math.max(200, Math.min(1600, pxW|0));
+    const clampedH = Math.max(200, Math.min(1600, pxH|0));
+    box.style.width = clampedW + "px";
+    box.style.height = clampedH + "px";
+    box.style.aspectRatio = "auto";
+    w.value = clampedW;
+    h.value = clampedH;
+    dims.textContent = clampedW + "×" + clampedH;
   }
 
-  function applyPreset(v){
-    if(v === 'custom'){ setAR(w.value, h.value); return; }
-    const parts = v.split('/');
-    setAR(parts[0], parts[1]);
-    preset.value = v;
-  }
+  preset.addEventListener('change', () => {
+    const v = preset.value;
+    if(presets[v]){
+      setBox(presets[v][0], presets[v][1]);
+    }
+  });
 
-  apply.addEventListener('click', () => setAR(w.value, h.value));
-  preset.addEventListener('change', () => applyPreset(preset.value));
+  apply.addEventListener('click', () => {
+    setBox(parseInt(w.value,10), parseInt(h.value,10));
+    preset.value = "custom";
+  });
 
   // init
-  applyPreset(preset.value);
+  setBox(960,540);
 </script>
 </body>
 </html>
