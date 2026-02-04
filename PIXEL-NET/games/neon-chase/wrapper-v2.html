@@ -8,14 +8,15 @@
 :root{--accent:#00fff7;--bg:#080014;--text:#f3f6ff;--muted:rgba(243,246,255,.72);}
 html,body{height:100%;}
 body{margin:0;background:
-  radial-gradient(1200px 700px at 20% 10%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%),
-  radial-gradient(1200px 700px at 80% 90%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 62%),
+  radial-gradient(1200px 700px at 18% 10%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 58%),
+  radial-gradient(1200px 700px at 82% 20%, rgba(255,255,255,.06), transparent 62%),
+  radial-gradient(1200px 780px at 55% 108%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 64%),
   linear-gradient(180deg, var(--bg), #000);
   color:var(--text);
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
   overflow:hidden;
 }
-.topbar{height:58px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;
+.topbar{height:58px;position:sticky;top:0;z-index:20;display:grid;grid-template-columns:auto 1fr auto;align-items:center;
   padding:10px 14px;background:rgba(0,0,0,.35);backdrop-filter:blur(12px);
   border-bottom:1px solid rgba(255,255,255,.10);
 }
@@ -24,8 +25,9 @@ body{margin:0;background:
 }
 .exit:hover{border-color:color-mix(in srgb, var(--accent) 70%, white);box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);}
 .badge{justify-self:center;padding:8px 16px;border-radius:999px;
-  border:1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  border:1px solid color-mix(in srgb, var(--accent) 45%, transparent);
   background:linear-gradient(90deg,color-mix(in srgb, var(--accent) 22%, transparent),rgba(255,255,255,.06));
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent), 0 18px 55px rgba(0,0,0,.30);
   font-weight:900;letter-spacing:.16em;text-transform:uppercase;
 }
 .player{justify-self:end;display:flex;gap:10px;align-items:center;
@@ -34,49 +36,53 @@ body{margin:0;background:
 }
 .player .muted{color:var(--muted);font-size:12px;letter-spacing:.14em;text-transform:uppercase;}
 .player strong{color:var(--accent);letter-spacing:.14em;}
-.wrap{height:calc(100vh - 58px);padding:14px;display:grid;grid-template-columns:320px minmax(0,1fr) 320px;gap:14px;}
+.shell{height:calc(100vh - 58px);padding:14px;display:grid;grid-template-columns:320px minmax(0,1fr) 320px;gap:14px;align-items:stretch;}
 .panel{border:1px solid rgba(255,255,255,.12);border-radius:18px;overflow:hidden;background:rgba(0,0,0,.18);
   box-shadow:0 18px 70px rgba(0,0,0,.35);display:flex;flex-direction:column;min-height:0;}
 .panel h3{margin:0;padding:12px 14px;font-size:12px;letter-spacing:.20em;text-transform:uppercase;color:var(--muted);
   border-bottom:1px solid rgba(255,255,255,.10);
   background:linear-gradient(90deg,color-mix(in srgb, var(--accent) 18%, transparent),rgba(0,0,0,0));
 }
-.panel .content{padding:14px;flex:1;min-height:0;overflow:hidden;}
-.frame{border:1px solid color-mix(in srgb, var(--accent) 22%, transparent);border-radius:22px;overflow:hidden;background:#000;
+.panel .content{padding:14px;flex:1;min-height:0;overflow:hidden;font-size:14px;line-height:1.55;color:rgba(243,246,255,.84);}
+.center{min-height:0;}
+.frame{height:100%;border:1px solid color-mix(in srgb, var(--accent) 22%, transparent);border-radius:22px;overflow:hidden;background:#000;
   box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent),0 30px 90px rgba(0,0,0,.52);
 }
 iframe{width:100%;height:100%;border:0;display:block;background:#000;}
-.center{min-height:0;}
-.center .frame{height:100%;}
-.small{font-size:14px;line-height:1.55;color:rgba(243,246,255,.84);}
-@media (max-width:1100px){.wrap{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;} .panel{display:none;}}
+@media (max-width:1100px){
+  .shell{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;}
+  .panel{display:none;}
+}
 </style>
 </head>
 <body>
   <div class="topbar">
-    <a class="exit" href="../index.html" id="exitBtn">✕ EXIT</a>
+    <a class="exit" href="../../index.html">✕ EXIT</a>
     <div class="badge">NEON CHASE</div>
     <div class="player"><span class="muted">PLAYER</span><strong id="initials">???</strong></div>
   </div>
-  <div class="wrap">
+
+  <div class="shell">
     <div class="panel">
       <h3>How To Play</h3>
-      <div class="content small">Wrapper v2 enabled.</div>
+      <div class="content">Wrapper v2 enabled.</div>
     </div>
+
     <div class="center">
-      <div class="frame"><iframe src="index.html"></iframe></div>
+      <div class="frame">
+        <iframe src="../../../games/neon-chase/index.html" allow="gamepad *; fullscreen *"></iframe>
+      </div>
     </div>
+
     <div class="panel">
       <h3>Leaderboard</h3>
-      <div class="content small">Wrapper v2 enabled.</div>
+      <div class="content">Wrapper v2 enabled.</div>
     </div>
   </div>
+
 <script>
 const KEY="PIXELNET_INITIALS";
 document.getElementById("initials").textContent = localStorage.getItem(KEY) || "???";
-document.getElementById("exitBtn").addEventListener("click",(e)=>{
-  if(history.length>1){ e.preventDefault(); history.back(); }
-});
 </script>
 </body>
 </html>
