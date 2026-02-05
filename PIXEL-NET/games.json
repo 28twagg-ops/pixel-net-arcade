@@ -70,16 +70,10 @@
     "description": "Type alien codes to defend the lunar base."
   },
   {
-    "id": "creek-crosser",
-    "title": "Creek Crosser",
-    "desc": "Hop to the 5 nests. Avoid cars and the creek.",
     "thumb": "assets/creek-crosser-thumb.png",
     "path": "games/creek-crosser/wrapper-v2.html",
-    "leaderboardKey": "creek-crosser",
-    "controls": [
-      "Arrow Keys / WASD",
-      "Touch D-pad (mobile)"
-    ]
+    "name": "Creek Crosser",
+    "description": "Hop to the 5 nests. Avoid cars and the creek."
   },
   {
     "name": "CREEK CROSSER (EMBED A TEST)",
@@ -114,6 +108,27 @@
     "type": "iframe",
     "path": "games/logic-bomb-v2/wrapper-v2.html",
     "thumb": "assets/logic-bomb_thumb.png",
-    "description": "Defuse by thinking fast."
+    "description": "Defuse by thinking fast (v2)."
+  },
+  {
+    "name": "NEON CHASE (version 2.0)",
+    "type": "iframe",
+    "path": "games/neon-chase-v2/wrapper-v2.html",
+    "thumb": "assets/neon-chase_thumb.png",
+    "description": "High-speed neon survival (v2)."
+  },
+  {
+    "name": "ROBO-ARENA (version 2.0)",
+    "type": "iframe",
+    "path": "games/robo-arena-v2/wrapper-v2.html",
+    "thumb": "assets/robo-arena_thumb.png",
+    "description": "Top-down neon arena combat (v2)."
+  },
+  {
+    "name": "MILLIPEDE CHAOS (version 3.0)",
+    "type": "iframe",
+    "path": "games/millipede-chaos-v3/wrapper-v2.html",
+    "thumb": "assets/millipede_thumb.png",
+    "description": "Millipede Chaos remake (v3)."
   }
 ]
