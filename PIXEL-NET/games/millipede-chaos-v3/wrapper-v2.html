@@ -30,7 +30,7 @@ body{
   color-scheme:dark;
   overflow:hidden; /* no page scroll */
 }
-.topbar{
+.topbar{position:relative;
   width:min(1300px,94vw);
   margin:10px auto 10px;
   display:flex;align-items:center;justify-content:space-between;gap:12px;
@@ -125,6 +125,12 @@ body{
   .panel{display:none}
   .panel.active{display:block}
 }
+
+/* PN_CENTER_PATCH */
+.topbar .badge{position:absolute;left:50%;transform:translateX(-50%);}
+.gameTitle{position:relative;justify-content:flex-end;}
+.gameTitle .name{position:absolute;left:50%;transform:translateX(-50%);text-align:center;white-space:nowrap;max-width:70%;overflow:hidden;text-overflow:ellipsis;}
+
 </style>
 </head>
 <body>

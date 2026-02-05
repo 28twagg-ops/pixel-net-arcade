@@ -156,7 +156,7 @@
 
     .modal-overlay{
       position:fixed;inset:0;background:rgba(0,0,0,.9);backdrop-filter:blur(10px);
-      display:flex;align-items:center;justify-content:center;z-index:2000;animation:fadeIn .3s ease;
+      display:none;align-items:center;justify-content:center;z-index:2000;
     }
     @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
     .modal{
@@ -228,7 +228,7 @@
     <header class="header">
       <h1 class="logo">PIXEL-NET</h1>
       <p class="tagline">Online Arcade Network</p>
-      <div class="player-initials-display" id="playerInitials" onclick="showModal()">---</div>
+      <div class="player-initials-display" id="playerInitials" onclick="showModal()">???</div>
     </header>
 
     <section class="featured-section">
@@ -334,6 +334,7 @@
       const initials = input.value.toUpperCase();
       if(initials.length === 3){
         localStorage.setItem("playerInitials", initials);
+        localStorage.setItem("PIXELNET_INITIALS", initials);
         updatePlayerInitials(initials);
         closeModal();
       } else {
@@ -343,8 +344,11 @@
     }
 
     function updatePlayerInitials(initials){
-      playerInitials.textContent = initials;
+      const v=(initials||"").toString().trim().toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,3);
+      if(!v){ playerInitials.textContent = "???"; playerInitials.classList.remove("active"); return; }
+      playerInitials.textContent = v;
       playerInitials.classList.add("active");
+      try{ localStorage.setItem("playerInitials", v); localStorage.setItem("PIXELNET_INITIALS", v); }catch(e){}
     }
 
     function showModal(){
@@ -358,12 +362,28 @@
       setTimeout(()=>{ modal.style.display = "none"; }, 300);
     }
 
-    window.addEventListener("load", async () => {
-      const saved = localStorage.getItem("playerInitials");
-      if(saved){ updatePlayerInitials(saved); modal.style.display = "none"; }
-      else { modal.style.display = "flex"; setTimeout(()=>input.focus(),100); }
+    window.addEventListener("storage", (e)=>{
+      if(e.key === "playerInitials" || e.key === "PIXELNET_INITIALS"){
+        const v=(localStorage.getItem("playerInitials")||localStorage.getItem("PIXELNET_INITIALS")||"");
+        if(v) updatePlayerInitials(v);
+      }
+    });
 
-      try{
+    window.addEventListener("load", async () => {
+      const saved = (localStorage.getItem("playerInitials") || localStorage.getItem("PIXELNET_INITIALS") || "").toString().trim().toUpperCase();
+      if(saved && saved.length >= 3){
+        const v = saved.slice(0,3);
+        localStorage.setItem("playerInitials", v);
+        localStorage.setItem("PIXELNET_INITIALS", v);
+        updatePlayerInitials(v);
+        modal.style.display = "none";
+      } else {
+        // Show modal only when missing
+        modal.style.display = "flex";
+        modal.style.animation = "fadeIn .3s ease";
+        setTimeout(()=>input.focus(),100);
+      }
+try{
         await loadGamesJson();
       } catch(err){
         console.error(err);
