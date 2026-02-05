@@ -266,13 +266,24 @@
     let allGames = [];
     let featuredGame = null;
 
+    // Robust base URL (fixes GH Pages /PIXEL-NET vs /PIXEL-NET/ issues)
+    const __basePath = (() => {
+      const p = window.location.pathname || "/";
+      if (p.endsWith(".html")) return p.replace(/[^\/]+$/, "");
+      return p.endsWith("/") ? p : (p + "/");
+    })();
+    const __baseUrl = window.location.origin + __basePath;
+
     function normalizePath(p){
-      // games.json uses paths relative to PIXEL-NET/
-      return p || "#";
+      // games.json paths are relative to PIXEL-NET/
+      if(!p) return "#";
+      if(/^https?:\/\//i.test(p)) return p;
+      if(p.startsWith("/")) return p;
+      return __baseUrl + p.replace(/^\.\//, "");
     }
 
     async function loadGamesJson(){
-      const res = await fetch("./games.json", { cache: "no-store" });
+      const res = await fetch(normalizePath("games.json"), { cache: "no-store" });
       if(!res.ok) throw new Error("Failed to load games.json: " + res.status);
       const data = await res.json();
       allGames = Array.isArray(data) ? data : [];
