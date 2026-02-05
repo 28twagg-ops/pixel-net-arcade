@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Millipede Chaos v3</title>
+<style>
+:root{
+  --bg:#050505;
+  --text:#e9ecff;
+  --muted:#9aa3c7;
+  --accent:#ef4444;
+  --yellow:#eab308;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:transparent}
+body{
+  height:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  color:var(--text);
+}
+#wrap{
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding:8px;
+  background:transparent;
+}
+#hud{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  gap:10px;
+  padding:2px 4px;
+}
+.hudBlock{display:flex;flex-direction:column;gap:2px}
+.hudLabel{font-size:10px;color:var(--muted);letter-spacing:.22em;text-transform:uppercase;font-weight:900}
+.hudVal{font-size:20px;font-weight:900;letter-spacing:.10em;line-height:1}
+#canvasBox{
+  position:relative;
+  flex:1;
+  min-height:0;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:14px;
+  overflow:hidden;
+  background:rgba(0,0,0,.35);
+}
+canvas{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  image-rendering:pixelated;
+  touch-action:none;
+}
+#overlay{
+  position:absolute;inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,.82);
+  backdrop-filter: blur(6px);
+  padding:18px;
+  text-align:center;
+}
+#overlay.hidden{display:none}
+#overlay h1{
+  margin:0 0 10px;
+  font-size:42px;
+  font-weight:900;
+  letter-spacing:.08em;
+  color: var(--accent);
+  text-shadow: 0 0 18px rgba(239,68,68,.20);
+}
+#overlay p{margin:0 0 14px;color:var(--muted);font-size:12px;line-height:1.4}
+#overlay button{
+  height:46px;
+  padding:0 18px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.90);
+  color:#000;
+  font-weight:900;
+  letter-spacing:.18em;
+  cursor:pointer;
+}
+#overlay button:active{transform:scale(.98)}
+#scanlines{
+  position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.25) 50%),
+    linear-gradient(90deg, rgba(255,0,0,0.06), rgba(0,255,0,0.02), rgba(0,0,255,0.06));
+  background-size: 100% 2px, 3px 100%;
+}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="hud">
+    <div class="hudBlock">
+      <div class="hudLabel">Score</div>
+      <div class="hudVal" id="hudScore" style="color:var(--accent)">000000</div>
+    </div>
+    <div class="hudBlock" style="align-items:center">
+      <div class="hudLabel">Wave</div>
+      <div class="hudVal" id="hudWave">1</div>
+    </div>
+    <div class="hudBlock" style="align-items:flex-end">
+      <div class="hudLabel">Player</div>
+      <div class="hudVal" id="hudInit" style="color:var(--yellow)">???</div>
+    </div>
+  </div>
+
+  <div id="canvasBox">
+    <canvas id="c"></canvas>
+    <div id="scanlines"></div>
+
+    <div id="overlay">
+      <div>
+        <h1>MILLIPEDE</h1>
+        <p>Arrows/WASD to move • Space to fire • Tap/drag on mobile<br/>Score auto-saves on Game Over.</p>
+        <button id="btnStart">START</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/engine.js"></script>
+<script>
+(function(){
+  "use strict";
+  var SLUG="millipede-chaos-v3";
+  if(window.PixelNet && PixelNet.init) PixelNet.init();
+
+  function norm(v){return String(v||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,3)||"???";}
+  function getInitials(){
+    return norm(
+      localStorage.getItem("PIXELNET_INITIALS") ||
+      localStorage.getItem("px_player_initials") ||
+      sessionStorage.getItem("playerInitials") ||
+      "???"
+    );
+  }
+  var initials=getInitials();
+  document.getElementById("hudInit").textContent=initials;
+
+  // --- Constants (from provided Millipede.txt) ---
+  var GRID_SIZE=20, ROWS=32, COLS=20, PLAYER_ZONE_START=ROWS-8;
+  var PALETTES=[
+    { mushroom:'#FFCC00', millipede:'#FF0000', spider:'#FFFFFF', laser:'#FFFFFF', poisoned:'#00FF00', bg:'#000' },
+    { mushroom:'#00FFFF', millipede:'#00FF00', spider:'#FFFF00', laser:'#00FFFF', poisoned:'#FF00FF', bg:'#050005' },
+    { mushroom:'#FF00FF', millipede:'#FFFFFF', spider:'#00FFFF', laser:'#FF00FF', poisoned:'#FFFF00', bg:'#000505' },
+    { mushroom:'#FF0000', millipede:'#FFFF00', spider:'#00FFFF', laser:'#FFFF00', poisoned:'#FFFFFF', bg:'#050000' }
+  ];
+
+  // --- Canvas setup (native res stays 20x32 grid, CSS scales it) ---
+  var canvas=document.getElementById("c");
+  canvas.width=COLS*GRID_SIZE;
+  canvas.height=ROWS*GRID_SIZE;
+  var ctx=canvas.getContext("2d");
+
+  // --- HUD ---
+  var hudScore=document.getElementById("hudScore");
+  var hudWave=document.getElementById("hudWave");
+  function setHUD(){
+    hudScore.textContent=String(score).padStart(6,'0');
+    hudWave.textContent=String(level+1);
+    document.getElementById("hudInit").textContent=getInitials();
+  }
+
+  // --- Game State ---
+  var state="TITLE";
+  var score=0;
+  var level=0;
+  var scoreSubmitted=false;
+
+  var g={
+    player:{x:10,y:30},
+    bullets:[],
+    mushrooms:[],
+    millipedes:[],
+    spiders:[],
+    bees:[],
+    earwigs:[],
+    ddtBombs:[],
+    explosions:[],
+    tick:0,
+    keys:{},
+    lastFire:0,
+    isFiring:false,
+    palette:PALETTES[0],
+    gameOver:false,
+    level:0
+  };
+
+  function initGame(nextLevel){
+    nextLevel = Number(nextLevel)||0;
+    g.gameOver=false;
+    g.tick=0;
+    g.bullets=[];
+    g.spiders=[];
+    g.bees=[];
+    g.earwigs=[];
+    g.ddtBombs=[];
+    g.explosions=[];
+    g.player={x:COLS/2, y:ROWS-4};
+    g.level=nextLevel; level=nextLevel;
+    g.palette=PALETTES[nextLevel % PALETTES.length];
+
+    var mush = (nextLevel===0) ? [] : g.mushrooms.slice();
+    if(nextLevel===0){
+      score=0;
+      for(var i=0;i<55;i++){
+        mush.push({x:Math.floor(Math.random()*COLS), y:Math.floor(Math.random()*(ROWS-10))+1, health:4, poisoned:false});
+      }
+    }else{
+      if(mush.length<10){
+        for(var j=0;j<20;j++){
+          mush.push({x:Math.floor(Math.random()*COLS), y:Math.floor(Math.random()*(ROWS-10))+1, health:4, poisoned:false});
+        }
+      }
+    }
+    g.mushrooms=mush;
+
+    for(var k=0;k<3;k++){
+      g.ddtBombs.push({x:Math.floor(Math.random()*(COLS-2))+1, y:Math.floor(Math.random()*18)+5, active:true});
+    }
+
+    var len=Math.min(12, 8 + Math.floor(nextLevel/2));
+    var segments=[];
+    for(var s=0;s<len;s++){ segments.push({x:10-s, y:0, dir:1, diving:false}); }
+    g.millipedes=[segments];
+    if(nextLevel>4){ g.millipedes.push([{x:0,y:0,dir:1,diving:false}]); }
+
+    scoreSubmitted=false;
+    setHUD();
+  }
+
+  function submitScoreOnce(){
+    if(scoreSubmitted) return;
+    scoreSubmitted=true;
+    try{
+      if(window.PixelNet && PixelNet.submitScore){
+        PixelNet.submitScore(SLUG, Math.max(0, Math.floor(Number(score)||0)));
+      }
+    }catch(_){}
+  }
+
+  function update(){
+    if(g.gameOver) return;
+    g.tick++;
+    var currentLvl=g.level;
+
+    var milliSpeedFreq=Math.max(1, 4 - Math.floor(currentLvl/4));
+    var spiderFreq=Math.max(200, 600 - (currentLvl*40));
+    var beeFreq=Math.max(150, 400 - (currentLvl*30));
+    var earwigFreq=Math.max(300, 900 - (currentLvl*50));
+
+    // Player control
+    var speed=0.35;
+    if(g.keys["ArrowLeft"]||g.keys["a"]||g.keys["A"]) if(g.player.x>0) g.player.x-=speed;
+    if(g.keys["ArrowRight"]||g.keys["d"]||g.keys["D"]) if(g.player.x<COLS-1) g.player.x+=speed;
+    if(g.keys["ArrowUp"]||g.keys["w"]||g.keys["W"]) if(g.player.y>PLAYER_ZONE_START) g.player.y-=speed;
+    if(g.keys["ArrowDown"]||g.keys["s"]||g.keys["S"]) if(g.player.y<ROWS-1) g.player.y+=speed;
+
+    // Fire
+    if(g.keys[" "]||g.keys["Spacebar"]||g.isFiring){
+      var now=Date.now();
+      if(now-g.lastFire>120){
+        g.bullets.push({x:g.player.x+0.5, y:g.player.y});
+        g.lastFire=now;
+      }
+    }
+
+    // Bullets + collisions
+    g.bullets = g.bullets.filter(function(b){
+      b.y -= 1.0;
+      var hit=false;
+
+      g.ddtBombs.forEach(function(d){
+        if(d.active && Math.abs(b.x-(d.x+0.5))<0.8 && Math.abs(b.y-(d.y+0.5))<0.8){
+          d.active=false; hit=true;
+          for(var ox=-2; ox<=2; ox++){
+            for(var oy=-2; oy<=2; oy++){
+              g.explosions.push({x:d.x+ox+0.5, y:d.y+oy+0.5, color:"#FFFF00", life:45, isGas:true});
+            }
+          }
+          score += 800;
+        }
+      });
+
+      if(!hit){
+        g.mushrooms.forEach(function(m){
+          if(!hit && Math.floor(b.x)===m.x && Math.floor(b.y)===m.y){
+            m.health--; hit=true; score += 1;
+            g.explosions.push({x:m.x+0.5, y:m.y+0.5, color: m.poisoned?g.palette.poisoned:g.palette.mushroom, life:8});
+          }
+        });
+        g.mushrooms = g.mushrooms.filter(function(m){return m.health>0;});
+      }
+
+      if(!hit){
+        g.spiders.forEach(function(s, idx){
+          if(Math.abs(b.x-s.x)<1.0 && Math.abs(b.y-s.y)<1.0){
+            hit=true; score += 600;
+            g.explosions.push({x:s.x,y:s.y,color:g.palette.spider,life:15});
+            g.spiders.splice(idx,1);
+          }
+        });
+        g.bees.forEach(function(bee, idx){
+          if(!hit && Math.abs(b.x-bee.x)<1.0 && Math.abs(b.y-bee.y)<1.0){
+            hit=true; score += 200;
+            g.bees.splice(idx,1);
+            g.explosions.push({x:bee.x,y:bee.y,color:"#FFF",life:10});
+          }
+        });
+      }
+
+      if(!hit){
+        g.millipedes.forEach(function(milli){
+          milli.forEach(function(seg, sIdx){
+            if(!hit && Math.abs(b.x-(seg.x+0.5))<0.7 && Math.abs(b.y-(seg.y+0.5))<0.7){
+              hit=true;
+              score += (sIdx===0?100:10);
+              g.mushrooms.push({x:Math.floor(seg.x), y:Math.floor(seg.y), health:4, poisoned:false});
+              var tail = milli.splice(sIdx+1);
+              milli.splice(sIdx,1);
+              if(tail.length>0) g.millipedes.push(tail);
+            }
+          });
+        });
+      }
+
+      return (!hit && b.y>-1);
+    });
+
+    // Millipede movement
+    if(g.tick % milliSpeedFreq === 0){
+      g.millipedes.forEach(function(milli){
+        if(milli.length===0) return;
+        var head=milli[0];
+        var oldPos={x:head.x, y:head.y};
+        var nextX=head.x + head.dir;
+        var turnDown=false;
+
+        if(head.diving){
+          head.y += 1;
+          if(head.y >= ROWS-1) head.diving=false;
+        }else{
+          if(nextX<0 || nextX>=COLS){ turnDown=true; }
+          else{
+            g.mushrooms.forEach(function(m){
+              if(m.x===nextX && m.y===head.y){
+                turnDown=true;
+                if(m.poisoned) head.diving=true;
+              }
+            });
+          }
+          if(turnDown){
+            head.y += 1;
+            head.dir *= -1;
+            if(head.y >= ROWS) head.y = PLAYER_ZONE_START;
+          }else{
+            head.x = nextX;
+          }
+        }
+
+        var prevPos=oldPos;
+        for(var i=1;i<milli.length;i++){
+          var cur={x:milli[i].x, y:milli[i].y};
+          milli[i].x=prevPos.x; milli[i].y=prevPos.y;
+          prevPos=cur;
+        }
+
+        if(Math.abs(head.x-g.player.x)<0.8 && Math.abs(head.y-g.player.y)<0.8){
+          g.gameOver=true;
+          state="GAMEOVER";
+          submitScoreOnce();
+          showOverlay("GAME OVER","SCORE: "+score.toLocaleString(),"PLAY AGAIN");
+        }
+      });
+
+      g.millipedes = g.millipedes.filter(function(c){return c.length>0;});
+      if(g.millipedes.length===0){
+        initGame(currentLvl+1);
+      }
+    }
+
+    // Enemies
+    if(g.tick % beeFreq===0 && g.bees.length<3){
+      g.bees.push({x:Math.floor(Math.random()*COLS), y:-1});
+    }
+    g.bees = g.bees.filter(function(b){
+      b.y += 0.2 + (currentLvl*0.02);
+      if(g.tick % 45===0 && b.y < PLAYER_ZONE_START){
+        if(!g.mushrooms.some(function(m){return m.x===b.x && m.y===Math.floor(b.y);})){
+          g.mushrooms.push({x:b.x, y:Math.floor(b.y), health:4, poisoned:false});
+        }
+      }
+      if(Math.abs(b.x-g.player.x)<0.8 && Math.abs(b.y-g.player.y)<0.8){
+        g.gameOver=true; state="GAMEOVER";
+        submitScoreOnce();
+        showOverlay("GAME OVER","SCORE: "+score.toLocaleString(),"PLAY AGAIN");
+      }
+      return b.y < ROWS;
+    });
+
+    if(g.tick % earwigFreq===0 && g.earwigs.length<1){
+      g.earwigs.push({x:0, y:Math.floor(Math.random()*10)+10, vx:0.1});
+    }
+    g.earwigs = g.earwigs.filter(function(e){
+      e.x += e.vx;
+      g.mushrooms.forEach(function(m){
+        if(m.x===Math.floor(e.x) && m.y===Math.floor(e.y)) m.poisoned=true;
+      });
+      return e.x < COLS;
+    });
+
+    if(g.tick % spiderFreq===0 && g.spiders.length<1){
+      g.spiders.push({x: Math.random()>0.5?0:COLS-1, y:PLAYER_ZONE_START+1, vx: Math.random()>0.5?0.08:-0.08, vy:0.08, timer:0});
+    }
+    g.spiders = g.spiders.filter(function(s){
+      s.x += s.vx; s.y += s.vy; s.timer++;
+      if(s.x<0 || s.x>COLS-1) s.vx*=-1;
+      if(s.y<PLAYER_ZONE_START || s.y>ROWS-1) s.vy*=-1;
+      if(s.timer % 50===0 && Math.random()>0.5) s.vy*=-1;
+      if(Math.abs(s.x-g.player.x)<0.8 && Math.abs(s.y-g.player.y)<0.8){
+        g.gameOver=true; state="GAMEOVER";
+        submitScoreOnce();
+        showOverlay("GAME OVER","SCORE: "+score.toLocaleString(),"PLAY AGAIN");
+      }
+      return (s.x>-2 && s.x<COLS+2);
+    });
+
+    // Gas cloud
+    g.explosions.forEach(function(e){
+      if(e.isGas){
+        g.millipedes.forEach(function(milli){
+          for(var i=milli.length-1;i>=0;i--){
+            var seg=milli[i];
+            if(Math.abs(seg.x-(e.x-0.5))<1.0 && Math.abs(seg.y-(e.y-0.5))<1.0){
+              milli.splice(i,1);
+              score += 10;
+            }
+          }
+        });
+        var hitBee = g.bees.findIndex(function(b){return Math.abs(b.x-e.x)<1.5 && Math.abs(b.y-e.y)<1.5;});
+        if(hitBee!==-1){ g.bees.splice(hitBee,1); score += 200; }
+        var hitSp = g.spiders.findIndex(function(s){return Math.abs(s.x-e.x)<1.5 && Math.abs(s.y-e.y)<1.5;});
+        if(hitSp!==-1){ g.spiders.splice(hitSp,1); score += 600; }
+      }
+      e.life--;
+    });
+    g.explosions = g.explosions.filter(function(e){return e.life>0;});
+
+    setHUD();
+  }
+
+  function draw(){
+    // Background
+    ctx.fillStyle=g.palette.bg;
+    ctx.fillRect(0,0,COLS*GRID_SIZE,ROWS*GRID_SIZE);
+
+    // DDT
+    g.ddtBombs.forEach(function(d){
+      if(!d.active) return;
+      ctx.fillStyle="#FFDD00";
+      ctx.fillRect(d.x*GRID_SIZE+2, d.y*GRID_SIZE+2, 16,16);
+      ctx.fillStyle="#000";
+      ctx.font="10px monospace";
+      ctx.fillText("DDT", d.x*GRID_SIZE+1, d.y*GRID_SIZE+13);
+    });
+
+    // Mushrooms
+    g.mushrooms.forEach(function(m){
+      var x=m.x*GRID_SIZE, y=m.y*GRID_SIZE;
+      ctx.fillStyle = m.poisoned?g.palette.poisoned:g.palette.mushroom;
+      if(m.health>=4){ ctx.fillRect(x+2,y+4,16,8); ctx.fillRect(x+4,y+2,12,12); }
+      else if(m.health===3){ ctx.fillRect(x+2,y+6,12,6); ctx.fillRect(x+4,y+2,10,10); }
+      else if(m.health===2){ ctx.fillRect(x+6,y+4,10,8); ctx.fillRect(x+8,y+2,6,4); }
+      else { ctx.fillRect(x+4,y+8,4,4); ctx.fillRect(x+12,y+4,4,4); }
+      ctx.fillStyle="#FFF";
+      ctx.fillRect(x+8,y+10,4,8);
+    });
+
+    // Millipedes
+    g.millipedes.forEach(function(milli){
+      milli.forEach(function(seg, idx){
+        var x=seg.x*GRID_SIZE, y=seg.y*GRID_SIZE;
+        var isHead=(idx===0);
+        ctx.fillStyle = isHead ? "#FFF" : g.palette.millipede;
+        ctx.beginPath();
+        ctx.arc(x+10,y+10,8,0,Math.PI*2);
+        ctx.fill();
+        if(isHead){
+          ctx.fillStyle="#000";
+          ctx.fillRect(x+5,y+6,3,3);
+          ctx.fillRect(x+12,y+6,3,3);
+        }
+        ctx.strokeStyle=g.palette.millipede;
+        ctx.lineWidth=2;
+        var phase = ((g.tick/4 + idx)%2<1) ? 3 : -3;
+        ctx.beginPath();
+        ctx.moveTo(x+2,y+10+phase); ctx.lineTo(x-3,y+12+phase);
+        ctx.moveTo(x+18,y+10-phase); ctx.lineTo(x+23,y+12-phase);
+        ctx.stroke();
+      });
+    });
+
+    // Bees
+    g.bees.forEach(function(b){
+      var x=b.x*GRID_SIZE, y=b.y*GRID_SIZE;
+      ctx.fillStyle="#DDD"; ctx.fillRect(x+2,y,16,6);
+      ctx.fillStyle="#D00"; ctx.fillRect(x+6,y+4,8,10);
+      ctx.fillStyle="#FF0"; ctx.fillRect(x+6,y+8,8,2);
+    });
+    // Earwigs
+    g.earwigs.forEach(function(e){
+      ctx.fillStyle=g.palette.poisoned;
+      ctx.fillRect(e.x*GRID_SIZE, e.y*GRID_SIZE+6, 20,8);
+      ctx.fillStyle="#000";
+      ctx.fillRect(e.x*GRID_SIZE+2, e.y*GRID_SIZE+14, 2,4);
+      ctx.fillRect(e.x*GRID_SIZE+16, e.y*GRID_SIZE+14, 2,4);
+    });
+    // Spiders
+    g.spiders.forEach(function(s){
+      var x=s.x*GRID_SIZE, y=s.y*GRID_SIZE;
+      ctx.fillStyle=g.palette.spider;
+      ctx.beginPath(); ctx.arc(x+10,y+10,8,0,Math.PI*2); ctx.fill();
+      ctx.strokeStyle=g.palette.spider;
+      for(var i=0;i<4;i++){
+        ctx.beginPath(); ctx.moveTo(x+10,y+10); ctx.lineTo(x-4,y+2+i*5); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x+10,y+10); ctx.lineTo(x+24,y+2+i*5); ctx.stroke();
+      }
+    });
+
+    // Bullets
+    g.bullets.forEach(function(b){
+      ctx.fillStyle=g.palette.laser;
+      ctx.fillRect(b.x*GRID_SIZE-1, b.y*GRID_SIZE, 3,10);
+    });
+
+    // Player
+    var px=g.player.x*GRID_SIZE, py=g.player.y*GRID_SIZE;
+    ctx.fillStyle="#0FF";
+    ctx.fillRect(px+2,py+12,16,6);
+    ctx.fillStyle="#FFF";
+    ctx.fillRect(px+8,py+2,4,12);
+    ctx.fillRect(px+4,py+10,12,4);
+
+    // Explosions
+    g.explosions.forEach(function(e){
+      ctx.fillStyle=e.color;
+      if(e.isGas){
+        ctx.globalAlpha = e.life/45;
+        ctx.beginPath();
+        ctx.arc(e.x*GRID_SIZE, e.y*GRID_SIZE, 12, 0, Math.PI*2);
+        ctx.fill();
+        ctx.globalAlpha = 1.0;
+      }else{
+        for(var i=0;i<4;i++){
+          var ox=(Math.random()-0.5)*18;
+          var oy=(Math.random()-0.5)*18;
+          ctx.fillRect(e.x*GRID_SIZE+ox, e.y*GRID_SIZE+oy, 2,2);
+        }
+      }
+    });
+  }
+
+  var raf=0;
+  function loop(){
+    if(state==="PLAYING"){
+      update();
+      draw();
+      raf=requestAnimationFrame(loop);
+    }
+  }
+
+  // Overlay controls
+  var overlay=document.getElementById("overlay");
+  var btn=document.getElementById("btnStart");
+  function showOverlay(title,subtitle,btnText){
+    overlay.querySelector("h1").textContent=title;
+    overlay.querySelector("p").textContent=subtitle;
+    btn.textContent=btnText||"START";
+    overlay.classList.remove("hidden");
+  }
+  function hideOverlay(){ overlay.classList.add("hidden"); }
+  btn.addEventListener("click", function(){
+    if(state==="TITLE" || state==="GAMEOVER"){
+      hideOverlay();
+      initGame(0);
+      state="PLAYING";
+      cancelAnimationFrame(raf);
+      raf=requestAnimationFrame(loop);
+    }
+  });
+
+  // Keyboard
+  window.addEventListener("keydown", function(e){
+    g.keys[e.key]=true;
+    if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight"," "].includes(e.key)) e.preventDefault();
+    if(state==="GAMEOVER" && e.key==="Enter"){ btn.click(); }
+  }, {passive:false});
+  window.addEventListener("keyup", function(e){ g.keys[e.key]=false; });
+
+  // Touch / pointer (drag to position + tap/hold to fire)
+  function touchMove(clientX, clientY){
+    if(state!=="PLAYING") return;
+    var rect=canvas.getBoundingClientRect();
+    var x=(clientX-rect.left)/(rect.width/COLS);
+    var y=(clientY-rect.top)/(rect.height/ROWS);
+    g.player.x=Math.max(0, Math.min(COLS-1, x-0.5));
+    g.player.y=Math.max(PLAYER_ZONE_START, Math.min(ROWS-1, y-0.5));
+  }
+  canvas.addEventListener("pointerdown", function(e){ touchMove(e.clientX,e.clientY); g.isFiring=true; canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener("pointermove", function(e){ if(e.buttons) touchMove(e.clientX,e.clientY); });
+  canvas.addEventListener("pointerup", function(){ g.isFiring=false; });
+  canvas.addEventListener("pointercancel", function(){ g.isFiring=false; });
+
+  // Start in TITLE
+  showOverlay("MILLIPEDE","Arrows/WASD to move • Space to fire • Tap/drag on mobile\nScore auto-saves on Game Over.","START");
+})();
+</script>
+</body>
+</html>

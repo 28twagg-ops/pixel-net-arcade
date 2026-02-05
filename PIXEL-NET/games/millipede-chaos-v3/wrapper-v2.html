@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>Millipede Chaos (version 3.0)</title>
+<style>
+:root{
+  --bg1:#050005; --bg2:#000505;
+  --panelTop: rgba(10, 28, 16, .82);
+  --panelBot: rgba(6,  16, 10, .68);
+  --stroke: rgba(80, 200, 100, .22);
+  --text:#e9ecff; --muted:#8aac8f;
+  --accent: rgba(180, 60, 30, .55);
+  --shadow: 0 14px 40px rgba(0,0,0,.35);
+  --r:18px; --gap:14px;
+  --font: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  --font2: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  min-height:100dvh;
+  font-family:var(--font);
+  color:var(--text);
+  background:
+    radial-gradient(1100px 700px at 20% 10%, rgba(180,60,30,.16), transparent 60%),
+    radial-gradient(900px 600px at 85% 25%, rgba(0,255,247,.10), transparent 55%),
+    linear-gradient(180deg, var(--bg1), var(--bg2));
+  color-scheme:dark;
+  overflow:hidden; /* no page scroll */
+}
+.topbar{
+  width:min(1300px,94vw);
+  margin:10px auto 10px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.btn,.badge{
+  height:38px;padding:0 12px;border-radius:12px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(0,0,0,.35);
+  color:var(--text);
+  font:800 12px/1 var(--font2);
+  letter-spacing:.12em;
+  cursor:pointer;
+}
+.btn:hover,.badge:hover{filter:brightness(1.12)}
+.titlebadge{
+  flex:1;display:flex;justify-content:center;
+}
+.titlepill{
+  height:38px;display:inline-flex;align-items:center;justify-content:center;
+  padding:0 14px;border-radius:12px;
+  border:1px solid var(--stroke);
+  background:linear-gradient(180deg,var(--panelTop),var(--panelBot));
+  box-shadow:0 0 18px rgba(180,60,30,.15);
+  font:900 12px/1 var(--font2);
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.layout{
+  width:min(1300px,94vw);
+  margin:0 auto 12px;
+  display:grid;
+  grid-template-columns:minmax(220px,280px) minmax(360px,1fr) minmax(220px,280px);
+  gap:var(--gap);
+  height:calc(100dvh - 10px - 38px - 10px - 12px); /* viewport minus margins/topbar */
+  min-height:0;
+}
+.panel{
+  border:1px solid var(--stroke);
+  background:linear-gradient(180deg,var(--panelTop),var(--panelBot));
+  border-radius:var(--r);
+  box-shadow:var(--shadow);
+  padding:14px;
+  min-height:0;
+  overflow:auto;
+}
+.panel h3{
+  margin:0 0 10px;
+  font:900 13px/1.1 var(--font2);
+  letter-spacing:.12em;
+  color:#7fdf8a;
+}
+.muted{color:var(--muted);font-size:12px;line-height:1.45}
+.gamepanel{padding:10px;overflow:hidden;display:flex;flex-direction:column}
+.gamebox{
+  flex:1;min-height:0;
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.10);
+  overflow:hidden;
+  background:rgba(0,0,0,.35);
+  box-shadow:0 0 22px rgba(180,60,30,.10);
+}
+.gamebox iframe{width:100%;height:100%;border:0;display:block;background:transparent}
+.lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.lb-col{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.lb-item{
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:10px 10px;border-radius:14px;
+  border:1px solid rgba(80,200,100,.12);
+  background:rgba(20,55,30,.35);
+}
+.lb-rank{font:900 12px/1 var(--font2);color:#7fdf8a;min-width:22px}
+.lb-name{font:900 12px/1 var(--font2);letter-spacing:.10em}
+.lb-score{font:900 12px/1 var(--font2);color:#f0c87a}
+.lb-meta{margin-top:10px;color:#6a8a70;font:800 11px/1.2 var(--font2);letter-spacing:.08em}
+.tabs{display:none}
+@media (max-width: 1000px){
+  body{overflow:hidden}
+  .layout{grid-template-columns:1fr;height:calc(100dvh - 10px - 38px - 10px - 56px)}
+  .tabs{
+    width:min(1300px,94vw);
+    margin:0 auto 12px;
+    display:flex;gap:10px;
+  }
+  .tabbtn{
+    flex:1;height:46px;border-radius:14px;
+    border:1px solid rgba(255,255,255,.14);
+    background:rgba(0,0,0,.35);
+    color:var(--text);
+    font:900 11px/1 var(--font2);letter-spacing:.12em;text-transform:uppercase;
+  }
+  .tabbtn.active{border-color:var(--stroke);box-shadow:0 0 16px rgba(180,60,30,.12);filter:brightness(1.10)}
+  .panel{display:none}
+  .panel.active{display:block}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <button class="btn" id="pn-exit">EXIT</button>
+  <div class="titlebadge"><div class="titlepill">Millipede Chaos (version 3.0)</div></div>
+  <button class="badge" id="pn-badge">???</button>
+</div>
+
+<div class="tabs">
+  <button class="tabbtn active" data-tab="how">HOW TO</button>
+  <button class="tabbtn" data-tab="game">GAME</button>
+  <button class="tabbtn" data-tab="lb">LEADERBOARD</button>
+</div>
+
+<div class="layout">
+  <aside class="panel active" id="pn-how">
+    <h3>HOW TO PLAY</h3>
+    <div class="muted">
+      <div><b>Move:</b> Arrow Keys / WASD (mobile: drag)</div>
+      <div><b>Fire:</b> Space (mobile: tap/hold)</div>
+      <div style="margin-top:10px"><b>Goal:</b> Clear millipede segments, survive spiders/bees, and climb waves.</div>
+      <div style="margin-top:10px">Initials come from PIXEL-NET (no in-game prompt). Badge is clickable to change.</div>
+      <div style="margin-top:10px"><b>Game Over:</b> score auto-saves.</div>
+    </div>
+  </aside>
+
+  <main class="panel gamepanel active" id="pn-game">
+    <div class="gamebox">
+      <iframe id="pn-iframe" src="./game.html" title="Millipede Chaos v3"></iframe>
+    </div>
+  </main>
+
+  <aside class="panel" id="pn-lb">
+    <h3>LEADERBOARD</h3>
+    <div class="muted">Top 10</div>
+    <div class="lb-grid">
+      <ol class="lb-col" id="lb-left"></ol>
+      <ol class="lb-col" id="lb-right"></ol>
+    </div>
+    <div class="lb-meta" id="lb-status">Loading…</div>
+  </aside>
+</div>
+
+<!-- Initials modal (Creek-style minimal) -->
+<div id="pn-modal" style="position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999">
+  <div id="pn-backdrop" style="position:absolute;inset:0;background:rgba(0,0,0,.65)"></div>
+  <div style="position:relative;width:min(420px,92vw);border-radius:18px;border:1px solid rgba(80,200,100,.22);background:linear-gradient(180deg,var(--panelTop),var(--panelBot));box-shadow:var(--shadow);padding:16px">
+    <div style="font:900 12px/1 var(--font2);letter-spacing:.14em;color:#7fdf8a;margin-bottom:10px">ENTER INITIALS</div>
+    <input id="pn-input" maxlength="3" placeholder="ABC" style="width:100%;height:44px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(0,0,0,.35);color:var(--text);font:900 16px/1 var(--font2);letter-spacing:.18em;text-transform:uppercase;text-align:center;outline:none"/>
+    <div style="display:flex;gap:10px;margin-top:12px">
+      <button id="pn-save" class="btn" style="flex:1">SAVE</button>
+      <button id="pn-cancel" class="btn" style="flex:1">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/engine.js"></script>
+<script>
+(function(){
+  "use strict";
+  var SLUG="millipede-chaos-v3";
+
+  function norm(v){return String(v||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,3)||"???";}
+  function getInitials(){
+    return norm(
+      localStorage.getItem("PIXELNET_INITIALS") ||
+      localStorage.getItem("px_player_initials") ||
+      sessionStorage.getItem("playerInitials") ||
+      "???"
+    );
+  }
+  function syncInitials(v){
+    v=norm(v);
+    try{localStorage.setItem("PIXELNET_INITIALS",v);}catch(_){}
+    try{localStorage.setItem("px_player_initials",v);}catch(_){}
+    try{sessionStorage.setItem("playerInitials",v);}catch(_){}
+  }
+
+  if(window.PixelNet && PixelNet.init) PixelNet.init();
+  if(window.PixelNet && PixelNet.uiInit) PixelNet.uiInit();
+
+  var badge=document.getElementById("pn-badge");
+  var exitBtn=document.getElementById("pn-exit");
+  var modal=document.getElementById("pn-modal");
+  var backdrop=document.getElementById("pn-backdrop");
+  var input=document.getElementById("pn-input");
+  var save=document.getElementById("pn-save");
+  var cancel=document.getElementById("pn-cancel");
+
+  function openModal(){
+    input.value=(badge.textContent==="???")?"":badge.textContent;
+    modal.style.display="flex";
+    setTimeout(function(){input.focus();},0);
+  }
+  function closeModal(){modal.style.display="none";}
+  function commit(){
+    var v=norm(input.value);
+    if(v!=="???"){syncInitials(v); badge.textContent=v;}
+    closeModal();
+  }
+
+  badge.textContent=getInitials();
+  syncInitials(badge.textContent);
+
+  window.addEventListener("storage",function(e){
+    if(e && (e.key==="PIXELNET_INITIALS" || e.key==="px_player_initials" || e.key==="playerInitials")){
+      var v=getInitials();
+      badge.textContent=v;
+      syncInitials(v);
+    }
+  });
+
+  badge.addEventListener("click",openModal);
+  backdrop.addEventListener("click",commit);
+  save.addEventListener("click",commit);
+  cancel.addEventListener("click",closeModal);
+  input.addEventListener("keydown",function(e){
+    if(e.key==="Enter"){e.preventDefault();commit();}
+    if(e.key==="Escape"){e.preventDefault();closeModal();}
+  });
+
+  exitBtn.onclick=function(){location.href="../../index.html";};
+
+  // Mobile tabs
+  var tabBtns=[].slice.call(document.querySelectorAll(".tabbtn"));
+  function setTab(id){
+    tabBtns.forEach(function(b){b.classList.toggle("active", b.dataset.tab===id);});
+    document.getElementById("pn-how").classList.toggle("active", id==="how");
+    document.getElementById("pn-game").classList.toggle("active", id==="game");
+    document.getElementById("pn-lb").classList.toggle("active", id==="lb");
+  }
+  tabBtns.forEach(function(b){b.addEventListener("click",function(){setTab(b.dataset.tab);});});
+
+  // Leaderboard
+  function renderLB(items){
+    items = (items||[]).slice(0,10);
+    var left=document.getElementById("lb-left");
+    var right=document.getElementById("lb-right");
+    left.innerHTML=""; right.innerHTML="";
+    for(var i=0;i<items.length;i++){
+      var it=items[i]||{};
+      var li=document.createElement("li");
+      li.className="lb-item";
+      li.innerHTML = '<div class="lb-rank">'+(i+1)+'</div>' +
+                     '<div class="lb-name">'+(norm(it.initials||it.name||"???"))+'</div>' +
+                     '<div class="lb-score">'+(Math.floor(Number(it.score)||0))+'</div>';
+      (i<5?left:right).appendChild(li);
+    }
+  }
+
+  async function loadLB(){
+    var st=document.getElementById("lb-status");
+    st.textContent="Loading…";
+    try{
+      if(window.PixelNet && PixelNet.getLeaderboard){
+        var rows = await PixelNet.getLeaderboard(SLUG);
+        renderLB(rows||[]);
+        st.textContent="Ready";
+      }else{
+        st.textContent="PixelNet engine missing";
+      }
+    }catch(e){
+      st.textContent="Failed";
+    }
+  }
+  loadLB();
+  // refresh periodically
+  setInterval(loadLB, 12000);
+})();
+</script>
+</body>
+</html>

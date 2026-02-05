@@ -89,38 +89,10 @@
     "description": "Test wrapper embed method A (full game HTML restored)."
   },
   {
-    "name": "CREEK CROSSER (version 2.0)",
+    "name": "MILLIPEDE CHAOS (version 3.0)",
     "type": "iframe",
-    "path": "games/creek-crosser-v2/wrapper-v2.html",
-    "thumb": "assets/creek-crosser_thumb.png",
-    "description": "V2 copy \u2014 independent leaderboard."
-  },
-  {
-    "name": "LOGIC BOMB (version 2.0)",
-    "type": "iframe",
-    "path": "games/logic-bomb-v2/wrapper-v2.html",
-    "thumb": "assets/logic-bomb_thumb.png",
-    "description": "V2 copy \u2014 independent leaderboard."
-  },
-  {
-    "name": "NEON CHASE (version 2.0)",
-    "type": "iframe",
-    "path": "games/neon-chase-v2/wrapper-v2.html",
-    "thumb": "assets/neon-chase_thumb.png",
-    "description": "V2 copy \u2014 independent leaderboard."
-  },
-  {
-    "name": "ROBO-ARENA (version 2.0)",
-    "type": "iframe",
-    "path": "games/robo-arena-v2/wrapper-v2.html",
-    "thumb": "assets/robo-arena_thumb.jpg",
-    "description": "V2 copy \u2014 independent leaderboard."
-  },
-  {
-    "name": "MILLIPEDE CHAOS (version 2.0)",
-    "type": "iframe",
-    "path": "games/millipede-react-v2/index.html",
+    "path": "games/millipede-chaos-v3/wrapper-v2.html",
     "thumb": "assets/millipede_thumb.png",
-    "description": "V2 copy \u2014 independent leaderboard slug."
+    "description": "Millipede Chaos v3 (separate leaderboard)."
   }
 ]
