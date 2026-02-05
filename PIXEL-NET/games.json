@@ -89,10 +89,31 @@
     "description": "Test wrapper embed method A (full game HTML restored)."
   },
   {
-    "name": "MILLIPEDE CHAOS (version 3.0)",
+    "name": "ASTROTYPE (version 2.0)",
     "type": "iframe",
-    "path": "games/millipede-chaos-v3/wrapper-v2.html",
-    "thumb": "assets/millipede_thumb.png",
-    "description": "Millipede Chaos v3 (separate leaderboard)."
+    "path": "games/astrotype-v2/wrapper-v2.html",
+    "thumb": "assets/astrotype_thumb.png",
+    "description": "Type the codes. Defend the moon."
+  },
+  {
+    "name": "KNIGHT FLIGHT (version 2.0)",
+    "type": "iframe",
+    "path": "games/knight-flight-v2/wrapper-v2.html",
+    "thumb": "assets/knight-flight_thumb.png",
+    "description": "Retro arcade jousting in the skies."
+  },
+  {
+    "name": "RETRO KOMBAT (version 2.0)",
+    "type": "iframe",
+    "path": "games/retro-kombat-v2/wrapper-v2.html",
+    "thumb": "assets/retro-kombat_thumb.png",
+    "description": "Tournament Edition \u2014 coming soon."
+  },
+  {
+    "name": "LOGIC BOMB (version 2.0)",
+    "type": "iframe",
+    "path": "games/logic-bomb-v2/wrapper-v2.html",
+    "thumb": "assets/logic-bomb_thumb.png",
+    "description": "Defuse by thinking fast."
   }
 ]

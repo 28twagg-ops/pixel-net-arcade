@@ -1,498 +1,955 @@
-<!-- 
-Theme: Cyberpunk / Retro Arcade / Hacking
-Font: 'Courier New', Courier, monospace
-Style: Neon grid, high contrast, CRT scanlines, frosted glass UI with glowing borders
-Colors: 
-  - Background: #050510 (Default)
-  - Player: #00ff88 (Neon Green)
-  - Enemies: #ff2a2a (Red)
-  - Coin: #00ccff (Cyan)
-  - Wall: #3b3b98 (Deep Blue)
-Gameplay Screen: #gameCanvas element
-Aspect Ratio: 1:1 (Responsive Scaling, Base 640px)
-Purpose: AI implementation for themes
--->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Logic Bomb (version 2.0)</title>
-    <style>
-        :root {
-            --bg-color: #050510;
-            --grid-color: #1a1a2e;
-            --wall-color: #3b3b98;
-            --player-color: #00ff88;
-            --enemy-color: #ff2a2a;
-            --coin-color: #00ccff;
-            --lock-color: #ff00ff;
-            --text-color: #ffffff;
-            --ui-font: 'Courier New', Courier, monospace;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Logic Bomb</title>
+  <style>
+    :root {
+      --bg-color: #050510;
+      --grid-color: #1a1a2e;
+      --wall-color: #3b3b98;
+      --player-color: #00ff88;
+      --enemy-color: #ff2a2a;
+      --coin-color: #00ccff;
+      --lock-color: #ff00ff;
+      --text-color: #ffffff;
+      --ui-font: 'Courier New', Courier, monospace;
+    }
+    html,body{height:100%}
+    body{
+      margin:0;
+      padding:0;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: var(--ui-font);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      height:100vh;
+      overflow:hidden;
+      user-select:none;
+      transition: background-color 0.5s;
+    }
+    #game-container{
+      position:relative;
+      box-shadow:0 0 20px var(--player-color);
+      border:2px solid #333;
+      background-color:#000;
+      width:min(96vmin, 720px);
+      aspect-ratio:1/1;
+    }
+    canvas{display:block; width:100%; height:100%;}
+    #ui-layer{
+      position:absolute; top:0; left:0; width:100%; height:100%;
+      pointer-events:none;
+      display:flex; flex-direction:column; justify-content:space-between;
+      padding:10px; box-sizing:border-box;
+    }
+    .hud-top{
+      display:flex; justify-content:space-between;
+      font-size:20px; font-weight:bold;
+      text-shadow:0 0 5px var(--player-color);
+    }
+    .hud-bottom{
+      text-align:center;
+      font-size:14px;
+      color:#aaa;
+      margin-bottom:5px;
+    }
+    #message-box{
+      position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      background: rgba(10, 10, 20, 0.95);
+      border: 2px solid var(--player-color);
+      padding: 40px;
+      text-align: center;
+      display: none;
+      z-index: 100;
+      min-width: 400px;
+      box-shadow: 0 0 30px rgba(0,0,0,0.8);
+      backdrop-filter: blur(5px);
+      max-width:92%;
+      box-sizing:border-box;
+    }
+    #message-title{
+      font-size:48px;
+      margin-bottom:20px;
+      color: var(--player-color);
+      text-shadow: 0 0 20px var(--player-color);
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      font-weight: 900;
+    }
+    #message-subtitle{
+      font-size:18px;
+      margin-bottom:30px;
+      color:#ccc;
+      line-height:1.6;
+      text-shadow:0 0 5px rgba(0,0,0,0.5);
+    }
+    #level-indicator{
+      position:absolute;
+      top:45%;
+      left:50%;
+      transform:translate(-50%,-50%);
+      font-size:60px;
+      color: var(--player-color);
+      font-weight:bold;
+      text-shadow: 0 0 20px var(--player-color);
+      display:none;
+      z-index:20;
+    }
+    button{
+      background: rgba(0,0,0,0.5);
+      border: 2px solid var(--player-color);
+      color: var(--player-color);
+      padding: 15px 40px;
+      font-family: var(--ui-font);
+      font-size:24px;
+      font-weight:bold;
+      cursor:pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      box-shadow: 0 0 10px rgba(0,255,136,0.1);
+    }
+    button:hover{
+      background: var(--player-color);
+      color:#000;
+      box-shadow: 0 0 30px var(--player-color);
+      transform: scale(1.05);
+    }
+    .ui-start { border-color: var(--player-color) !important; }
+    .ui-start #message-title { color: var(--player-color) !important; text-shadow: 0 0 20px var(--player-color) !important; }
+    .ui-start button { border-color: var(--player-color) !important; color: var(--player-color) !important; }
+    .ui-start button:hover { background: var(--player-color) !important; }
+    .ui-gameover { border-color: var(--enemy-color) !important; }
+    .ui-gameover #message-title { color: var(--enemy-color) !important; text-shadow: 0 0 20px var(--enemy-color) !important; }
+    .ui-gameover button { border-color: var(--enemy-color) !important; color: var(--enemy-color) !important; }
+    .ui-gameover button:hover { background: var(--enemy-color) !important; box-shadow: 0 0 30px var(--enemy-color) !important; }
+    .ui-win { border-color: var(--coin-color) !important; }
+    .ui-win #message-title { color: var(--coin-color) !important; text-shadow: 0 0 20px var(--coin-color) !important; }
+    .ui-win button { border-color: var(--coin-color) !important; color: var(--coin-color) !important; }
+    .ui-win button:hover { background: var(--coin-color) !important; box-shadow: 0 0 30px var(--coin-color) !important; }
+    .scanlines{
+      position:absolute; top:0; left:0; width:100%; height:100%;
+      background: linear-gradient(to bottom,
+        rgba(255,255,255,0),
+        rgba(255,255,255,0) 50%,
+        rgba(0,0,0,0.1) 50%,
+        rgba(0,0,0,0.1)
+      );
+      background-size: 100% 4px;
+      pointer-events:none;
+      z-index:5;
+    }
+    @media (max-width:520px){
+      #message-box{min-width:unset; padding:22px 18px;}
+      #message-title{font-size:34px;}
+      #message-subtitle{font-size:15px;}
+      button{font-size:18px; padding:12px 22px;}
+      .hud-top{font-size:14px;}
+      .hud-bottom{font-size:11px;}
+    }
+  </style>
 
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: var(--ui-font);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            overflow: hidden; /* Prevent body scroll but keep internal fit */
-            user-select: none;
-            transition: background-color 0.5s;
-        }
+<!-- PIXEL-NET EMBED MODE (wrapper uses this) -->
+<script>
+(function(){
+  try {
+    var embed = (window.self !== window.top) || /[?&]embed=1\b/.test(location.search);
+    if (embed) document.documentElement.classList.add("pn-embed");
+  } catch(e) {
+    document.documentElement.classList.add("pn-embed");
+  }
+})();
+</script>
+<style>
+/* When embedded inside the canonical wrapper, show ONLY the game surface */
+.pn-embed, .pn-embed body {
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  background: transparent !important;
+}
+.pn-embed body > * { display: none !important; }
+.pn-embed body {}
+/* Keep the game surface visible */
+.pn-embed #game-container, 
+.pn-embed #game-container * {
+  display: revert !important;
+}
+.pn-embed #game-container {
+  position: fixed !important;
+  inset: 0 !important;
+  margin: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  overflow: hidden !important;
+}
+/* Canvas fills; preserves internal scaling */
+.pn-embed canvas {
+  display: block !important;
+}
+/* Mobile controls only on mobile */
+@media (min-width: 1001px) {
+  .pn-embed .joystick,
+  .pn-embed #mobile-controls,
+  .pn-embed .mobile-controls,
+  .pn-embed [class*="joystick"],
+  .pn-embed [id*="joystick"] {
+    display: none !important;
+    pointer-events: none !important;
+  }
+}
+</style>
 
-        #game-container {
-            position: relative;
-            box-shadow: 0 0 20px var(--player-color);
-            border: 2px solid #333;
-            background-color: #000;
-            /* Responsive sizing */
-            width: 95vmin; 
-            height: 95vmin;
-            max-width: 640px;
-            max-height: 640px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-            image-rendering: pixelated; /* Keeps the retro lines sharp when scaled */
-        }
-
-        #ui-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 2%;
-            box-sizing: border-box;
-        }
-
-        .hud-top {
-            display: flex;
-            justify-content: space-between;
-            font-size: clamp(12px, 3vmin, 20px);
-            font-weight: bold;
-            text-shadow: 0 0 5px var(--player-color);
-        }
-
-        .hud-bottom {
-            text-align: center;
-            font-size: clamp(10px, 2.5vmin, 14px);
-            color: #aaa;
-            margin-bottom: 5px;
-        }
-
-        /* --- UI OVERLAY IMPROVEMENTS --- */
-        #message-box {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(10, 10, 20, 0.95);
-            border: 2px solid var(--player-color);
-            padding: 5%;
-            text-align: center;
-            display: none;
-            z-index: 100;
-            width: 80%;
-            max-width: 400px;
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
-            backdrop-filter: blur(5px);
-        }
-
-        #message-title {
-            font-size: clamp(24px, 6vmin, 48px);
-            margin-bottom: 10px;
-            color: var(--player-color);
-            text-shadow: 0 0 20px var(--player-color);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 900;
-        }
-
-        #message-subtitle {
-            font-size: clamp(12px, 3vmin, 18px);
-            margin-bottom: 20px;
-            color: #ccc;
-            line-height: 1.4;
-        }
-        
-        #level-indicator {
-            position: absolute;
-            top: 45%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: clamp(30px, 10vmin, 60px);
-            color: var(--player-color);
-            font-weight: bold;
-            text-shadow: 0 0 20px var(--player-color);
-            display: none;
-            z-index: 20;
-        }
-
-        button {
-            background: rgba(0, 0, 0, 0.5);
-            border: 2px solid var(--player-color);
-            color: var(--player-color);
-            padding: 10px 20px;
-            font-family: var(--ui-font);
-            font-size: clamp(16px, 4vmin, 24px);
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        button:hover {
-            background: var(--player-color);
-            color: #000;
-            box-shadow: 0 0 30px var(--player-color);
-            transform: scale(1.05);
-        }
-
-        /* State Modifiers for UI */
-        .ui-start { border-color: var(--player-color) !important; }
-        .ui-gameover { border-color: var(--enemy-color) !important; }
-        .ui-win { border-color: var(--coin-color) !important; }
-
-        .scanlines {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                to bottom,
-                rgba(255,255,255,0),
-                rgba(255,255,255,0) 50%,
-                rgba(0,0,0,0.1) 50%,
-                rgba(0,0,0,0.1)
-            );
-            background-size: 100% 4px;
-            pointer-events: none;
-            z-index: 5;
-        }
-    </style>
 </head>
 <body>
+  <div id="game-container">
+    <canvas id="gameCanvas" width="640" height="640"></canvas>
+    <div class="scanlines"></div>
 
-    <div id="game-container">
-        <!-- Canvas resolution stays 640x640 for consistent logic, but CSS scales it -->
-        <canvas id="gameCanvas" width="640" height="640"></canvas>
-        <div class="scanlines"></div>
-        
-        <div id="ui-layer">
-            <div class="hud-top">
-                <span id="score-display">DATA: 0</span>
-                <span id="level-display">LVL: 1</span>
-                <span id="lives-display">INTEGRITY: 100%</span>
-            </div>
-            <div class="hud-bottom" id="hud-controls">
-                ARROWS to Move | SPACE to Plant Bomb | N for Next
-            </div>
-        </div>
-
-            <div id="level-indicator">LEVEL 1</div>
-
-        <div id="message-box" class="ui-start">
-            <div id="message-title">LOGIC BOMB</div>
-            <div id="message-subtitle">Plant the payload. Crash the system.<br>Warning: You are not immune to the blast.</div>
-            <button id="start-btn">EXECUTE</button>
-        </div>
+    <div id="ui-layer">
+      <div class="hud-top">
+        <span id="score-display">DATA: 0</span>
+        <span id="level-display">LVL: 1</span>
+        <span id="lives-display">INTEGRITY: 100%</span>
+      </div>
+      <div class="hud-bottom" id="hud-controls">
+        ARROWS to Move | SPACE to Plant Bomb (Max 1) | N for Next Level
+      </div>
     </div>
 
-    <script>
-        /**
-         * LOGIC BOMB
-         * Responsive tactical maze chase game.
-         */
+    <div id="level-indicator">LEVEL 1</div>
 
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        const scoreDisplay = document.getElementById('score-display');
-        const levelDisplay = document.getElementById('level-display');
-        const livesDisplay = document.getElementById('lives-display');
-        const hudControls = document.getElementById('hud-controls');
-        const messageBox = document.getElementById('message-box');
-        const messageTitle = document.getElementById('message-title');
-        const messageSubtitle = document.getElementById('message-subtitle');
-        const startBtn = document.getElementById('start-btn');
-        const levelIndicator = document.getElementById('level-indicator');
+    <div id="message-box" class="ui-start">
+      <div id="message-title">LOGIC BOMB</div>
+      <div id="message-subtitle">Plant the payload. Crash the system.<br>Warning: You are not immune to the blast.</div>
+      <button id="start-btn">EXECUTE</button>
+    </div>
+  </div>
 
-        const TILE_SIZE = 32;
-        const COLS = 20;
-        const ROWS = 20;
-        const PLAYER_SPEED = 3; 
-        const LOCK_DURATION = 400; 
-        const TUNNEL_ROW = 9; 
-        const MAX_BOMBS = 1; 
-        const BOMB_COOLDOWN_TIME = 120; 
+<script>
+/**
+ * LOGIC BOMB
+ * A tactical maze chase game.
+ */
 
-        const WALL = 1, PATH = 0, COIN = 2, LOCK = 3;
-        const DIR = {
-            UP: { x: 0, y: -1 }, DOWN: { x: 0, y: 1 },
-            LEFT: { x: -1, y: 0 }, RIGHT: { x: 1, y: 0 },
-            NONE: { x: 0, y: 0 }
-        };
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const scoreDisplay = document.getElementById('score-display');
+const levelDisplay = document.getElementById('level-display');
+const livesDisplay = document.getElementById('lives-display');
+const hudControls = document.getElementById('hud-controls');
+const messageBox = document.getElementById('message-box');
+const messageTitle = document.getElementById('message-title');
+const messageSubtitle = document.getElementById('message-subtitle');
+const startBtn = document.getElementById('start-btn');
+const levelIndicator = document.getElementById('level-indicator');
 
-        const MAP_1 = [
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1], [1,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,1],
-            [1,2,1,1,1,2,1,2,1,1,1,1,2,1,2,1,1,1,2,1], [1,2,1,0,1,2,2,2,2,2,2,2,2,2,2,1,0,1,2,1],
-            [1,2,1,2,1,2,1,1,1,0,0,1,1,1,2,1,2,1,2,1], [1,2,2,2,2,2,1,0,0,0,0,0,0,1,2,2,2,2,2,1],
-            [1,2,1,1,1,2,1,0,1,1,1,1,0,1,2,1,1,1,2,1], [1,2,2,2,2,2,0,0,1,0,0,1,0,0,2,2,2,2,2,1],
-            [1,1,1,1,1,2,1,1,1,0,0,1,1,1,2,1,1,1,1,1], [0,0,0,0,0,2,0,0,0,0,0,0,0,0,2,0,0,0,0,0],
-            [1,1,1,1,1,2,1,1,1,0,0,1,1,1,2,1,1,1,1,1], [1,2,2,2,2,2,0,0,1,0,0,1,0,0,2,2,2,2,2,1],
-            [1,2,1,1,1,2,1,0,1,1,1,1,0,1,2,1,1,1,2,1], [1,2,2,2,1,2,1,0,0,0,0,0,0,1,2,1,2,2,2,1],
-            [1,1,1,2,1,2,1,1,1,0,0,1,1,1,2,1,2,1,1,1], [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
-            [1,2,1,1,1,2,1,1,1,1,1,1,1,1,2,1,1,1,2,1], [1,2,2,2,1,2,2,2,2,1,1,2,2,2,2,1,2,2,2,1],
-            [1,2,1,2,2,2,1,1,2,2,2,2,1,2,2,2,1,2,1], [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ];
+// PIXEL-NET submission (safe/no-throw)
+let _pxSubmitted = false;
+async function _pxSubmitOnce(finalScore){
+  if(_pxSubmitted) return;
+  _pxSubmitted = true;
+  try{
+    const P = (window.parent && window.parent.PixelNet) ? window.parent.PixelNet : (window.PixelNet || null);
+    if(P && P.submitScore){
+      await P.submitScore('logic-bomb', Math.max(0, Math.floor(Number(finalScore)||0)));
+    }
+  }catch(_){}
+  try{
+    if(window.parent && window.parent.PX_refreshLeaderboard) window.parent.PX_refreshLeaderboard();
+  }catch(_){}
+}
 
-        const MAP_2 = [
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1], [1,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,1],
-            [1,2,1,1,1,2,1,1,2,1,1,2,1,1,2,1,1,1,2,1], [1,2,1,0,1,2,2,2,2,2,2,2,2,2,2,1,0,1,2,1],
-            [1,2,2,2,2,2,1,1,1,0,0,1,1,1,2,2,2,2,2,1], [1,1,2,1,1,2,1,0,0,0,0,0,0,1,2,1,1,2,1,1],
-            [1,2,2,2,2,2,1,0,1,1,1,1,0,1,2,2,2,2,2,1], [1,2,1,1,1,2,0,0,1,0,0,1,0,0,2,1,1,1,2,1],
-            [1,2,2,2,2,2,1,1,1,0,0,1,1,1,2,2,2,2,2,1], [0,0,0,0,0,2,0,0,0,0,0,0,0,0,2,0,0,0,0,0],
-            [1,2,2,2,2,2,1,1,1,0,0,1,1,1,2,2,2,2,2,1], [1,2,1,1,1,2,0,0,1,0,0,1,0,0,2,1,1,1,2,1],
-            [1,2,2,2,2,2,1,0,1,1,1,1,0,1,2,2,2,2,2,1], [1,1,2,1,1,2,1,0,0,0,0,0,0,1,2,1,1,2,1,1],
-            [1,2,2,2,2,2,1,1,1,0,0,1,1,1,2,2,2,2,2,1], [1,2,1,0,1,2,2,2,2,2,2,2,2,2,2,1,0,1,2,1],
-            [1,2,1,1,1,2,1,1,2,1,1,2,1,1,2,1,1,1,2,1], [1,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,1],
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1], [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ];
+// Game Constants
+const TILE_SIZE = 32;
+const COLS = 20;
+const ROWS = 20;
 
-        const MAP_3 = [
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1], [1,2,2,2,2,1,2,2,2,1,1,2,2,2,1,2,2,2,2,1],
-            [1,2,1,1,2,1,2,1,2,1,1,2,1,2,1,2,1,1,2,1], [1,2,2,2,2,2,2,1,2,2,2,2,1,2,2,2,2,2,2,1],
-            [1,2,1,1,1,1,2,1,1,0,0,1,1,2,1,1,1,1,2,1], [1,2,1,0,0,0,2,0,0,0,0,0,0,2,0,0,0,1,2,1],
-            [1,2,1,1,1,1,2,1,1,1,1,1,1,2,1,1,1,1,2,1], [1,2,2,2,2,2,2,0,0,1,1,0,0,2,2,2,2,2,2,1],
-            [1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1], [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-            [1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1], [1,2,2,2,2,2,2,0,0,1,1,0,0,2,2,2,2,2,2,1],
-            [1,2,1,1,1,1,2,1,1,1,1,1,1,2,1,1,1,1,2,1], [1,2,1,0,0,0,2,0,0,0,0,0,0,2,0,0,0,1,2,1],
-            [1,2,1,1,1,1,2,1,1,0,0,1,1,2,1,1,1,1,2,1], [1,2,2,2,2,2,2,1,2,2,2,2,1,2,2,2,2,2,2,1],
-            [1,2,1,1,2,1,2,1,2,1,1,2,1,2,1,2,1,1,2,1], [1,2,2,2,2,1,2,2,2,1,1,2,2,2,1,2,2,2,2,1],
-            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1], [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
-        ];
+const PLAYER_SPEED = 3;
+const LOCK_DURATION = 400;
+const TUNNEL_ROW = 9;
+const MAX_BOMBS = 1;
+const BOMB_COOLDOWN_TIME = 120;
 
-        const LEVELS = [{ map: MAP_1 }, { map: MAP_2 }, { map: MAP_3 }];
-        const COLOR_SCHEMES = [
-            { bg: '#050510', wallFill: '#1a1a40', wallBorder: '#3b3b98', coin: '#00ccff' },
-            { bg: '#000f00', wallFill: '#002000', wallBorder: '#00ff00', coin: '#ccffcc' },
-            { bg: '#100500', wallFill: '#301000', wallBorder: '#ff4400', coin: '#ffaa00' },
-            { bg: '#100010', wallFill: '#200020', wallBorder: '#ff00ff', coin: '#ffff00' }
-        ];
+// Entity Types
+const WALL = 1;
+const PATH = 0;
+const COIN = 2;
+const LOCK = 3;
 
-        let gameRunning = false, score = 0, lives = 3, currentLevel = 0, frameCount = 0, bombCooldownTimer = 0; 
-        let map = [], activeLocks = [], explosions = [], floatingTexts = [], shakeIntensity = 0; 
-        let currentPalette = COLOR_SCHEMES[0];
-        let player = { x: 0, y: 0, dir: DIR.NONE, nextDir: DIR.NONE, color: '#00ff88', radius: 10 };
-        let enemies = [];
-        const keys = {};
-        let spacePressed = false;
+// Directions
+const DIR = {
+  UP: { x: 0, y: -1 },
+  DOWN: { x: 0, y: 1 },
+  LEFT: { x: -1, y: 0 },
+  RIGHT: { x: 1, y: 0 },
+  NONE: { x: 0, y: 0 }
+};
 
-        window.addEventListener('keydown', (e) => {
-            keys[e.code] = true;
-            if(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].indexOf(e.code) > -1) e.preventDefault();
-            if (!gameRunning && e.code === "Enter" && messageBox.style.display !== 'none') startGame();
-            if (gameRunning) {
-                if (e.code === 'ArrowUp') player.nextDir = DIR.UP;
-                if (e.code === 'ArrowDown') player.nextDir = DIR.DOWN;
-                if (e.code === 'ArrowLeft') player.nextDir = DIR.LEFT;
-                if (e.code === 'ArrowRight') player.nextDir = DIR.RIGHT;
-                if (e.code === 'Space') { if (!spacePressed) { handleBombInput(); spacePressed = true; } }
-                if (e.code === 'KeyN') { currentLevel++; resetLevel(); }
-            }
-        });
-        window.addEventListener('keyup', (e) => {
-            keys[e.code] = false;
-            if (e.code === 'Space') spacePressed = false;
-        });
+// --- MAPS ---
+const MAP_1 = [
+ [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+ [1,2,2,2,2,2,1,2,2,2,2,2,2,1,2,2,2,2,2,1],
+ [1,2,1,1,1,2,1,2,1,1,1,1,2,1,2,1,1,1,2,1],
+ [1,2,1,0,1,2,2,2,2,2,2,2,2,2,2,1,0,1,2,1],
+ [1,2,1,2,1,2,1,1,1,0,0,1,1,1,2,1,2,1,2,1],
+ [1,2,2,2,2,2,1,0,0,0,0,0,0,1,2,2,2,2,2,1],
+ [1,2,1,1,1,2,1,0,1,1,1,1,0,1,2,1,1,1,2,1],
+ [1,2,2,2,2,2,0,0,1,0,0,1,0,0,2,2,2,2,2,1],
+ [1,1,1,1,1,2,1,1,1,0,0,1,1,1,2,1,1,1,1,1],
+ [0,0,0,0,0,2,0,0,0,0,0,0,0,0,2,0,0,0,0,0],
+ [1,1,1,1,1,2,1,1,1,0,0,1,1,1,2,1,1,1,1,1],
+ [1,2,2,2,2,2,0,0,1,0,0,1,0,0,2,2,2,2,2,1],
+ [1,2,1,1,1,2,1,0,1,1,1,1,0,1,2,1,1,1,2,1],
+ [1,2,2,2,1,2,1,0,0,0,0,0,0,1,2,1,2,2,2,1],
+ [1,1,1,2,1,2,1,1,1,0,0,1,1,1,2,1,2,1,1,1],
+ [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+ [1,2,1,1,1,2,1,1,1,1,1,1,1,1,2,1,1,1,2,1],
+ [1,2,2,2,1,2,2,2,2,1,1,2,2,2,2,1,2,2,2,1],
+ [1,2,1,2,2,2,1,1,2,2,2,2,1,2,2,2,1,2,1],
+ [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+];
 
-        startBtn.addEventListener('click', startGame);
+const MAP_2 = [
+ [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+ [1,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,1],
+ [1,2,1,1,1,2,1,1,2,1,1,2,1,1,2,1,1,1,2,1],
+ [1,2,1,0,1,2,2,2,2,2,2,2,2,2,2,1,0,1,2,1],
+ [1,2,2,2,2,2,1,1,1,0,0,1,1,1,2,2,2,2,2,1],
+ [1,1,2,1,1,2,1,0,0,0,0,0,0,1,2,1,1,2,1,1],
+ [1,2,2,2,2,2,1,0,1,1,1,1,0,1,2,2,2,2,2,1],
+ [1,2,1,1,1,2,0,0,1,0,0,1,0,0,2,1,1,1,2,1],
+ [1,2,2,2,2,2,1,1,1,0,0,1,1,1,2,2,2,2,2,1],
+ [0,0,0,0,0,2,0,0,0,0,0,0,0,0,2,0,0,0,0,0],
+ [1,2,2,2,2,2,1,1,1,0,0,1,1,1,2,2,2,2,2,1],
+ [1,2,1,1,1,2,0,0,1,0,0,1,0,0,2,1,1,1,2,1],
+ [1,2,2,2,2,2,1,0,1,1,1,1,0,1,2,2,2,2,2,1],
+ [1,1,2,1,1,2,1,0,0,0,0,0,0,1,2,1,1,2,1,1],
+ [1,2,2,2,2,2,1,1,1,0,0,1,1,1,2,2,2,2,2,1],
+ [1,2,1,0,1,2,2,2,2,2,2,2,2,2,2,1,0,1,2,1],
+ [1,2,1,1,1,2,1,1,2,1,1,2,1,1,2,1,1,1,2,1],
+ [1,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,1],
+ [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+ [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+];
 
-        function startGame() { messageBox.style.display = 'none'; initGame(); gameRunning = true; loop(); }
-        function initGame() { score = 0; lives = 3; currentLevel = 0; resetLevel(); }
+const MAP_3 = [
+ [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+ [1,2,2,2,2,1,2,2,2,1,1,2,2,2,1,2,2,2,2,1],
+ [1,2,1,1,2,1,2,1,2,1,1,2,1,2,1,2,1,1,2,1],
+ [1,2,2,2,2,2,2,1,2,2,2,2,1,2,2,2,2,2,2,1],
+ [1,2,1,1,1,1,2,1,1,0,0,1,1,2,1,1,1,1,2,1],
+ [1,2,1,0,0,0,2,0,0,0,0,0,0,2,0,0,0,1,2,1],
+ [1,2,1,1,1,1,2,1,1,1,1,1,1,2,1,1,1,1,2,1],
+ [1,2,2,2,2,2,2,0,0,1,1,0,0,2,2,2,2,2,2,1],
+ [1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1],
+ [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+ [1,1,1,1,1,1,1,1,1,0,0,1,1,1,1,1,1,1,1,1],
+ [1,2,2,2,2,2,2,0,0,1,1,0,0,2,2,2,2,2,2,1],
+ [1,2,1,1,1,1,2,1,1,1,1,1,1,2,1,1,1,1,2,1],
+ [1,2,1,0,0,0,2,0,0,0,0,0,0,2,0,0,0,1,2,1],
+ [1,2,1,1,1,1,2,1,1,0,0,1,1,2,1,1,1,1,2,1],
+ [1,2,2,2,2,2,2,1,2,2,2,2,1,2,2,2,2,2,2,1],
+ [1,2,1,1,2,1,2,1,2,1,1,2,1,2,1,2,1,1,2,1],
+ [1,2,2,2,2,1,2,2,2,1,1,2,2,2,1,2,2,2,2,1],
+ [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+ [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+];
 
-        function resetLevel() {
-            const mapIndex = currentLevel % LEVELS.length;
-            const schemeIndex = currentLevel % COLOR_SCHEMES.length;
-            currentPalette = COLOR_SCHEMES[schemeIndex];
-            applyColorsToUI();
-            map = JSON.parse(JSON.stringify(LEVELS[mapIndex].map));
-            activeLocks = []; explosions = []; floatingTexts = []; bombCooldownTimer = 0; 
-            player.x = 10 * TILE_SIZE + TILE_SIZE/2; player.y = 15 * TILE_SIZE + TILE_SIZE/2;
-            player.dir = DIR.NONE; player.nextDir = DIR.NONE;
-            createEnemies(Math.min(8, 4 + Math.floor(currentLevel / 2)), Math.min(2.8, 1.5 + (currentLevel * 0.1)));
-            updateHUD();
-            levelIndicator.innerText = `LEVEL ${currentLevel + 1}`;
-            levelIndicator.style.display = 'block';
-            setTimeout(() => levelIndicator.style.display = 'none', 2000);
-        }
+const LEVELS = [{ map: MAP_1 }, { map: MAP_2 }, { map: MAP_3 }];
 
-        function applyColorsToUI() {
-            const root = document.documentElement;
-            root.style.setProperty('--bg-color', currentPalette.bg);
-            root.style.setProperty('--wall-color', currentPalette.wallBorder);
-            root.style.setProperty('--coin-color', currentPalette.coin);
-        }
+// --- COLOR SCHEMES ---
+const COLOR_SCHEMES = [
+  { bg: '#050510', wallFill: '#1a1a40', wallBorder: '#3b3b98', coin: '#00ccff' },
+  { bg: '#000f00', wallFill: '#002000', wallBorder: '#00ff00', coin: '#ccffcc' },
+  { bg: '#100500', wallFill: '#301000', wallBorder: '#ff4400', coin: '#ffaa00' },
+  { bg: '#100010', wallFill: '#200020', wallBorder: '#ff00ff', coin: '#ffff00' }
+];
 
-        function createEnemies(count, speed) {
-            enemies = [];
-            const spawnPoints = [{c: 1, r: 1}, {c: 18, r: 1}, {c: 1, r: 18}, {c: 18, r: 18}, {c: 9, r: 8}, {c: 9, r: 11}, {c: 10, r: 1}, {c: 10, r: 18}];
-            const colors = ['#ff2a2a', '#ff8800', '#ff0055', '#aa00aa', '#00ffcc', '#ffffff'];
-            for(let i=0; i<count; i++) {
-                const pt = spawnPoints[i % spawnPoints.length];
-                enemies.push({ x: pt.c * TILE_SIZE + TILE_SIZE/2, y: pt.r * TILE_SIZE + TILE_SIZE/2, color: colors[i % colors.length], dir: DIR.NONE, speed, startX: pt.c * TILE_SIZE + TILE_SIZE/2, startY: pt.r * TILE_SIZE + TILE_SIZE/2, deadTimer: 0 });
-            }
-        }
+// Game State
+let gameRunning = false;
+let score = 0;
+let lives = 3;
+let currentLevel = 0;
+let frameCount = 0;
+let bombCooldownTimer = 0;
 
-        function handleBombInput() {
-            const col = Math.floor(player.x / TILE_SIZE), row = Math.floor(player.y / TILE_SIZE);
-            if (map[row][col] !== WALL && !activeLocks.some(l => l.x === col && l.y === row) && activeLocks.length < MAX_BOMBS && bombCooldownTimer === 0) {
-                activeLocks.push({ x: col, y: row, timer: LOCK_DURATION });
-            } else if (activeLocks.length > 0) detonateAll();
-        }
+let map = [];
+let activeLocks = [];
+let explosions = [];
+let floatingTexts = [];
+let shakeIntensity = 0;
 
-        function detonateAll() {
-             while(activeLocks.length > 0) { const lock = activeLocks.pop(); createExplosion(lock.x, lock.y); bombCooldownTimer = BOMB_COOLDOWN_TIME; }
-        }
+let currentPalette = COLOR_SCHEMES[0];
 
-        function getTileAt(x, y) {
-            const col = Math.floor(x / TILE_SIZE), row = Math.floor(y / TILE_SIZE);
-            if (row === TUNNEL_ROW && (col < 0 || col >= COLS)) return PATH;
-            if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return WALL;
-            if (activeLocks.find(l => l.x === col && l.y === row)) return LOCK;
-            return map[row][col];
-        }
+// Entities
+let player = { x: 0, y: 0, dir: DIR.NONE, nextDir: DIR.NONE, color: '#00ff88', radius: 10 };
+let enemies = [];
 
-        function canMove(x, y, dir, isP = false) {
-            const nextX = x + dir.x * (TILE_SIZE / 2 + 1), nextY = y + dir.y * (TILE_SIZE / 2 + 1);
-            const tile = getTileAt(nextX, nextY);
-            if (tile === WALL) return false;
-            return tile === LOCK ? isP : true;
-        }
+// Input Handling
+const keys = {};
+let spacePressed = false;
 
-        function moveEntity(e, isP = false) {
-            if (e.deadTimer > 0) return;
-            if (e.nextDir && e.nextDir !== DIR.NONE && e.nextDir !== e.dir) {
-                const centerX = Math.floor(e.x / TILE_SIZE) * TILE_SIZE + TILE_SIZE/2, centerY = Math.floor(e.y / TILE_SIZE) * TILE_SIZE + TILE_SIZE/2;
-                if (Math.sqrt((e.x-centerX)**2 + (e.y-centerY)**2) <= 4.5 && canMove(centerX, centerY, e.nextDir, isP)) { e.x = centerX; e.y = centerY; e.dir = e.nextDir; if (!isP) e.nextDir = DIR.NONE; }
-            }
-            if (canMove(e.x, e.y, e.dir, isP)) {
-                e.x += e.dir.x * (isP ? PLAYER_SPEED : e.speed); e.y += e.dir.y * (isP ? PLAYER_SPEED : e.speed);
-                if (e.x < -TILE_SIZE/2) e.x = canvas.width + TILE_SIZE/2; else if (e.x > canvas.width + TILE_SIZE/2) e.x = -TILE_SIZE/2;
-            } else if (isP && e.nextDir && canMove(e.x, e.y, e.nextDir, isP)) e.dir = e.nextDir;
-        }
+window.addEventListener('keydown', (e) => {
+  keys[e.code] = true;
+  if(["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Space"].indexOf(e.code) > -1) e.preventDefault();
 
-        function updateAI(e) {
-            if (e.deadTimer > 0) return;
-            const cx = Math.floor(e.x / TILE_SIZE) * TILE_SIZE + TILE_SIZE/2, cy = Math.floor(e.y / TILE_SIZE) * TILE_SIZE + TILE_SIZE/2;
-            if (Math.abs(e.x - cx) <= 2 && Math.abs(e.y - cy) <= 2) {
-                const opts = [DIR.UP, DIR.DOWN, DIR.LEFT, DIR.RIGHT].filter(d => !(d.x === -e.dir.x && d.y === -e.dir.y && e.dir !== DIR.NONE) && canMove(cx, cy, d, false));
-                if (opts.length === 0) opts.push({x: -e.dir.x, y: -e.dir.y});
-                if (Math.random() < 0.2) e.nextDir = opts[Math.floor(Math.random() * opts.length)];
-                else {
-                    let best = opts[0], min = Infinity;
-                    opts.forEach(o => { const d = (cx + o.x*TILE_SIZE - player.x)**2 + (cy + o.y*TILE_SIZE - player.y)**2; if (d < min) { min = d; best = o; } });
-                    e.nextDir = best;
-                }
-            }
-        }
+  if (!gameRunning && e.code === "Enter" && messageBox.style.display !== 'none') startGame();
 
-        function checkCollisions() {
-            const c = Math.floor(player.x/TILE_SIZE), r = Math.floor(player.y/TILE_SIZE);
-            if (r >= 0 && r < ROWS && c >= 0 && c < COLS && map[r][c] === COIN) { map[r][c] = PATH; score += 10; updateHUD(); checkWin(); }
-            enemies.forEach(e => { if (e.deadTimer <= 0 && (player.x - e.x)**2 + (player.y - e.y)**2 < (TILE_SIZE * 0.8)**2) handleDeath(); });
-        }
+  if (gameRunning) {
+    if (e.code === 'ArrowUp') player.nextDir = DIR.UP;
+    if (e.code === 'ArrowDown') player.nextDir = DIR.DOWN;
+    if (e.code === 'ArrowLeft') player.nextDir = DIR.LEFT;
+    if (e.code === 'ArrowRight') player.nextDir = DIR.RIGHT;
 
-        function createExplosion(gx, gy) {
-            const cx = gx * TILE_SIZE + TILE_SIZE/2, cy = gy * TILE_SIZE + TILE_SIZE/2;
-            shakeIntensity = 15; explosions.push({ type: 'shockwave', x: cx, y: cy, radius: 10, alpha: 1, growth: 6, lethal: true });
-            for(let i=0; i<40; i++) {
-                const a = Math.random() * Math.PI * 2, s = Math.random() * 6 + 2;
-                explosions.push({ type: 'particle', x: cx, y: cy, vx: Math.cos(a)*s, vy: Math.sin(a)*s, life: 1, decay: Math.random()*0.03+0.015, color: ['#ff0000', '#ffaa00', '#ffff00', '#ffffff'][Math.floor(Math.random()*4)], size: Math.random()*8+4 });
-            }
-        }
+    if (e.code === 'Space') {
+      if (!spacePressed) { handleBombInput(); spacePressed = true; }
+    }
+    if (e.code === 'KeyN') { currentLevel++; resetLevel(); }
+  }
+});
 
-        function checkExplosionDamage(s) {
-            if ((player.x - s.x)**2 + (player.y - s.y)**2 < s.radius**2) { handleDeath(); return; }
-            enemies.forEach(e => {
-                if (e.deadTimer <= 0 && (e.x - s.x)**2 + (e.y - s.y)**2 < (s.radius + 10)**2) {
-                    e.deadTimer = 180; e.x = -100; e.y = -100; score += 200; updateHUD();
-                    floatingTexts.push({ x: s.x, y: s.y - 20, text: "200", life: 1, dy: -1 });
-                }
-            });
-        }
+window.addEventListener('keyup', (e) => {
+  keys[e.code] = false;
+  if (e.code === 'Space') spacePressed = false;
+});
 
-        function handleDeath() {
-            lives--; updateHUD(); ctx.fillStyle = 'white'; ctx.fillRect(0,0,canvas.width, canvas.height);
-            if (lives <= 0) gameOver();
-            else { activeLocks = []; bombCooldownTimer = 0; player.x = 10 * TILE_SIZE + TILE_SIZE/2; player.y = 15 * TILE_SIZE + TILE_SIZE/2; player.dir = DIR.NONE; player.nextDir = DIR.NONE; enemies.forEach(e => { e.x = e.startX; e.y = e.startY; e.deadTimer = 0; }); }
-        }
+startBtn.addEventListener('click', startGame);
 
-        function checkWin() { if (!map.some(row => row.includes(COIN))) { currentLevel++; resetLevel(); } }
-        function gameOver() { gameRunning = false; messageBox.className = "ui-gameover"; messageTitle.innerText = "SYSTEM FAILURE"; messageSubtitle.innerHTML = `Security breach failed.<br>Final Score: <span style="color:white">${score}</span>`; startBtn.innerText = "REBOOT"; messageBox.style.display = 'block'; }
-        function updateHUD() { scoreDisplay.textContent = `DATA: ${score}`; livesDisplay.textContent = `INTEGRITY: ${Math.max(0, lives * 33 + 1)}%`; levelDisplay.textContent = `LVL: ${currentLevel + 1}`; hudControls.innerHTML = bombCooldownTimer > 0 ? `<span style="color:#ff2a2a">RECHARGING...</span>` : (activeLocks.length > 0 ? `<span style="color:#ff00ff">DETONATE (SPACE)</span>` : `<span style="color:#00ff88">BOMB READY (SPACE)</span>`); }
+// Core Game Logic
+function initGame() {
+  _pxSubmitted = false;
+  score = 0;
+  lives = 3;
+  currentLevel = 0;
+  resetLevel();
+}
 
-        function draw() {
-            ctx.fillStyle = currentPalette.bg; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.save(); if (shakeIntensity > 0) ctx.translate((Math.random()-0.5)*shakeIntensity, (Math.random()-0.5)*shakeIntensity);
-            for (let r=0; r<ROWS; r++) for (let c=0; c<COLS; c++) {
-                const x = c*TILE_SIZE, y = r*TILE_SIZE, t = map[r][c];
-                if (t === WALL) { ctx.fillStyle = currentPalette.wallFill; ctx.fillRect(x,y,TILE_SIZE,TILE_SIZE); ctx.strokeStyle = currentPalette.wallBorder; ctx.lineWidth = 2; ctx.strokeRect(x+4,y+4,TILE_SIZE-8,TILE_SIZE-8); }
-                else if (t === COIN) { ctx.fillStyle = currentPalette.coin; ctx.beginPath(); ctx.arc(x+TILE_SIZE/2,y+TILE_SIZE/2,3,0,6.3); ctx.fill(); ctx.shadowBlur = 5; ctx.shadowColor = currentPalette.coin; ctx.fill(); ctx.shadowBlur = 0; }
-            }
-            activeLocks.forEach(l => {
-                const cx = l.x*TILE_SIZE+TILE_SIZE/2, cy = l.y*TILE_SIZE+TILE_SIZE/2+2;
-                ctx.fillStyle='#111'; ctx.beginPath(); ctx.arc(cx,cy,10,0,6.3); ctx.fill();
-                ctx.strokeStyle='#cda434'; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(cx,cy-12); ctx.quadraticCurveTo(cx+5,cy-18,cx+8,cy-12); ctx.stroke();
-                if (l.timer < 60 && Math.floor(frameCount/5)%2 === 0) { ctx.fillStyle='rgba(255,50,50,0.5)'; ctx.beginPath(); ctx.arc(cx,cy,10,0,6.3); ctx.fill(); }
-            });
-            ctx.fillStyle = player.color; ctx.shadowBlur = 10; ctx.shadowColor = player.color; ctx.beginPath(); ctx.arc(player.x, player.y, player.radius, 0, 6.3); ctx.fill(); ctx.shadowBlur = 0;
-            ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(player.x + player.dir.x*6, player.y + player.dir.y*6, 3, 0, 6.3); ctx.fill();
-            enemies.forEach(e => {
-                if (e.deadTimer > 0) return;
-                ctx.save(); ctx.translate(e.x, e.y); ctx.rotate(frameCount * 0.15); ctx.shadowBlur = 15; ctx.shadowColor = e.color; ctx.fillStyle = e.color; ctx.beginPath();
-                for(let i=0; i<4; i++) { ctx.rotate(1.57); ctx.moveTo(0,0); ctx.lineTo(4,-5); ctx.lineTo(0,-14); ctx.lineTo(-4,-5); }
-                ctx.fill(); ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(0,0,6,0,6.3); ctx.fill(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0,0,3+Math.sin(frameCount*0.2),0,6.3); ctx.fill(); ctx.restore();
-            });
-            explosions.forEach(e => { if (e.type === 'shockwave') { ctx.strokeStyle = `rgba(255,200,50,${e.alpha})`; ctx.lineWidth=4; ctx.beginPath(); ctx.arc(e.x,e.y,e.radius,0,6.3); ctx.stroke(); } else { ctx.globalAlpha=e.life; ctx.fillStyle=e.color; ctx.beginPath(); ctx.arc(e.x,e.y,e.size,0,6.3); ctx.fill(); ctx.globalAlpha=1; } });
-            ctx.font = "bold 20px Courier New"; ctx.textAlign = "center"; floatingTexts.forEach(t => { ctx.fillStyle = `rgba(255,255,255,${t.life})`; ctx.fillText(t.text, t.x, t.y); });
-            ctx.restore();
-        }
+function resetLevel() {
+  const mapIndex = currentLevel % LEVELS.length;
+  const mapTemplate = LEVELS[mapIndex].map;
 
-        function update() {
-            if (!gameRunning) return;
-            if(shakeIntensity > 0) shakeIntensity *= 0.9;
-            if(bombCooldownTimer > 0) { bombCooldownTimer--; updateHUD(); }
-            moveEntity(player, true);
-            enemies.forEach(e => { if (e.deadTimer > 0) { e.deadTimer--; if (e.deadTimer === 0) { e.x = e.startX; e.y = e.startY; } } else { updateAI(e); moveEntity(e, false); } });
-            checkCollisions();
-            for (let i=activeLocks.length-1; i>=0; i--) { activeLocks[i].timer--; if (activeLocks[i].timer <= 0) { createExplosion(activeLocks[i].x, activeLocks[i].y); activeLocks.splice(i,1); bombCooldownTimer = BOMB_COOLDOWN_TIME; } }
-            for(let i=explosions.length-1; i>=0; i--) { const e = explosions[i]; if (e.type === 'shockwave') { e.radius += e.growth; e.alpha -= 0.05; if (e.lethal && e.alpha > 0.5) checkExplosionDamage(e); } else { e.x += e.vx; e.y += e.vy; e.life -= e.decay; e.size *= 0.95; } if (e.alpha <= 0 || e.life <= 0) explosions.splice(i,1); }
-            for(let i=floatingTexts.length-1; i>=0; i--) { const t = floatingTexts[i]; t.y += t.dy; t.life -= 0.02; if(t.life <= 0) floatingTexts.splice(i,1); }
-            frameCount++;
-        }
+  const schemeIndex = currentLevel % COLOR_SCHEMES.length;
+  currentPalette = COLOR_SCHEMES[schemeIndex];
+  applyColorsToUI();
 
-        function loop() { if (gameRunning) { update(); draw(); requestAnimationFrame(loop); } }
-        messageBox.style.display = 'block';
-    </script>
+  map = JSON.parse(JSON.stringify(mapTemplate));
+  activeLocks = [];
+  explosions = [];
+  floatingTexts = [];
+  bombCooldownTimer = 0;
+
+  player.x = 10 * TILE_SIZE + TILE_SIZE/2;
+  player.y = 15 * TILE_SIZE + TILE_SIZE/2;
+  player.dir = DIR.NONE;
+  player.nextDir = DIR.NONE;
+
+  const speed = Math.min(2.8, 1.5 + (currentLevel * 0.1));
+  const count = Math.min(8, 4 + Math.floor(currentLevel / 2));
+
+  createEnemies(count, speed);
+  updateHUD();
+
+  levelIndicator.innerText = `LEVEL ${currentLevel + 1}`;
+  levelIndicator.style.display = 'block';
+  setTimeout(() => { levelIndicator.style.display = 'none'; }, 2000);
+}
+
+function applyColorsToUI() {
+  const root = document.documentElement;
+  root.style.setProperty('--bg-color', currentPalette.bg);
+  root.style.setProperty('--wall-color', currentPalette.wallBorder);
+  root.style.setProperty('--coin-color', currentPalette.coin);
+}
+
+function createEnemies(count, speed) {
+  enemies = [];
+  const corners = [
+    {c: 1, r: 1}, {c: 18, r: 1}, {c: 1, r: 18}, {c: 18, r: 18},
+    {c: 9, r: 8}, {c: 9, r: 11}, {c: 10, r: 1}, {c: 10, r: 18}
+  ];
+  const colors = ['#ff2a2a','#ff8800','#ff0055','#aa00aa','#00ffcc','#ffffff'];
+  for(let i=0;i<count;i++){
+    const spawn = corners[i % corners.length];
+    enemies.push({
+      x: spawn.c * TILE_SIZE + TILE_SIZE/2,
+      y: spawn.r * TILE_SIZE + TILE_SIZE/2,
+      color: colors[i % colors.length],
+      dir: DIR.NONE,
+      speed: speed,
+      startX: spawn.c * TILE_SIZE + TILE_SIZE/2,
+      startY: spawn.r * TILE_SIZE + TILE_SIZE/2,
+      deadTimer: 0
+    });
+  }
+}
+
+function handleBombInput() {
+  const col = Math.floor(player.x / TILE_SIZE);
+  const row = Math.floor(player.y / TILE_SIZE);
+  const isWall = map[row][col] === WALL;
+  const hasBomb = activeLocks.some(l => l.x === col && l.y === row);
+  const canPlace = !isWall && !hasBomb && activeLocks.length < MAX_BOMBS && bombCooldownTimer === 0;
+
+  if (canPlace) {
+    activeLocks.push({ x: col, y: row, timer: LOCK_DURATION });
+  } else if (activeLocks.length > 0) {
+    detonateAll();
+  }
+}
+
+function detonateAll() {
+  while(activeLocks.length > 0){
+    const lock = activeLocks.pop();
+    createExplosion(lock.x, lock.y);
+    bombCooldownTimer = BOMB_COOLDOWN_TIME;
+  }
+}
+
+function getTileAt(x, y) {
+  const col = Math.floor(x / TILE_SIZE);
+  const row = Math.floor(y / TILE_SIZE);
+
+  if (row === TUNNEL_ROW) {
+    if (col < 0 || col >= COLS) return PATH;
+  }
+  if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return WALL;
+
+  const lock = activeLocks.find(l => l.x === col && l.y === row);
+  if (lock) return LOCK;
+
+  return map[row][col];
+}
+
+function canMove(x, y, dir, isPlayer = false) {
+  const nextX = x + dir.x * (TILE_SIZE / 2 + 1);
+  const nextY = y + dir.y * (TILE_SIZE / 2 + 1);
+  const tile = getTileAt(nextX, nextY);
+
+  if (tile === WALL) return false;
+  if (tile === LOCK) return isPlayer;
+  return true;
+}
+
+function moveEntity(entity, isPlayer = false) {
+  if (entity.deadTimer > 0) return;
+
+  if (entity.nextDir && entity.nextDir !== DIR.NONE && entity.nextDir !== entity.dir) {
+    const col = Math.floor(entity.x / TILE_SIZE);
+    const row = Math.floor(entity.y / TILE_SIZE);
+    const centerX = col * TILE_SIZE + TILE_SIZE / 2;
+    const centerY = row * TILE_SIZE + TILE_SIZE / 2;
+
+    const dist = Math.sqrt((entity.x-centerX)**2 + (entity.y-centerY)**2);
+    if (dist <= 4.5) {
+      if (canMove(centerX, centerY, entity.nextDir, isPlayer)) {
+        entity.x = centerX; entity.y = centerY;
+        entity.dir = entity.nextDir;
+        if (!isPlayer) entity.nextDir = DIR.NONE;
+      }
+    }
+  }
+
+  if (canMove(entity.x, entity.y, entity.dir, isPlayer)) {
+    entity.x += entity.dir.x * (isPlayer ? PLAYER_SPEED : entity.speed);
+    entity.y += entity.dir.y * (isPlayer ? PLAYER_SPEED : entity.speed);
+
+    if (entity.x < -TILE_SIZE/2) entity.x = canvas.width + TILE_SIZE/2;
+    if (entity.x > canvas.width + TILE_SIZE/2) entity.x = -TILE_SIZE/2;
+  } else {
+    if (isPlayer) {
+      if (entity.nextDir && canMove(entity.x, entity.y, entity.nextDir, isPlayer)) entity.dir = entity.nextDir;
+    }
+  }
+}
+
+function updateAI(enemy) {
+  if (enemy.deadTimer > 0) return;
+
+  const col = Math.floor(enemy.x / TILE_SIZE);
+  const row = Math.floor(enemy.y / TILE_SIZE);
+  const centerX = col * TILE_SIZE + TILE_SIZE/2;
+  const centerY = row * TILE_SIZE + TILE_SIZE/2;
+
+  if (Math.abs(enemy.x - centerX) <= 2 && Math.abs(enemy.y - centerY) <= 2) {
+    const options = [];
+    const directions = [DIR.UP, DIR.DOWN, DIR.LEFT, DIR.RIGHT];
+
+    directions.forEach(d => {
+      if (d.x === -enemy.dir.x && d.y === -enemy.dir.y && enemy.dir !== DIR.NONE) return;
+      if (canMove(centerX, centerY, d, false)) options.push(d);
+    });
+
+    if (options.length === 0) options.push({x: -enemy.dir.x, y: -enemy.dir.y});
+
+    if (Math.random() < 0.2 && options.length > 0) {
+      enemy.nextDir = options[Math.floor(Math.random() * options.length)];
+    } else {
+      let bestDir = options[0];
+      let minDist = 999999;
+      options.forEach(opt => {
+        const targetX = centerX + opt.x * TILE_SIZE;
+        const targetY = centerY + opt.y * TILE_SIZE;
+        const distToPlayer = Math.sqrt((targetX-player.x)**2 + (targetY-player.y)**2);
+        if (distToPlayer < minDist) { minDist = distToPlayer; bestDir = opt; }
+      });
+      enemy.nextDir = bestDir;
+    }
+  }
+}
+
+function checkCollisions() {
+  const pCol = Math.floor(player.x / TILE_SIZE);
+  const pRow = Math.floor(player.y / TILE_SIZE);
+
+  if (pRow >= 0 && pRow < ROWS && pCol >= 0 && pCol < COLS) {
+    if (map[pRow][pCol] === COIN) {
+      map[pRow][pCol] = PATH;
+      score += 10;
+      updateHUD();
+      checkWin();
+    }
+  }
+
+  for (let enemy of enemies) {
+    if (enemy.deadTimer > 0) continue;
+    const dx = player.x - enemy.x;
+    const dy = player.y - enemy.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < TILE_SIZE * 0.8) handleDeath();
+  }
+}
+
+function updateLocks() {
+  for (let i = activeLocks.length - 1; i >= 0; i--) {
+    activeLocks[i].timer--;
+    if (activeLocks[i].timer <= 0) {
+      createExplosion(activeLocks[i].x, activeLocks[i].y);
+      activeLocks.splice(i, 1);
+      bombCooldownTimer = BOMB_COOLDOWN_TIME;
+    }
+  }
+}
+
+function createExplosion(gridX, gridY) {
+  const centerX = gridX * TILE_SIZE + TILE_SIZE / 2;
+  const centerY = gridY * TILE_SIZE + TILE_SIZE / 2;
+  shakeIntensity = 15;
+
+  explosions.push({ type:'shockwave', x:centerX, y:centerY, radius:10, alpha:1, growth:6, lethal:true });
+
+  for(let i=0;i<40;i++){
+    const angle = Math.random() * Math.PI * 2;
+    const speed = Math.random() * 6 + 2;
+    explosions.push({
+      type:'particle', x:centerX, y:centerY,
+      vx: Math.cos(angle)*speed, vy: Math.sin(angle)*speed,
+      life: 1.0, decay: Math.random()*0.03 + 0.015,
+      color: ['#ff0000','#ffaa00','#ffff00','#ffffff'][Math.floor(Math.random()*4)],
+      size: Math.random()*8 + 4
+    });
+  }
+}
+
+function updateExplosions() {
+  for(let i=explosions.length-1;i>=0;i--){
+    const e = explosions[i];
+    if(e.type === 'shockwave'){
+      e.radius += e.growth;
+      e.alpha -= 0.05;
+      if (e.lethal && e.alpha > 0.5) checkExplosionDamage(e);
+      if(e.alpha <= 0) explosions.splice(i,1);
+    } else {
+      e.x += e.vx; e.y += e.vy;
+      e.life -= e.decay;
+      e.size *= 0.95;
+      if(e.life <= 0) explosions.splice(i,1);
+    }
+  }
+}
+
+function checkExplosionDamage(shockwave) {
+  const pDx = player.x - shockwave.x;
+  const pDy = player.y - shockwave.y;
+  const pDist = Math.sqrt(pDx*pDx + pDy*pDy);
+  if (pDist < shockwave.radius) { handleDeath(); return; }
+
+  enemies.forEach(enemy => {
+    if (enemy.deadTimer > 0) return;
+    const dx = enemy.x - shockwave.x;
+    const dy = enemy.y - shockwave.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist < shockwave.radius + 10) {
+      enemy.deadTimer = 180;
+      enemy.x = -100; enemy.y = -100;
+      score += 200;
+      updateHUD();
+      floatingTexts.push({ x: shockwave.x, y: shockwave.y - 20, text: "200", life: 1.0, dy: -1 });
+    }
+  });
+}
+
+function updateFloatingTexts() {
+  for(let i=floatingTexts.length-1;i>=0;i--){
+    const t = floatingTexts[i];
+    t.y += t.dy;
+    t.life -= 0.02;
+    if(t.life <= 0) floatingTexts.splice(i,1);
+  }
+}
+
+function updateEnemies() {
+  enemies.forEach(enemy => {
+    if (enemy.deadTimer > 0) {
+      enemy.deadTimer--;
+      if (enemy.deadTimer <= 0) { enemy.x = enemy.startX; enemy.y = enemy.startY; }
+      return;
+    }
+    updateAI(enemy);
+    moveEntity(enemy, false);
+  });
+}
+
+function drawExplosions() {
+  explosions.forEach(e => {
+    if(e.type === 'shockwave'){
+      ctx.save();
+      ctx.strokeStyle = `rgba(255,200,50,${e.alpha})`;
+      ctx.lineWidth = 4;
+      ctx.beginPath(); ctx.arc(e.x,e.y,e.radius,0,Math.PI*2); ctx.stroke();
+      ctx.restore();
+    } else {
+      ctx.save();
+      ctx.globalAlpha = e.life;
+      ctx.fillStyle = e.color;
+      ctx.beginPath(); ctx.arc(e.x,e.y,e.size,0,Math.PI*2); ctx.fill();
+      ctx.restore();
+    }
+  });
+}
+
+function drawFloatingTexts() {
+  ctx.save();
+  ctx.font = "bold 20px Courier New";
+  ctx.textAlign = "center";
+  floatingTexts.forEach(t => {
+    ctx.fillStyle = `rgba(255,255,255,${t.life})`;
+    ctx.fillText(t.text, t.x, t.y);
+  });
+  ctx.restore();
+}
+
+function updateHUD() {
+  scoreDisplay.textContent = `DATA: ${score}`;
+  livesDisplay.textContent = `INTEGRITY: ${Math.max(0, lives * 33 + 1)}%`;
+  levelDisplay.textContent = `LVL: ${currentLevel + 1}`;
+
+  if (bombCooldownTimer > 0) {
+    hudControls.innerHTML = `<span style="color:#ff2a2a">BOMB RECHARGING...</span>`;
+  } else if (activeLocks.length > 0) {
+    hudControls.innerHTML = `<span style="color:#ff00ff">DETONATE (SPACE)</span>`;
+  } else {
+    hudControls.innerHTML = `<span style="color:#00ff88">BOMB READY (SPACE)</span>`;
+  }
+}
+
+function handleDeath() {
+  lives--;
+  updateHUD();
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0,0,canvas.width, canvas.height);
+
+  if (lives <= 0) {
+    gameOver();
+  } else {
+    activeLocks = [];
+    bombCooldownTimer = 0;
+    player.x = 10 * TILE_SIZE + TILE_SIZE/2;
+    player.y = 15 * TILE_SIZE + TILE_SIZE/2;
+    player.dir = DIR.NONE;
+    player.nextDir = DIR.NONE;
+    enemies.forEach(e => { e.x = e.startX; e.y = e.startY; e.deadTimer = 0; });
+  }
+}
+
+function checkWin() {
+  let coinsLeft = false;
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      if(map[r][c] === COIN) coinsLeft = true;
+    }
+  }
+  if (!coinsLeft) { currentLevel++; resetLevel(); }
+}
+
+function gameOver() {
+  gameRunning = false;
+  _pxSubmitOnce(score);
+
+  messageBox.className = "ui-gameover";
+  messageTitle.innerText = "SYSTEM FAILURE";
+  messageSubtitle.innerHTML = `You were caught by security.<br>Final Score: <span style="color:white;font-weight:bold">${score}</span>`;
+  startBtn.innerText = "REBOOT SYSTEM";
+  messageBox.style.display = 'block';
+}
+
+function startGame() {
+  messageBox.style.display = 'none';
+  initGame();
+  gameRunning = true;
+  loop();
+}
+
+function draw() {
+  ctx.fillStyle = currentPalette.bg;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.save();
+  if (shakeIntensity > 0) {
+    const dx = (Math.random() - 0.5) * shakeIntensity;
+    const dy = (Math.random() - 0.5) * shakeIntensity;
+    ctx.translate(dx, dy);
+  }
+
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const x = c * TILE_SIZE;
+      const y = r * TILE_SIZE;
+      const tile = map[r][c];
+
+      if (tile === WALL) {
+        ctx.fillStyle = currentPalette.wallFill;
+        ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+        ctx.strokeStyle = currentPalette.wallBorder;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(x+4, y+4, TILE_SIZE-8, TILE_SIZE-8);
+      } else if (tile === COIN) {
+        ctx.fillStyle = currentPalette.coin;
+        ctx.beginPath();
+        ctx.arc(x + TILE_SIZE/2, y + TILE_SIZE/2, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 5;
+        ctx.shadowColor = currentPalette.coin;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+  }
+
+  activeLocks.forEach(lock => {
+    const x = lock.x * TILE_SIZE;
+    const y = lock.y * TILE_SIZE;
+    const cx = x + TILE_SIZE / 2;
+    const cy = y + TILE_SIZE / 2 + 2;
+
+    ctx.fillStyle = '#111';
+    ctx.beginPath(); ctx.arc(cx, cy, 10, 0, Math.PI * 2); ctx.fill();
+
+    ctx.fillStyle = '#444';
+    ctx.beginPath(); ctx.arc(cx - 4, cy - 4, 3, 0, Math.PI * 2); ctx.fill();
+
+    ctx.fillStyle = '#333';
+    ctx.fillRect(cx - 3, cy - 12, 6, 4);
+
+    ctx.strokeStyle = '#cda434';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - 12);
+    ctx.quadraticCurveTo(cx + 5, cy - 18, cx + 8, cy - 12);
+    ctx.stroke();
+
+    const flicker = Math.random() * 3 + 2;
+    ctx.fillStyle = '#ff4400';
+    ctx.beginPath(); ctx.arc(cx + 8, cy - 12, flicker, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#ffff00';
+    ctx.beginPath(); ctx.arc(cx + 8, cy - 12, flicker * 0.5, 0, Math.PI * 2); ctx.fill();
+
+    if (lock.timer < 60 && Math.floor(frameCount / 5) % 2 === 0) {
+      ctx.fillStyle = 'rgba(255, 50, 50, 0.5)';
+      ctx.beginPath(); ctx.arc(cx, cy, 10, 0, Math.PI * 2); ctx.fill();
+    }
+  });
+
+  ctx.fillStyle = player.color;
+  ctx.shadowBlur = 10;
+  ctx.shadowColor = player.color;
+  ctx.beginPath(); ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2); ctx.fill();
+  ctx.shadowBlur = 0;
+
+  ctx.fillStyle = '#000';
+  let eyeX = player.x + player.dir.x * 6;
+  let eyeY = player.y + player.dir.y * 6;
+  ctx.beginPath(); ctx.arc(eyeX, eyeY, 3, 0, Math.PI * 2); ctx.fill();
+
+  enemies.forEach(enemy => {
+    if (enemy.deadTimer > 0) return;
+    const cx = enemy.x, cy = enemy.y;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(frameCount * 0.15);
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = enemy.color;
+
+    ctx.fillStyle = enemy.color;
+    ctx.beginPath();
+    for(let i=0;i<4;i++){
+      ctx.rotate(Math.PI / 2);
+      ctx.moveTo(0, 0);
+      ctx.lineTo(4, -5);
+      ctx.lineTo(0, -14);
+      ctx.lineTo(-4, -5);
+    }
+    ctx.fill();
+
+    ctx.fillStyle = '#111';
+    ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI*2); ctx.fill();
+
+    const pulse = 3 + Math.sin(frameCount * 0.2) * 1;
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(0, 0, pulse, 0, Math.PI*2); ctx.fill();
+
+    ctx.restore();
+    ctx.shadowBlur = 0;
+  });
+
+  drawExplosions();
+  drawFloatingTexts();
+  ctx.restore();
+}
+
+function update() {
+  if (!gameRunning) return;
+
+  if(shakeIntensity > 0) shakeIntensity *= 0.9;
+
+  if(bombCooldownTimer > 0) { bombCooldownTimer--; updateHUD(); }
+
+  moveEntity(player, true);
+  updateEnemies();
+
+  checkCollisions();
+  updateLocks();
+  updateExplosions();
+  updateFloatingTexts();
+
+  frameCount++;
+}
+
+function loop() {
+  if (gameRunning) {
+    update();
+    draw();
+    requestAnimationFrame(loop);
+  }
+}
+
+messageBox.style.display = 'block';
+</script>
 </body>
 </html>
