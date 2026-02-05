@@ -890,11 +890,20 @@
 
   <script>
 (() => {
-  // Support both /PIXEL-NET/ and /pixel-net/ paths on GitHub Pages
+  // Support /PIXEL-NET and /pixel-net paths on GitHub Pages (with or without trailing slash)
   const path = window.location.pathname;
-  const isPixelNetCaps = path.toUpperCase().includes("/PIXEL-NET/");
-  const isPixelNetLower = path.toLowerCase().includes("/pixel-net/");
-  const BASE = (isPixelNetCaps || isPixelNetLower) ? "./" : "./PIXEL-NET/";
+
+  // If user lands on /PIXEL-NET (no trailing slash), relative URLs break. Normalize.
+  if (/\/pixel-net$/i.test(path)) {
+    window.location.replace(path + "/");
+    return;
+  }
+
+  // True when we are already inside the PIXEL-NET subfolder (any casing, slash or end).
+  const inPixelNet = /\/pixel-net(\/|$)/i.test(path);
+
+  // When in /PIXEL-NET/, use relative "./". Otherwise, point into the subfolder.
+  const BASE = inPixelNet ? "./" : "./PIXEL-NET/";
 
   const modal = document.getElementById('initialModal');
   const input = document.getElementById('initialsInput');
