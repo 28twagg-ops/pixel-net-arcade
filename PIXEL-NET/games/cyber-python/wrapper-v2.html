@@ -3,86 +3,138 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CYBER PYTHON — PIXEL-NET</title>
+<title>Cyber Python — PIXEL-NET</title>
 <style>
-:root{--accent:#39ff14;--bg:#020802;--text:#f3f6ff;--muted:rgba(243,246,255,.72);--border:rgba(255,255,255,.12);}
+:root{
+  --bg0:#09030f;
+  --bg1:#12061a;
+  --bg2:#1b0826;
+
+  --text:#f3f6ff;
+  --muted:rgba(243,246,255,.78);
+
+  --hero:#a855ff;
+  --hero2:#00ff9d;
+
+  --border: rgba(255,255,255,.14);
+  --panelBg: linear-gradient(180deg, rgba(20,20,32,.92), rgba(14,14,24,.88));
+
+  --uiFont: system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  --arcadeFont: 'Courier New',Courier,monospace;
+
+  --leftW: 320px;
+  --rightW: 320px;
+  --gap: 14px;
+  --pad: 14px;
+
+  --shellMaxW: 1720px;
+  --centerMaxW: 1200px;
+
+  --topbarH: 58px;
+
+  --mobileBtnH: 58px;
+  --mobileBtnGap: 10px;
+}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
   margin:0;
+  font-family: var(--uiFont);
   color:var(--text);
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
   background:
-    radial-gradient(1200px 700px at 18% 10%, color-mix(in srgb, var(--accent) 28%, transparent), transparent 58%),
-    radial-gradient(1200px 700px at 82% 20%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 62%),
-    radial-gradient(1200px 780px at 55% 108%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 64%),
-    linear-gradient(180deg, var(--bg), #000);
+    radial-gradient(1200px 700px at 15% 10%, color-mix(in srgb, var(--hero) 22%, transparent), transparent 56%),
+    radial-gradient(1100px 760px at 85% 18%, color-mix(in srgb, var(--hero2) 18%, transparent), transparent 58%),
+    radial-gradient(1200px 780px at 55% 108%, color-mix(in srgb, var(--hero) 12%, transparent), transparent 60%),
+    linear-gradient(180deg, var(--bg0), var(--bg2));
   overflow:hidden;
 }
+
 .topbar{
-  height:58px;
+  height: var(--topbarH);
   position:sticky; top:0; z-index:20;
   display:grid;
-  grid-template-columns:auto 1fr auto;
+  grid-template-columns: auto 1fr auto;
   align-items:center;
-  padding:10px 14px;
-  border-bottom:1px solid var(--border);
-  background:rgba(0,0,0,.35);
+  padding: 10px 14px;
+  border-bottom:1px solid color-mix(in srgb, var(--hero) 28%, transparent);
+  background: rgba(0,0,0,.38);
   backdrop-filter: blur(12px);
 }
+.top-left{ display:flex; gap:10px; align-items:center; }
 .exit{
-  text-decoration:none;
-  color:var(--text);
+  display:inline-flex; align-items:center; gap:10px;
+  text-decoration:none; color:var(--text);
   border:1px solid rgba(255,255,255,.14);
-  padding:8px 12px;
-  border-radius:14px;
+  padding:8px 12px; border-radius:14px;
   background: rgba(0,0,0,.18);
 }
 .exit:hover{
-  border-color: color-mix(in srgb, var(--accent) 70%, white);
-  box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: color-mix(in srgb, var(--hero) 70%, rgba(255,255,255,.14));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--hero) 18%, transparent);
 }
-.badge{
+
+.gameBadge{
   justify-self:center;
+  display:inline-flex; align-items:center; justify-content:center;
   padding:8px 16px;
   border-radius:999px;
-  border:1px solid color-mix(in srgb, var(--accent) 45%, transparent);
-  background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 22%, transparent), rgba(255,255,255,.06));
-  box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent), 0 18px 55px rgba(0,0,0,.30);
-  font-weight:900;
-  letter-spacing:.16em;
-  text-transform:uppercase;
+  border:1px solid color-mix(in srgb, var(--hero) 52%, rgba(255,255,255,.12));
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--hero) 22%, transparent),
+    color-mix(in srgb, var(--hero2) 18%, transparent),
+    rgba(0,0,0,.10));
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--hero) 12%, transparent),
+    0 18px 55px rgba(0,0,0,.30);
+  font-weight: 950;
+  letter-spacing: .16em;
+  text-transform: uppercase;
   user-select:none;
 }
-.player{
+
+.playerBtn{
   justify-self:end;
-  display:flex; gap:10px; align-items:center;
-  border:1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  display:flex; align-items:center; gap:10px;
+  border:1px solid color-mix(in srgb, var(--hero) 42%, rgba(255,255,255,.12));
   padding:8px 12px;
   border-radius:999px;
-  background:color-mix(in srgb, var(--accent) 10%, transparent);
+  background: color-mix(in srgb, var(--hero) 10%, rgba(0,0,0,.22));
+  cursor:pointer;
   user-select:none;
 }
-.player .muted{color:var(--muted);font-size:12px;letter-spacing:.14em;text-transform:uppercase}
-.player strong{color:var(--accent);letter-spacing:.14em}
+.playerBtn:hover{
+  border-color: color-mix(in srgb, var(--hero) 80%, rgba(255,255,255,.12));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--hero) 16%, transparent);
+}
+.playerBtn .muted{
+  color:rgba(243,246,255,.70);
+  font-size:12px;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.playerBtn strong{ color:var(--hero); letter-spacing:.14em; font-family:var(--arcadeFont); }
 
 .shell{
-  height: calc(100vh - 58px);
-  padding:14px;
+  max-width: var(--shellMaxW);
+  margin: 0 auto;
+  padding: var(--pad);
+  height: calc(100vh - var(--topbarH));
   display:grid;
-  grid-template-columns: 320px minmax(0,1fr) 320px;
-  gap:14px;
-  align-items:stretch;
+  grid-template-columns: var(--leftW) minmax(0,1fr) var(--rightW);
+  gap: var(--gap);
+  align-items: stretch;
 }
+
 .panel{
-  border:1px solid var(--border);
+  border:1px solid rgba(255,255,255,.12);
   border-radius:18px;
+  background: var(--panelBg);
   overflow:hidden;
-  background:rgba(0,0,0,.18);
-  box-shadow:0 18px 70px rgba(0,0,0,.35);
+  height: 100%;
+  min-height: 0;
+  box-shadow: 0 18px 70px rgba(0,0,0,.35);
   display:flex;
   flex-direction:column;
-  min-height:0;
 }
 .panel h3{
   margin:0;
@@ -90,72 +142,417 @@ body{
   font-size:12px;
   letter-spacing:.20em;
   text-transform:uppercase;
-  color:var(--muted);
+  color:rgba(243,246,255,.78);
   border-bottom:1px solid rgba(255,255,255,.10);
-  background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 18%, transparent), rgba(0,0,0,0));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--hero) 16%, transparent), rgba(0,0,0,.00));
 }
 .panel .content{
-  padding:14px;
+  padding:14px 14px;
   flex:1;
   min-height:0;
+  display:flex;
+  flex-direction:column;
   overflow:hidden;
-  font-size:14px;
-  line-height:1.55;
-  color:rgba(243,246,255,.84);
 }
-.center{min-height:0}
+.panel.leaderboard .content{ overflow-y:auto; }
+
+.small{ font-size:14px; color:rgba(243,246,255,.82); line-height:1.55 }
+.howtoText{ font-family: var(--uiFont); letter-spacing:.01em; }
+.clampList{
+  margin:0;
+  padding-left:18px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.clampList li{
+  margin:0;
+  padding:10px 10px;
+  border-radius:14px;
+  border:1px solid color-mix(in srgb, var(--hero) 22%, transparent);
+  background: rgba(0,0,0,.14);
+}
+.clampList li::marker{ color: color-mix(in srgb, var(--hero) 90%, #fff); }
+.noteLine{ margin-top:12px; font-size:12px; color: rgba(243,246,255,.68); }
+
+.center{ height:100%; min-height:0; display:flex; justify-content:center; }
 .frame{
+  width:100%;
+  max-width: var(--centerMaxW);
   height:100%;
-  border:1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+  min-height:0;
   border-radius:22px;
   overflow:hidden;
   background:#000;
-  box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 10%, transparent),0 30px 90px rgba(0,0,0,.52);
+  border: 1px solid color-mix(in srgb, var(--hero) 28%, transparent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--hero) 10%, transparent),
+    0 30px 90px rgba(0,0,0,.52);
 }
-iframe{width:100%;height:100%;border:0;display:block;background:#000}
+iframe{ width:100%; height:100%; border:0; display:block; background:#000; }
 
-@media (max-width:1100px){
-  .shell{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) auto;}
-  .panel{display:none;}
+.boardStack{ display:flex; flex-direction:column; gap:10px; }
+.boardRow{
+  border:1px solid color-mix(in srgb, var(--hero2) 20%, rgba(255,255,255,.10));
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--hero) 10%, transparent), rgba(0,0,0,.14)),
+    linear-gradient(180deg, rgba(0,0,0,.14), rgba(0,0,0,.22));
+  border-radius:16px;
+  padding:12px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
 }
+.boardRow.top1{
+  border-color: color-mix(in srgb, var(--hero) 70%, rgba(255,255,255,.10));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--hero) 12%, transparent);
+}
+.rank,.name,.score{ font-family: var(--arcadeFont); }
+.rank{ font-weight:950; color: var(--hero); min-width:42px; font-size:16px; letter-spacing:.08em; }
+.name{ font-weight:900; color: rgba(243,246,255,.96); font-size:16px; letter-spacing:.12em; }
+.score{ color: rgba(243,246,255,.92); font-size:16px; }
+
+.mobileWrap{ display:none; height: calc(100vh - var(--topbarH)); padding: var(--pad); }
+.mobileStack{ height:100%; display:flex; flex-direction:column; gap:12px; }
+.displayZone{ flex:1; min-height:0; display:flex; justify-content:center; }
+.displayCard{ width:100%; max-width: var(--centerMaxW); border-radius:22px; overflow:hidden; height:100%; }
+.hidden{ display:none; }
+.mobileFrame{ border:1px solid color-mix(in srgb, var(--hero) 28%, transparent); background:#000; }
+
+.btnbar{
+  width:100%;
+  max-width: var(--centerMaxW);
+  margin: 0 auto;
+  padding: 10px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 22px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--hero) 10%, transparent), rgba(0,0,0,.18));
+  backdrop-filter: blur(10px);
+  display:flex;
+  gap: var(--mobileBtnGap);
+}
+.tabBtn{
+  flex:1;
+  height: var(--mobileBtnH);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.18);
+  color: rgba(243,246,255,.92);
+  font-weight: 900;
+  cursor:pointer;
+  letter-spacing:.02em;
+}
+.tabBtn.active{
+  border-color: color-mix(in srgb, var(--hero) 78%, rgba(255,255,255,.12));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--hero) 22%, transparent), color-mix(in srgb, var(--hero2) 12%, transparent));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--hero) 14%, transparent);
+}
+@media (max-width: 1100px){
+  .shell{ display:none; }
+  .mobileWrap{ display:block; }
+}
+
+.modalBack{
+  position:fixed; inset:0;
+  background: rgba(0,0,0,.60);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:60;
+}
+.modalCard{
+  width: min(560px, calc(100vw - 48px));
+  border-radius: 24px;
+  border: 2px solid color-mix(in srgb, var(--hero) 78%, rgba(255,255,255,.10));
+  background:
+    radial-gradient(900px 420px at 50% 0%, color-mix(in srgb, var(--hero) 18%, transparent), transparent 58%),
+    radial-gradient(900px 520px at 25% 85%, color-mix(in srgb, var(--hero2) 14%, transparent), transparent 62%),
+    linear-gradient(180deg, rgba(0,0,0,.70), rgba(0,0,0,.78));
+  box-shadow: 0 40px 160px rgba(0,0,0,.70);
+  overflow:hidden;
+  position:relative;
+}
+.modalClose{
+  position:absolute;
+  top: 14px; right: 14px;
+  width: 40px; height: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.20);
+  color: var(--text);
+  cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+}
+.modalClose:hover{
+  border-color: color-mix(in srgb, var(--hero) 70%, rgba(255,255,255,.14));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--hero) 12%, transparent);
+}
+.modalInner{ padding: 22px 22px 18px; display:grid; gap: 14px; }
+.modalTitle{
+  font-family: var(--arcadeFont);
+  font-size: 34px;
+  font-weight: 950;
+  letter-spacing: .20em;
+  text-transform: uppercase;
+  text-align:center;
+  background: linear-gradient(90deg, var(--hero), var(--hero2), rgba(243,246,255,.92));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color: transparent;
+}
+.modalInput{
+  height: 64px;
+  border-radius: 16px;
+  border: 2px solid color-mix(in srgb, var(--hero) 78%, rgba(255,255,255,.10));
+  background: rgba(0,0,0,.22);
+  color: rgba(243,246,255,.96);
+  font-family: var(--arcadeFont);
+  font-size: 26px;
+  font-weight: 950;
+  letter-spacing: .28em;
+  text-align:center;
+  text-transform: uppercase;
+  outline:none;
+}
+.modalSave{
+  height: 64px;
+  border-radius: 16px;
+  border: 0;
+  cursor:pointer;
+  font-family: var(--arcadeFont);
+  font-size: 20px;
+  font-weight: 950;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: rgba(12,12,12,.94);
+  background: linear-gradient(90deg, var(--hero), var(--hero2));
+  box-shadow: 0 18px 60px rgba(0,0,0,.45);
+}
+.modalHint{ text-align:center; color: rgba(243,246,255,.72); font-size: 12px; font-style: italic; opacity: .92; }
 </style>
 </head>
+
 <body>
-  <div class="topbar">
+<div class="topbar">
+  <div class="top-left">
     <a class="exit" href="../../index.html" id="exitBtn">✕ EXIT</a>
-    <div class="badge">CYBER PYTHON</div>
-    <div class="player"><span class="muted">PLAYER</span><strong id="initials">???</strong></div>
+  </div>
+  <div class="gameBadge" id="gameBadge">CYBER PYTHON</div>
+  <div class="playerBtn" id="playerBtn" role="button" aria-label="Set player initials">
+    <span class="muted">PLAYER</span>
+    <strong id="initials">???</strong>
+  </div>
+</div>
+
+<div class="shell">
+  <div class="panel">
+    <h3>How To Play</h3>
+    <div class="content">
+      <ul id="instructionsDesktop" class="small howtoText clampList"></ul>
+      <div class="noteLine">No scrolling.</div>
+    </div>
   </div>
 
-  <div class="shell">
-    <div class="panel"><h3>How To Play</h3><div class="content" id="howto">Loading…</div></div>
+  <div class="center">
+    <div class="frame">
+      <iframe id="gameDesktop" allow="gamepad *; fullscreen *"></iframe>
+    </div>
+  </div>
 
-    <div class="center">
-      <div class="frame"><iframe id="gameFrame" allow="gamepad *; fullscreen *"></iframe></div>
+  <div class="panel leaderboard">
+    <h3>Leaderboard</h3>
+    <div class="content">
+      <div class="boardStack" id="boardDesktop"></div>
+    </div>
+  </div>
+</div>
+
+<div class="mobileWrap">
+  <div class="mobileStack">
+    <div class="displayZone">
+      <div class="displayCard mobileFrame" id="view-game">
+        <iframe id="gameMobile" allow="gamepad *; fullscreen *"></iframe>
+      </div>
+
+      <div class="panel displayCard hidden" id="view-howto">
+        <div class="content">
+          <ul id="instructionsMobile" class="small howtoText clampList"></ul>
+          <div class="noteLine">No scrolling.</div>
+        </div>
+      </div>
+
+      <div class="panel leaderboard displayCard hidden" id="view-board">
+        <div class="content">
+          <div class="boardStack" id="boardMobile"></div>
+        </div>
+      </div>
     </div>
 
-    <div class="panel"><h3>Leaderboard</h3><div class="content">Wrapper v2 enabled.</div></div>
+    <div class="btnbar">
+      <button class="tabBtn active" data-tab="game" type="button">Game</button>
+      <button class="tabBtn" data-tab="howto" type="button">How To Play</button>
+      <button class="tabBtn" data-tab="board" type="button">Leaderboard</button>
+    </div>
   </div>
+</div>
 
+<div class="modalBack" id="modalBack" aria-hidden="true">
+  <div class="modalCard" role="dialog" aria-modal="true">
+    <button class="modalClose" id="modalClose" type="button">✕</button>
+    <div class="modalInner">
+      <div class="modalTitle">Enter Initials</div>
+      <input class="modalInput" id="initialsInput" maxlength="3" placeholder="— — —" />
+      <button class="modalSave" id="saveInitials" type="button">Save</button>
+      <div class="modalHint">Press Enter to save</div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/engine.js"></script>
 <script>
-const KEY="PIXELNET_INITIALS";
-document.getElementById("initials").textContent = localStorage.getItem(KEY) || "???";
-document.getElementById("exitBtn").addEventListener("click",(e)=>{ if(history.length>1){ e.preventDefault(); history.back(); } });
+const CFG = {
+  title: "Cyber Python",
+  slug: "cyber-python",
+  instructions: ["Use Arrow Keys / WASD to steer.", "Eat targets to grow \u2014 don't crash into yourself.", "Plan turns early; speed increases over time.", "On Game Over, your score is auto-submitted."]
+};
 
+const KEY_MAIN="PIXELNET_INITIALS";
+const KEY_FALLBACK_A="playerInitials";
+const KEY_FALLBACK_B="playerInitials"; // sessionStorage (engine.js)
+function cleanInitials(s){ return (s||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,3); }
+function getInitials(){
+  return (
+    localStorage.getItem(KEY_MAIN) ||
+    localStorage.getItem(KEY_FALLBACK_A) ||
+    sessionStorage.getItem(KEY_FALLBACK_B) ||
+    "???"
+  );
+}
+function setInitialsAll(v){
+  localStorage.setItem(KEY_MAIN, v);
+  localStorage.setItem(KEY_FALLBACK_A, v);
+  sessionStorage.setItem(KEY_FALLBACK_B, v);
+}
+function setInitialsUI(){ document.getElementById("initials").textContent = getInitials(); }
+setInitialsUI();
+
+/* Exit prefers back if possible */
+document.getElementById("exitBtn").addEventListener("click",(e)=>{
+  if(history.length>1){ e.preventDefault(); history.back(); }
+});
+
+/* Title */
+document.getElementById("gameBadge").textContent = CFG.title.toUpperCase();
+document.title = CFG.title + " — PIXEL-NET";
+
+/* Instructions */
+function setInstructions(id){
+  document.getElementById(id).innerHTML = CFG.instructions.map(x=>`<li>${x}</li>`).join("");
+}
+setInstructions("instructionsDesktop");
+setInstructions("instructionsMobile");
+
+/* Game iframe autodetect (same folder) */
 const candidates = ["game.html","play.html","index.html"];
-(async () => {
+async function resolveEntry(){
   for (const f of candidates) {
     try {
-      const r = await fetch(f, {cache:"no-store"});
+      const r = await fetch(f, { cache:"no-store" });
       if (!r.ok) continue;
-      // If index.html is itself a PIXEL-NET wrapper, game.html should have existed earlier in list.
-      document.getElementById("gameFrame").src = f;
-      document.getElementById("howto").textContent = "Wrapper v2 enabled.";
-      return;
+      return f;
     } catch (e) {}
   }
-  document.getElementById("howto").textContent = "Could not find game entry file (game.html / play.html / index.html).";
+  return null;
+}
+(async ()=>{
+  const entry = await resolveEntry();
+  const msg = entry ? null : "Could not find game entry file (game.html / play.html / index.html).";
+  if (entry) {
+    document.getElementById("gameDesktop").src = entry;
+    document.getElementById("gameMobile").src  = entry;
+  } else {
+    document.getElementById("boardDesktop").innerHTML = `<div class="small">${msg}</div>`;
+    document.getElementById("boardMobile").innerHTML  = `<div class="small">${msg}</div>`;
+  }
 })();
+
+/* Leaderboard */
+function renderBoard(targetId, rows){
+  const el = document.getElementById(targetId);
+  el.innerHTML = "";
+  if (!rows || !rows.length) {
+    el.innerHTML = `<div class="small">No scores yet.</div>`;
+    return;
+  }
+  rows.slice(0,10).forEach((r, i)=>{
+    const name = (r.initials || r.name || "???").toString().toUpperCase().slice(0,3);
+    const score = (r.score ?? r.value ?? 0);
+    const row = document.createElement("div");
+    row.className = "boardRow" + (i===0 ? " top1" : "");
+    row.innerHTML = `
+      <div class="rank">${i+1}.</div>
+      <div class="name">${name}</div>
+      <div class="score">${score}</div>
+    `;
+    el.appendChild(row);
+  });
+}
+async function refreshBoards(){
+  if (!window.PixelNet || !PixelNet.getLeaderboard) return;
+  const rows = await PixelNet.getLeaderboard(CFG.slug);
+  renderBoard("boardDesktop", rows);
+  renderBoard("boardMobile", rows);
+}
+refreshBoards();
+setInterval(refreshBoards, 8000);
+
+/* Initials modal */
+const modalBack = document.getElementById("modalBack");
+const modalClose = document.getElementById("modalClose");
+const playerBtn = document.getElementById("playerBtn");
+const input = document.getElementById("initialsInput");
+const save = document.getElementById("saveInitials");
+
+function openModal(){
+  modalBack.style.display = "flex";
+  modalBack.setAttribute("aria-hidden","false");
+  input.value = getInitials().replace(/\?/g,"");
+  input.focus();
+  input.select();
+}
+function closeModal(){
+  modalBack.style.display = "none";
+  modalBack.setAttribute("aria-hidden","true");
+}
+
+playerBtn.addEventListener("click", openModal);
+modalClose.addEventListener("click", closeModal);
+modalBack.addEventListener("click", (e)=>{ if (e.target===modalBack) closeModal(); });
+document.addEventListener("keydown", (e)=>{ if (e.key==="Escape" && modalBack.style.display==="flex") closeModal(); });
+
+function saveNow(){
+  const v = cleanInitials(input.value);
+  if (!v) return;
+  setInitialsAll(v);
+  setInitialsUI();
+  closeModal();
+}
+save.addEventListener("click", saveNow);
+input.addEventListener("keydown", (e)=>{ if (e.key==="Enter") saveNow(); });
+
+/* Mobile tabs */
+const btns = document.querySelectorAll(".tabBtn");
+const views = {
+  game:  document.getElementById("view-game"),
+  howto: document.getElementById("view-howto"),
+  board: document.getElementById("view-board"),
+};
+function setTab(tab){
+  Object.keys(views).forEach(k => views[k].classList.toggle("hidden", k !== tab));
+  btns.forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+}
+btns.forEach(b => b.addEventListener("click", () => setTab(b.dataset.tab)));
 </script>
 </body>
 </html>
