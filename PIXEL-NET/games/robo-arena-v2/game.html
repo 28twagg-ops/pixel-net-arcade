@@ -235,14 +235,15 @@ body {
         .hidden { display: none !important; }
 
         @media (max-width: 768px) {
-            h1 { font-size: 2rem; }
-            .controls-info { display: none; }
-            #mobile-controls { display: flex; }
-            .leaderboard { width: 90%; font-size: 0.9rem; }
-        }
-    
-/* touch-only controls */
-.mobile-controls{display:none;}
+  h1 { font-size: 2rem; }
+  .leaderboard { width: 90%; font-size: 0.9rem; }
+}
+
+@media (hover:none) and (pointer:coarse){
+  .controls-info { display:none; }
+  #mobile-controls { display:flex; }
+}
+
 @media (hover:none) and (pointer:coarse){
   .mobile-controls{display:flex;}
 }

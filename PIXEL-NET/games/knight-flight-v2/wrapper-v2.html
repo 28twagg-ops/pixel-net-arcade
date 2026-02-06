@@ -120,6 +120,22 @@ iframe{width:100%;height:100%;border:0;display:block;background:transparent}
 .panel h3{font-size:14px}
 .mini{font-size:12px;opacity:.9}
 .pills .pill{font-size:12px}
+
+/* THEME_OVERRIDES */
+:root{
+  --bg0:#020614;
+  --bg1:#070b1f;
+  --bg2:#000000;
+  --text:#eef2ff;
+  --muted:rgba(238,242,255,.78);
+  --border:rgba(255,255,255,.16);
+  --accent:#f7c84b;
+  --accent2:#78a6ff;
+  --accent3:#cfd6e6;
+  --card:rgba(0,0,0,.30);
+  --font:"Cinzel","Trajan Pro","Georgia",system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+}
+body,.panel,.center,.topbar,.badge,.player,.exit{transition:background-color .6s ease, background .6s ease, border-color .6s ease, color .6s ease;}
 </style>
 </head>
 <body>
@@ -168,7 +184,7 @@ iframe{width:100%;height:100%;border:0;display:block;background:transparent}
   </div>
 
 <script>
-const LB_KEY = "PIXELNET_LB_knight-flight-v2_v2_0";
+const LB_KEY = "LB_knight-flight-v2";
 
 function focusGameFrame(){
   const f=document.getElementById("gameFrame");
@@ -178,8 +194,8 @@ document.addEventListener("pointerdown", focusGameFrame, {passive:true});
 window.addEventListener("keydown", focusGameFrame, {passive:true});
 
 
-const K1='PIXELNET_INITIALS';
-const K2='playerInitials';
+const K1='playerInitials';
+const K2='PIXELNET_INITIALS';
 function norm(v){
   v=(v||'').toString().trim().toUpperCase();
   v=v.replace(/[^A-Z0-9]/g,'');
@@ -245,7 +261,7 @@ function renderLB(){
   const el=document.getElementById("lb");
   if(!el) return;
   if(!data.length){ el.innerHTML='<div class="mini">No scores yet.</div>'; return; }
-  el.innerHTML=data.map((r,i)=>`<div class="pill"><span>#${i+1}</span><b>${r.initials}</b><em>${r.score}</em></div>`).join("");
+  el.innerHTML=data.map((r,i)=>`<div class="pill"><span>#${i+1}</span><b>${(r.initials||r.name||"???").toString().slice(0,3).toUpperCase()}</b><em>${r.score}</em></div>`).join("");
 }
 function addLB(score){
   score=Math.max(0,Math.floor(Number(score)||0));
@@ -260,7 +276,29 @@ window.PixelNet.setInitials = (v)=>{ set(v); render(); };
 window.PixelNet.submitScore = (s)=> addLB(s);
 
 window.addEventListener("message",(e)=>{
-  try{ const d=e.data||{}; if(d && (d.type==="PIXELNET_SCORE"||d.type==="PIXELNET_SUBMIT_SCORE") && d.score!=null){ addLB(d.score); } }catch(_){}
+  try{ const d=e.data||{}; if(d && (d.type==="PIXELNET_SCORE"||d.type==="PIXELNET_SUBMIT_SCORE"||d.type==="GAME_OVER_SCORE"||d.type==="GAME_OVER") && d.score!=null){ addLB(d.score); } }catch(_){}
+});
+
+
+// optional live theme updates (no-op unless a game sends it)
+function applyThemeVars(vars){
+  try{
+    if(!vars) return;
+    const root=document.documentElement;
+    for(const [k,v] of Object.entries(vars)){
+      if(!k) continue;
+      const key = k.startsWith("--") ? k : `--${k}`;
+      root.style.setProperty(key, String(v));
+    }
+  }catch(_){}
+}
+window.addEventListener("message",(e)=>{
+  try{
+    const d=e.data||{};
+    if(d && d.type==="THEME_UPDATE" && d.vars){
+      applyThemeVars(d.vars);
+    }
+  }catch(_){}
 });
 
 </script>

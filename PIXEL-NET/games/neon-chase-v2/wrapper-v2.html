@@ -200,13 +200,29 @@ iframe{width:100%;height:100%;border:0;display:block;background:#000}
 .panel li{margin:10px 0}
 .mini{font-size:12px;opacity:.9}
 .pills .pill{font-size:12px}
+
+/* THEME_OVERRIDES */
+:root{
+  --bg0:#02050a;
+  --bg1:#001012;
+  --bg2:#000000;
+  --text:#eaffff;
+  --muted:rgba(234,255,255,.78);
+  --border:rgba(255,255,255,.16);
+  --accent:#3cffc8;
+  --accent2:#00ff5a;
+  --accent3:#ff3cff;
+  --card:rgba(0,0,0,.30);
+  --font:"Orbitron","Rajdhani",system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+}
+body,.panel,.center,.topbar,.badge,.player,.exit{transition:background-color .6s ease, background .6s ease, border-color .6s ease, color .6s ease;}
 </style>
 </head>
 <body>
   <div class="topbar">
     <a class="exit" href="../../index.html">EXIT</a>
     <div class="badge">PIXEL-NET ARCADE</div>
-    <div class="player" title="Stored as PIXELNET_INITIALS">
+    <div class="player" title="Stored as playerInitials / PIXELNET_INITIALS">
       <div class="tag">PLAYER</div>
       <div id="initials">???</div>
     </div>
@@ -230,7 +246,7 @@ iframe{width:100%;height:100%;border:0;display:block;background:#000}
         </div>
         <div class="frameWrap">
           <div class="frameSizer">
-            <iframe src="./game.html" title="Neon Chase (version 2.0)" allow="fullscreen" id=\"gameFrame\"></iframe>
+            <iframe src="./game.html" title="Neon Chase (version 2.0)" allow="fullscreen" id="gameFrame"></iframe>
           </div>
         </div>
       </div>
@@ -254,8 +270,8 @@ iframe{width:100%;height:100%;border:0;display:block;background:#000}
   </div>
 
 <script>
-const INITIALS_KEY="PIXELNET_INITIALS";
-const ALT_INITIALS_KEY="playerInitials";
+const INITIALS_KEY="playerInitials";
+const ALT_INITIALS_KEY="PIXELNET_INITIALS";
 function getInitials(){
   const v=(localStorage.getItem(INITIALS_KEY)||localStorage.getItem(ALT_INITIALS_KEY)||"???").toString().trim().toUpperCase();
   return (v||"???").slice(0,3);
@@ -270,7 +286,7 @@ function setInitials(v){
 document.getElementById("initials").textContent = getInitials();
 
 
-const LB_KEY = "PIXELNET_LB_neon-chase-v2_v2_0";
+const LB_KEY = "LB_neon-chase-v2";
 
 function focusGameFrame(){
   const f=document.getElementById("gameFrame");
@@ -289,7 +305,7 @@ function renderLB(){
   el.innerHTML=data.map((r,i)=>`
     <div class="pill">
       <div class="rank">#${i+1}</div>
-      <div class="who">${(r.name||'???').toUpperCase().slice(0,3)}</div>
+      <div class="who">${(r.initials||r.name||"???").toUpperCase().slice(0,3)}</div>
       <div class="score">${Number(r.score)||0}</div>
     </div>`).join("");
 }
@@ -352,8 +368,30 @@ window.PixelNet.submitScore = (s)=> addLB(s);
 window.addEventListener("message",(e)=>{
   try{
     const d=e.data||{};
-    if(d && (d.type==="PIXELNET_SCORE"||d.type==="PIXELNET_SUBMIT_SCORE") && d.score!=null){
+    if(d && (d.type==="PIXELNET_SCORE"||d.type==="PIXELNET_SUBMIT_SCORE"||d.type==="GAME_OVER_SCORE"||d.type==="GAME_OVER") && d.score!=null){
       addLB(d.score);
+    }
+  }catch(_){}
+});
+
+
+// optional live theme updates (no-op unless a game sends it)
+function applyThemeVars(vars){
+  try{
+    if(!vars) return;
+    const root=document.documentElement;
+    for(const [k,v] of Object.entries(vars)){
+      if(!k) continue;
+      const key = k.startsWith("--") ? k : `--${k}`;
+      root.style.setProperty(key, String(v));
+    }
+  }catch(_){}
+}
+window.addEventListener("message",(e)=>{
+  try{
+    const d=e.data||{};
+    if(d && d.type==="THEME_UPDATE" && d.vars){
+      applyThemeVars(d.vars);
     }
   }catch(_){}
 });

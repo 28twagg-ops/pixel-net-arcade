@@ -131,6 +131,22 @@ body{
 .gameTitle{position:relative;justify-content:flex-end;}
 .gameTitle .name{position:absolute;left:50%;transform:translateX(-50%);text-align:center;white-space:nowrap;max-width:70%;overflow:hidden;text-overflow:ellipsis;}
 
+
+/* THEME_OVERRIDES */
+:root{
+  --bg0:#070000;
+  --bg1:#120000;
+  --bg2:#000000;
+  --text:#fff1f1;
+  --muted:rgba(255,241,241,.78);
+  --border:rgba(255,255,255,.16);
+  --accent:#ff2b2b;
+  --accent2:#ffd24a;
+  --accent3:#45e7ff;
+  --card:rgba(0,0,0,.32);
+  --font:"Orbitron","Rajdhani",system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+}
+body,.panel,.center,.topbar,.badge,.player,.exit{transition:background-color .6s ease, background .6s ease, border-color .6s ease, color .6s ease;}
 </style>
 </head>
 <body>
@@ -189,7 +205,29 @@ body{
   </div>
 </div>
 
-<script src="../../js/engine.js"></script>
+<script src="../../js/engine.js">
+// optional live theme updates (no-op unless a game sends it)
+function applyThemeVars(vars){
+  try{
+    if(!vars) return;
+    const root=document.documentElement;
+    for(const [k,v] of Object.entries(vars)){
+      if(!k) continue;
+      const key = k.startsWith("--") ? k : `--${k}`;
+      root.style.setProperty(key, String(v));
+    }
+  }catch(_){}
+}
+window.addEventListener("message",(e)=>{
+  try{
+    const d=e.data||{};
+    if(d && d.type==="THEME_UPDATE" && d.vars){
+      applyThemeVars(d.vars);
+    }
+  }catch(_){}
+});
+
+</script>
 <script>
 (function(){
   "use strict";
@@ -302,6 +340,28 @@ body{
   // refresh periodically
   setInterval(loadLB, 12000);
 })();
+
+// optional live theme updates (no-op unless a game sends it)
+function applyThemeVars(vars){
+  try{
+    if(!vars) return;
+    const root=document.documentElement;
+    for(const [k,v] of Object.entries(vars)){
+      if(!k) continue;
+      const key = k.startsWith("--") ? k : `--${k}`;
+      root.style.setProperty(key, String(v));
+    }
+  }catch(_){}
+}
+window.addEventListener("message",(e)=>{
+  try{
+    const d=e.data||{};
+    if(d && d.type==="THEME_UPDATE" && d.vars){
+      applyThemeVars(d.vars);
+    }
+  }catch(_){}
+});
+
 </script>
 </body>
 </html>

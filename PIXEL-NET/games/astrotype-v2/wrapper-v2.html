@@ -106,6 +106,25 @@ iframe{width:100%;height:100%;border:0;display:block;background:transparent}
 
 
 #pGame h3{text-align:center}
+
+/* THEME_OVERRIDES */
+:root{
+  --bg0:#000000;
+  --bg1:#05060b;
+  --bg2:#000000;
+  --text:#fff7d6;
+  --muted:rgba(255,247,214,.78);
+  --border:rgba(255,255,255,.16);
+  --accent:#ffd84a;
+  --accent2:#43ff5a;
+  --accent3:#ffffff;
+  --card:rgba(0,0,0,.34);
+  --font:"Orbitron","Rajdhani",system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+}
+body,.panel,.center,.topbar,.badge,.player,.exit{transition:background-color .6s ease, background .6s ease, border-color .6s ease, color .6s ease;}
+
+.mobileNotice{display:none;position:sticky;top:58px;z-index:25;margin:0;padding:8px 12px;text-align:center;font-weight:800;letter-spacing:.06em;font-size:12px;color:var(--text);background:color-mix(in srgb, var(--accent2) 18%, rgba(0,0,0,.65));border-bottom:1px solid var(--border);} 
+@media (hover:none) and (pointer:coarse){ .mobileNotice{display:block;} }
 </style>
 </head>
 <body>
@@ -119,6 +138,7 @@ iframe{width:100%;height:100%;border:0;display:block;background:transparent}
       <div id="initials">???</div>
     </div>
   </div>
+  <div class="mobileNotice">BEST ON DESKTOP • MOBILE PLAY IS LIMITED</div>
 
   <div class="wrap">
     <div class="grid">
@@ -153,8 +173,8 @@ iframe{width:100%;height:100%;border:0;display:block;background:transparent}
   </div>
 
 <script>
-const K1='PIXELNET_INITIALS';
-const K2='playerInitials';
+const K1='playerInitials';
+const K2='PIXELNET_INITIALS';
 function norm(v){
   v=(v||'').toString().trim().toUpperCase();
   v=v.replace(/[^A-Z0-9]/g,'');
@@ -177,6 +197,7 @@ render();
 window.addEventListener('storage', (e)=>{ if(e.key===K1||e.key===K2) render(); });
 set(get());
 
+function getInitials(){ return get() || "???"; }
 window.addEventListener('message',(e)=>{
   try{
     const d=e.data||{};
@@ -185,16 +206,22 @@ window.addEventListener('message',(e)=>{
 });
 
 
-const LB_KEY = "PIXELNET_LB_astrotype-v2_v2_0";
+const LB_KEY = "LB_astrotype-v2";
 function loadLB(){ try{ return JSON.parse(localStorage.getItem(LB_KEY)||"[]"); }catch(e){ return []; } }
 function saveLB(rows){ localStorage.setItem(LB_KEY, JSON.stringify(rows||[])); }
+let lastSubmitSig="";
+let lastSubmitAt=0;
 function pushScore(score){
   const who=(getInitials()||"???").toUpperCase().slice(0,3);
   if(score===undefined || score===null) return;
   const n=Number(score);
   if(!isFinite(n)) return;
   const rows=loadLB();
-  rows.push({ name: who, score: Math.floor(n), ts: Date.now() });
+  const now=Date.now();
+  const sig = `${who}:${Math.floor(n)}`;
+  if(sig===lastSubmitSig && (now-lastSubmitAt)<1500) return;
+  lastSubmitSig=sig; lastSubmitAt=now;
+  rows.push({ initials: who, score: Math.floor(n), ts: now });
   rows.sort((a,b)=>b.score-a.score);
   saveLB(rows.slice(0,50));
   renderLB();
@@ -207,7 +234,7 @@ function renderLB(){
   el.innerHTML=data.map((r,i)=>`
     <div class="pill">
       <div class="rank">#${i+1}</div>
-      <div class="who">${(r.name||"???").toString().slice(0,3).toUpperCase()}</div>
+      <div class="who">${(r.initials||r.name||"???").toString().slice(0,3).toUpperCase()}</div>
       <div class="score">${r.score}</div>
     </div>
   `).join("");
@@ -215,7 +242,14 @@ function renderLB(){
 window.PIXELNET_SUBMIT_SCORE = pushScore;
 renderLB();
 
-
+window.addEventListener("message",(e)=>{
+  try{
+    const d=e.data||{};
+    if(d && (d.type==="PIXELNET_SCORE"||d.type==="PIXELNET_SUBMIT_SCORE"||d.type==="GAME_OVER_SCORE"||d.type==="GAME_OVER") && d.score!=null){
+      pushScore(d.score);
+    }
+  }catch(_){ }
+});
 function focusGame(){
   const f=document.getElementById("gameFrame");
   try{ f && f.contentWindow && f.contentWindow.focus(); }catch(e){}
@@ -223,6 +257,28 @@ function focusGame(){
 }
 window.addEventListener("load", ()=>{ setTimeout(focusGame, 150); });
 document.addEventListener("pointerdown", ()=>{ setTimeout(focusGame, 0); }, {passive:true});
+
+
+// optional live theme updates (no-op unless a game sends it)
+function applyThemeVars(vars){
+  try{
+    if(!vars) return;
+    const root=document.documentElement;
+    for(const [k,v] of Object.entries(vars)){
+      if(!k) continue;
+      const key = k.startsWith("--") ? k : `--${k}`;
+      root.style.setProperty(key, String(v));
+    }
+  }catch(_){}
+}
+window.addEventListener("message",(e)=>{
+  try{
+    const d=e.data||{};
+    if(d && d.type==="THEME_UPDATE" && d.vars){
+      applyThemeVars(d.vars);
+    }
+  }catch(_){}
+});
 
 </script>
 </body>
