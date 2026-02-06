@@ -6,17 +6,18 @@
 <title>Knight Flight (version 2.0) — PIXEL-NET</title>
 <style>
 :root{
-  --bg0:#0a0a0a;
-  --bg1:#111111;
-  --bg2:#000000;
+  --bg0:#05060a;
+  --bg1:#070a14;
+  --bg2:#05060a;
   --text:#f3f6ff;
   --muted:rgba(243,246,255,.78);
   --border:rgba(255,255,255,.14);
-  --accent:#ffd700;
-  --accent2:#bf00ff;
-  --card:rgba(0,0,0,.28);
+  --accent:#f5c84c;   /* gold */
+  --accent2:#7aa6ff;  /* moonlight blue */
+  --accent3:#ff3b3b;
+  --card:rgba(0,0,0,.30);
   --shadow:0 10px 30px rgba(0,0,0,.35);
-  --font:'Press Start 2P', monospace;
+  --font:"Cinzel", system-ui,-apple-system,"Segoe UI",Roboto,Arial;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -120,22 +121,16 @@ iframe{width:100%;height:100%;border:0;display:block;background:transparent}
 .panel h3{font-size:14px}
 .mini{font-size:12px;opacity:.9}
 .pills .pill{font-size:12px}
-
-/* THEME_OVERRIDES */
-:root{
-  --bg0:#020614;
-  --bg1:#070b1f;
-  --bg2:#000000;
-  --text:#eef2ff;
-  --muted:rgba(238,242,255,.78);
-  --border:rgba(255,255,255,.16);
-  --accent:#f7c84b;
-  --accent2:#78a6ff;
-  --accent3:#cfd6e6;
-  --card:rgba(0,0,0,.30);
-  --font:"Cinzel","Trajan Pro","Georgia",system-ui,-apple-system,"Segoe UI",Roboto,Arial;
-}
-body,.panel,.center,.topbar,.badge,.player,.exit{transition:background-color .6s ease, background .6s ease, border-color .6s ease, color .6s ease;}
+/* LB rows (shared) */
+.lb{display:flex;flex-direction:column;gap:10px}
+.lbRow{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;
+  padding:10px 12px;border:1px solid var(--border);border-radius:14px;
+  background:color-mix(in srgb, var(--card) 85%, transparent);
+  box-shadow:0 10px 24px rgba(0,0,0,.25) inset}
+.lbRow .rank{color:var(--accent);font-weight:900}
+.lbRow .who{letter-spacing:.08em;font-weight:800}
+.lbRow .sc{color:var(--accent2);font-weight:900}
+.muted{color:var(--muted)}
 </style>
 </head>
 <body>
@@ -184,123 +179,144 @@ body,.panel,.center,.topbar,.badge,.player,.exit{transition:background-color .6s
   </div>
 
 <script>
-const LB_KEY = "LB_knight-flight-v2";
+(() => {
+  // --------- Initials (canonical) ----------
+  const PRIMARY = 'playerInitials';
+  const MIRROR  = 'PIXELNET_INITIALS';
+  const norm = (v) => (v||'').toString().trim().toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,3);
+  const getInitials = () => norm(localStorage.getItem(PRIMARY) || localStorage.getItem(MIRROR) || '');
+  const setInitials = (v) => {
+    v = norm(v);
+    if(!v) return;
+    localStorage.setItem(PRIMARY, v);
+    localStorage.setItem(MIRROR, v);
+  };
 
-function focusGameFrame(){
-  const f=document.getElementById("gameFrame");
-  try{ f?.contentWindow?.focus?.(); }catch(_){}
-}
-document.addEventListener("pointerdown", focusGameFrame, {passive:true});
-window.addEventListener("keydown", focusGameFrame, {passive:true});
+  const initialsEl = document.getElementById('initials');
+  const renderInitials = () => { if(initialsEl) initialsEl.textContent = getInitials() || '???'; };
+  renderInitials();
+  window.addEventListener('storage', (e)=>{ if(e.key===PRIMARY || e.key===MIRROR) renderInitials(); });
 
+  // Optional initials modal (if present)
+  const modal = document.getElementById('initModal');
+  const input = document.getElementById('initInput');
+  const btnSave = document.getElementById('initSave');
+  const btnCancel = document.getElementById('initCancel');
+  const playerBtn = document.getElementById('playerBtn') || initialsEl;
 
-const K1='playerInitials';
-const K2='PIXELNET_INITIALS';
-function norm(v){
-  v=(v||'').toString().trim().toUpperCase();
-  v=v.replace(/[^A-Z0-9]/g,'');
-  return v.slice(0,3);
-}
-function get(){
-  return norm(localStorage.getItem(K1) || localStorage.getItem(K2) || '');
-}
-function set(v){
-  v=norm(v);
-  if(!v) return;
-  localStorage.setItem(K1,v);
-  localStorage.setItem(K2,v);
-}
-function render(){
-  const v=get() || '???';
-  document.getElementById('initials').textContent=v;
-}
-render();
-renderLB();
-if(!get()) openInitModal();
-window.addEventListener('storage', (e)=>{ if(e.key===K1||e.key===K2) render(); });
-set(get());
+  const openModal = () => {
+    if(!modal || !input) return;
+    input.value = getInitials() || '';
+    modal.style.display = 'flex';
+    setTimeout(()=>input.focus(), 50);
+  };
+  const closeModal = () => { if(modal) modal.style.display = 'none'; };
 
-window.addEventListener('message',(e)=>{
+  playerBtn?.addEventListener('click', (e)=>{ e.preventDefault(); openModal(); });
+  btnCancel?.addEventListener('click', (e)=>{ e.preventDefault(); closeModal(); });
+  btnSave?.addEventListener('click', (e)=>{
+    e.preventDefault();
+    setInitials(input?.value || '');
+    renderInitials();
+    closeModal();
+  });
+  modal?.addEventListener('click', (e)=>{ if(e.target===modal) closeModal(); });
+
+  // --------- Leaderboard (localStorage Top-10 per copy) ----------
+  const lbEl = document.getElementById('lb');
+
+  // slug from folder name (…/games/<slug>/wrapper-v2.html)
+  const slug = (() => {
+    try{
+      const parts = location.pathname.split('/').filter(Boolean);
+      const gi = parts.lastIndexOf('games');
+      if(gi>=0 && parts[gi+1]) return parts[gi+1];
+    }catch(_){}
+    return 'unknown';
+  })();
+
+  const NEW_KEY = `LB_${slug}`;
+  const LEGACY_KEYS = [
+    `PIXELNET_LB_${slug}_v2_0`,
+    `PIXELNET_LB_${slug}_v2_0`.replace(/-/g,'_'),
+    `PIXELNET_LB_${slug}`,
+  ];
+
+  const load = (k) => { try{ return JSON.parse(localStorage.getItem(k)||'[]'); }catch(_){ return []; } };
+  const save = (k, arr) => { try{ localStorage.setItem(k, JSON.stringify(arr)); }catch(_){ } };
+
+  // migrate legacy -> new (only if new empty)
   try{
-    const d=e.data||{};
-    if(d && d.type==='PIXELNET_SET_INITIALS' && d.initials){ set(d.initials); render(); }
-  }catch(_){}
-});
-
-
-function getInitials(){ return get() || "???"; }
-function setInitials(v){ set(v); }
-
-const modal=document.getElementById("initModal");
-const input=document.getElementById("initInput");
-function openInitModal(){
-  modal.setAttribute("aria-hidden","false");
-  setTimeout(()=>{ input.value=(get()||""); input.focus(); input.select(); },50);
-}
-function closeInitModal(){
-  modal.setAttribute("aria-hidden","true");
-}
-document.getElementById("playerBtn").addEventListener("click", openInitModal);
-document.getElementById("playerBtn").addEventListener("keydown",(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openInitModal(); }});
-document.getElementById("initCancel").addEventListener("click", closeInitModal);
-document.getElementById("initSave").addEventListener("click", ()=>{
-  const v=norm(input.value);
-  if(v){ set(v); render(); }
-  closeInitModal();
-});
-input.addEventListener("input", ()=>{ input.value=norm(input.value); });
-input.addEventListener("keydown",(e)=>{
-  if(e.key==="Enter"){ e.preventDefault(); document.getElementById("initSave").click(); }
-  if(e.key==="Escape"){ e.preventDefault(); document.getElementById("initCancel").click(); }
-});
-
-function loadLB(){ try{ return JSON.parse(localStorage.getItem(LB_KEY)||"[]"); }catch(_){ return []; } }
-function saveLB(arr){ try{ localStorage.setItem(LB_KEY, JSON.stringify(arr||[])); }catch(_){ } }
-function renderLB(){
-  const data=loadLB().sort((a,b)=>b.score-a.score).slice(0,10);
-  const el=document.getElementById("lb");
-  if(!el) return;
-  if(!data.length){ el.innerHTML='<div class="mini">No scores yet.</div>'; return; }
-  el.innerHTML=data.map((r,i)=>`<div class="pill"><span>#${i+1}</span><b>${(r.initials||r.name||"???").toString().slice(0,3).toUpperCase()}</b><em>${r.score}</em></div>`).join("");
-}
-function addLB(score){
-  score=Math.max(0,Math.floor(Number(score)||0));
-  const initials=get()||"";
-  if(!initials) return;
-  const arr=loadLB(); arr.push({initials,score,ts:Date.now()}); saveLB(arr); renderLB();
-}
-
-window.PixelNet = window.PixelNet || {};
-window.PixelNet.getInitials = ()=> get()||"";
-window.PixelNet.setInitials = (v)=>{ set(v); render(); };
-window.PixelNet.submitScore = (s)=> addLB(s);
-
-window.addEventListener("message",(e)=>{
-  try{ const d=e.data||{}; if(d && (d.type==="PIXELNET_SCORE"||d.type==="PIXELNET_SUBMIT_SCORE"||d.type==="GAME_OVER_SCORE"||d.type==="GAME_OVER") && d.score!=null){ addLB(d.score); } }catch(_){}
-});
-
-
-// optional live theme updates (no-op unless a game sends it)
-function applyThemeVars(vars){
-  try{
-    if(!vars) return;
-    const root=document.documentElement;
-    for(const [k,v] of Object.entries(vars)){
-      if(!k) continue;
-      const key = k.startsWith("--") ? k : `--${k}`;
-      root.style.setProperty(key, String(v));
+    if(load(NEW_KEY).length===0){
+      for(const k of LEGACY_KEYS){
+        const v = load(k);
+        if(Array.isArray(v) && v.length){
+          save(NEW_KEY, v);
+          break;
+        }
+      }
     }
   }catch(_){}
-}
-window.addEventListener("message",(e)=>{
-  try{
-    const d=e.data||{};
-    if(d && d.type==="THEME_UPDATE" && d.vars){
-      applyThemeVars(d.vars);
-    }
-  }catch(_){}
-});
 
+  const renderLB = () => {
+    if(!lbEl) return;
+    const rows = load(NEW_KEY).slice(0,10);
+    if(!rows.length){
+      lbEl.innerHTML = '<div class="muted">No scores yet.</div>';
+      return;
+    }
+    lbEl.innerHTML = rows.map((r,i)=>{
+      const initials = (r && (r.initials || r.name)) ? String(r.initials || r.name).toUpperCase().slice(0,3) : '???';
+      const score = (r && r.score!=null) ? Math.floor(Number(r.score)||0) : 0;
+      return `<div class="lbRow"><span class="rank">${i+1}</span><span class="who">${initials}</span><span class="sc">${score}</span></div>`;
+    }).join('');
+  };
+  window.PX_refreshLeaderboard = renderLB;
+  renderLB();
+
+  // --------- Score intake (single-submit guard) ----------
+  let lastSig = '';
+  let lastAt = 0;
+  const addScore = (rawScore) => {
+    const score = Math.max(0, Math.floor(Number(rawScore)||0));
+    const initials = getInitials() || '???';
+
+    const now = Date.now();
+    const sig = `${initials}:${score}`;
+    if(sig===lastSig && (now-lastAt) < 1200) return; // de-dupe burst
+    lastSig = sig; lastAt = now;
+
+    const rows = load(NEW_KEY);
+    rows.push({ initials, score, t: now });
+    rows.sort((a,b)=> (b.score||0)-(a.score||0) || (a.t||0)-(b.t||0));
+    save(NEW_KEY, rows.slice(0,10));
+    renderLB();
+  };
+
+  window.addEventListener('message', (e)=>{
+    const d = e.data || {};
+    const type = d.type;
+    if(!type) return;
+
+    // set initials from home if sent
+    if(type==='PIXELNET_SET_INITIALS' && d.initials){
+      setInitials(d.initials); renderInitials(); return;
+    }
+
+    // accept score signals
+    if(type==='GAME_OVER_SCORE' || type==='GAME_OVER' || type==='PIXELNET_SCORE' || type==='PIXELNET_SUBMIT_SCORE'){
+      const s = (d.score!=null)? d.score : (d.finalScore!=null? d.finalScore : d.value);
+      if(s!=null) addScore(s);
+    }
+  });
+
+  // focus iframe when interacting
+  const f = document.getElementById('gameFrame');
+  const focusFrame = ()=>{ try{ f?.contentWindow?.focus?.(); }catch(_){ } };
+  document.addEventListener('pointerdown', focusFrame, {passive:true});
+  window.addEventListener('keydown', focusFrame, {passive:true});
+
+})();
 </script>
 
 <div class="modal" id="initModal" aria-hidden="true">

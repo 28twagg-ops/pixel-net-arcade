@@ -255,10 +255,10 @@ let _pxSubmitted = false;
 async function _pxSubmitOnce(finalScore){
   if(_pxSubmitted) return;
   _pxSubmitted = true;
+  const score = Math.max(0, Math.floor(Number(finalScore)||0));
   try{
-    const P = (window.parent && window.parent.PixelNet) ? window.parent.PixelNet : (window.PixelNet || null);
-    if(P && P.submitScore){
-      await P.submitScore('logic-bomb', Math.max(0, Math.floor(Number(finalScore)||0)));
+    if(window.parent && window.parent !== window){
+      window.parent.postMessage({ type:"GAME_OVER_SCORE", score }, "*");
     }
   }catch(_){}
   try{

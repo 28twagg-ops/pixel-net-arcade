@@ -492,6 +492,8 @@ function handlePlayerDeath() {
             if (gameState === 'PLAYING') {
                 gameState = 'GAMEOVER';
                 finalScoreEl.textContent = score;
+                try{ if(window.parent && window.parent!==window){ window.parent.postMessage({type:'GAME_OVER_SCORE', score: score}, '*'); } }catch(_){ }
+
                 gameOverScreen.classList.remove('hidden');
             }
         }, 1000);

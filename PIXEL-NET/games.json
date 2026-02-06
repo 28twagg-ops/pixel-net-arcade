@@ -121,7 +121,7 @@
     "name": "ROBO-ARENA (version 2.0)",
     "type": "iframe",
     "path": "games/robo-arena-v2/wrapper-v2.html",
-    "thumb": "assets/robo-arena_thumb.png",
+    "thumb": "assets/robo-arena_thumb.jpg",
     "description": "Top-down neon arena combat (v2)."
   },
   {

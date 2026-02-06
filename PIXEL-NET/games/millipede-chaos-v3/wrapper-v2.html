@@ -6,16 +6,18 @@
 <title>Millipede Chaos (version 3.0)</title>
 <style>
 :root{
-  --bg1:#050005; --bg2:#000505;
-  --panelTop: rgba(20, 10, 10, .80);
-  --panelBot: rgba(10, 6, 6, .66);
-  --stroke: rgba(255,255,255,.10);
-  --text:#e9ecff; --muted:#b7b1c8;
-  --accent: rgba(239, 68, 68, .50);
-  --shadow: 0 14px 40px rgba(0,0,0,.35);
-  --r:18px; --gap:14px;
-  --font: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-  --font2: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+  --bg0:#090000;
+  --bg1:#140000;
+  --bg2:#090000;
+  --text:#fff6f6;
+  --muted:rgba(255,246,246,.78);
+  --border:rgba(255,255,255,.14);
+  --accent:#ff1f1f;   /* red */
+  --accent2:#ffd24a;  /* mushroom yellow */
+  --accent3:#00eaff;  /* ship cyan */
+  --card:rgba(0,0,0,.34);
+  --shadow:0 12px 34px rgba(0,0,0,.42);
+  --font:"Press Start 2P","Courier New",Courier,monospace;
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
@@ -87,12 +89,12 @@ body{
 .gamebox{
   flex:1;min-height:0;
   border-radius:14px;
-  border:1px solid rgba(255,255,255,.10);
+  border:0;
   overflow:hidden;
-  background:rgba(0,0,0,.35);
-  box-shadow:0 0 22px rgba(180,60,30,.10);
+  background:#000;
+  box-shadow:0 0 30px color-mix(in srgb, var(--accent) 20%, transparent);
 }
-.gamebox iframe{width:100%;height:100%;border:0;display:block;background:transparent}
+.gamebox iframe{width:100%;height:100%;border:0;display:block;background:#000}
 .lb-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
 .lb-col{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
 .lb-item{
@@ -131,22 +133,16 @@ body{
 .gameTitle{position:relative;justify-content:flex-end;}
 .gameTitle .name{position:absolute;left:50%;transform:translateX(-50%);text-align:center;white-space:nowrap;max-width:70%;overflow:hidden;text-overflow:ellipsis;}
 
-
-/* THEME_OVERRIDES */
-:root{
-  --bg0:#070000;
-  --bg1:#120000;
-  --bg2:#000000;
-  --text:#fff1f1;
-  --muted:rgba(255,241,241,.78);
-  --border:rgba(255,255,255,.16);
-  --accent:#ff2b2b;
-  --accent2:#ffd24a;
-  --accent3:#45e7ff;
-  --card:rgba(0,0,0,.32);
-  --font:"Orbitron","Rajdhani",system-ui,-apple-system,"Segoe UI",Roboto,Arial;
-}
-body,.panel,.center,.topbar,.badge,.player,.exit{transition:background-color .6s ease, background .6s ease, border-color .6s ease, color .6s ease;}
+/* LB rows (shared) */
+.lb{display:flex;flex-direction:column;gap:10px}
+.lbRow{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;
+  padding:10px 12px;border:1px solid var(--border);border-radius:14px;
+  background:color-mix(in srgb, var(--card) 85%, transparent);
+  box-shadow:0 10px 24px rgba(0,0,0,.25) inset}
+.lbRow .rank{color:var(--accent);font-weight:900}
+.lbRow .who{letter-spacing:.08em;font-weight:800}
+.lbRow .sc{color:var(--accent2);font-weight:900}
+.muted{color:var(--muted)}
 </style>
 </head>
 <body>
@@ -205,163 +201,146 @@ body,.panel,.center,.topbar,.badge,.player,.exit{transition:background-color .6s
   </div>
 </div>
 
-<script src="../../js/engine.js">
-// optional live theme updates (no-op unless a game sends it)
-function applyThemeVars(vars){
-  try{
-    if(!vars) return;
-    const root=document.documentElement;
-    for(const [k,v] of Object.entries(vars)){
-      if(!k) continue;
-      const key = k.startsWith("--") ? k : `--${k}`;
-      root.style.setProperty(key, String(v));
-    }
-  }catch(_){}
-}
-window.addEventListener("message",(e)=>{
-  try{
-    const d=e.data||{};
-    if(d && d.type==="THEME_UPDATE" && d.vars){
-      applyThemeVars(d.vars);
-    }
-  }catch(_){}
-});
-
-</script>
+<script src="../../js/engine.js"></script>
 <script>
-(function(){
-  "use strict";
-  var SLUG="millipede-chaos-v3";
+(() => {
+  // --------- Initials (canonical) ----------
+  const PRIMARY = 'playerInitials';
+  const MIRROR  = 'PIXELNET_INITIALS';
+  const norm = (v) => (v||'').toString().trim().toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,3);
+  const getInitials = () => norm(localStorage.getItem(PRIMARY) || localStorage.getItem(MIRROR) || '');
+  const setInitials = (v) => {
+    v = norm(v);
+    if(!v) return;
+    localStorage.setItem(PRIMARY, v);
+    localStorage.setItem(MIRROR, v);
+  };
 
-  function norm(v){return String(v||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,3)||"???";}
-  function getInitials(){
-    return norm(
-      localStorage.getItem("PIXELNET_INITIALS") ||
-      localStorage.getItem("px_player_initials") ||
-      sessionStorage.getItem("playerInitials") ||
-      "???"
-    );
-  }
-  function syncInitials(v){
-    v=norm(v);
-    try{localStorage.setItem("PIXELNET_INITIALS",v);}catch(_){}
-    try{localStorage.setItem("px_player_initials",v);}catch(_){}
-    try{sessionStorage.setItem("playerInitials",v);}catch(_){}
-  }
+  const initialsEl = document.getElementById('initials');
+  const renderInitials = () => { if(initialsEl) initialsEl.textContent = getInitials() || '???'; };
+  renderInitials();
+  window.addEventListener('storage', (e)=>{ if(e.key===PRIMARY || e.key===MIRROR) renderInitials(); });
 
-  if(window.PixelNet && PixelNet.init) PixelNet.init();
-  if(window.PixelNet && PixelNet.uiInit) PixelNet.uiInit();
+  // Optional initials modal (if present)
+  const modal = document.getElementById('initModal');
+  const input = document.getElementById('initInput');
+  const btnSave = document.getElementById('initSave');
+  const btnCancel = document.getElementById('initCancel');
+  const playerBtn = document.getElementById('playerBtn') || initialsEl;
 
-  var badge=document.getElementById("pn-badge");
-  var exitBtn=document.getElementById("pn-exit");
-  var modal=document.getElementById("pn-modal");
-  var backdrop=document.getElementById("pn-backdrop");
-  var input=document.getElementById("pn-input");
-  var save=document.getElementById("pn-save");
-  var cancel=document.getElementById("pn-cancel");
+  const openModal = () => {
+    if(!modal || !input) return;
+    input.value = getInitials() || '';
+    modal.style.display = 'flex';
+    setTimeout(()=>input.focus(), 50);
+  };
+  const closeModal = () => { if(modal) modal.style.display = 'none'; };
 
-  function openModal(){
-    input.value=(badge.textContent==="???")?"":badge.textContent;
-    modal.style.display="flex";
-    setTimeout(function(){input.focus();},0);
-  }
-  function closeModal(){modal.style.display="none";}
-  function commit(){
-    var v=norm(input.value);
-    if(v!=="???"){syncInitials(v); badge.textContent=v;}
+  playerBtn?.addEventListener('click', (e)=>{ e.preventDefault(); openModal(); });
+  btnCancel?.addEventListener('click', (e)=>{ e.preventDefault(); closeModal(); });
+  btnSave?.addEventListener('click', (e)=>{
+    e.preventDefault();
+    setInitials(input?.value || '');
+    renderInitials();
     closeModal();
-  }
-
-  badge.textContent=getInitials();
-  syncInitials(badge.textContent);
-
-  window.addEventListener("storage",function(e){
-    if(e && (e.key==="PIXELNET_INITIALS" || e.key==="px_player_initials" || e.key==="playerInitials")){
-      var v=getInitials();
-      badge.textContent=v;
-      syncInitials(v);
-    }
   });
+  modal?.addEventListener('click', (e)=>{ if(e.target===modal) closeModal(); });
 
-  badge.addEventListener("click",openModal);
-  backdrop.addEventListener("click",commit);
-  save.addEventListener("click",commit);
-  cancel.addEventListener("click",closeModal);
-  input.addEventListener("keydown",function(e){
-    if(e.key==="Enter"){e.preventDefault();commit();}
-    if(e.key==="Escape"){e.preventDefault();closeModal();}
-  });
+  // --------- Leaderboard (localStorage Top-10 per copy) ----------
+  const lbEl = document.getElementById('lb');
 
-  exitBtn.onclick=function(){location.href="../../index.html";};
-
-  // Mobile tabs
-  var tabBtns=[].slice.call(document.querySelectorAll(".tabbtn"));
-  function setTab(id){
-    tabBtns.forEach(function(b){b.classList.toggle("active", b.dataset.tab===id);});
-    document.getElementById("pn-how").classList.toggle("active", id==="how");
-    document.getElementById("pn-game").classList.toggle("active", id==="game");
-    document.getElementById("pn-lb").classList.toggle("active", id==="lb");
-  }
-  tabBtns.forEach(function(b){b.addEventListener("click",function(){setTab(b.dataset.tab);});});
-
-  // Leaderboard
-  function renderLB(items){
-    items = (items||[]).slice(0,10);
-    var left=document.getElementById("lb-left");
-    var right=document.getElementById("lb-right");
-    left.innerHTML=""; right.innerHTML="";
-    for(var i=0;i<items.length;i++){
-      var it=items[i]||{};
-      var li=document.createElement("li");
-      li.className="lb-item";
-      li.innerHTML = '<div class="lb-rank">'+(i+1)+'</div>' +
-                     '<div class="lb-name">'+(norm(it.initials||it.name||"???"))+'</div>' +
-                     '<div class="lb-score">'+(Math.floor(Number(it.score)||0))+'</div>';
-      (i<5?left:right).appendChild(li);
-    }
-  }
-
-  async function loadLB(){
-    var st=document.getElementById("lb-status");
-    st.textContent="Loading…";
+  // slug from folder name (…/games/<slug>/wrapper-v2.html)
+  const slug = (() => {
     try{
-      if(window.PixelNet && PixelNet.getLeaderboard){
-        var rows = await PixelNet.getLeaderboard(SLUG);
-        renderLB(rows||[]);
-        st.textContent="Ready";
-      }else{
-        st.textContent="PixelNet engine missing";
+      const parts = location.pathname.split('/').filter(Boolean);
+      const gi = parts.lastIndexOf('games');
+      if(gi>=0 && parts[gi+1]) return parts[gi+1];
+    }catch(_){}
+    return 'unknown';
+  })();
+
+  const NEW_KEY = `LB_${slug}`;
+  const LEGACY_KEYS = [
+    `PIXELNET_LB_${slug}_v2_0`,
+    `PIXELNET_LB_${slug}_v2_0`.replace(/-/g,'_'),
+    `PIXELNET_LB_${slug}`,
+  ];
+
+  const load = (k) => { try{ return JSON.parse(localStorage.getItem(k)||'[]'); }catch(_){ return []; } };
+  const save = (k, arr) => { try{ localStorage.setItem(k, JSON.stringify(arr)); }catch(_){ } };
+
+  // migrate legacy -> new (only if new empty)
+  try{
+    if(load(NEW_KEY).length===0){
+      for(const k of LEGACY_KEYS){
+        const v = load(k);
+        if(Array.isArray(v) && v.length){
+          save(NEW_KEY, v);
+          break;
+        }
       }
-    }catch(e){
-      st.textContent="Failed";
     }
-  }
-  loadLB();
-  // refresh periodically
-  setInterval(loadLB, 12000);
+  }catch(_){}
+
+  const renderLB = () => {
+    if(!lbEl) return;
+    const rows = load(NEW_KEY).slice(0,10);
+    if(!rows.length){
+      lbEl.innerHTML = '<div class="muted">No scores yet.</div>';
+      return;
+    }
+    lbEl.innerHTML = rows.map((r,i)=>{
+      const initials = (r && (r.initials || r.name)) ? String(r.initials || r.name).toUpperCase().slice(0,3) : '???';
+      const score = (r && r.score!=null) ? Math.floor(Number(r.score)||0) : 0;
+      return `<div class="lbRow"><span class="rank">${i+1}</span><span class="who">${initials}</span><span class="sc">${score}</span></div>`;
+    }).join('');
+  };
+  window.PX_refreshLeaderboard = renderLB;
+  renderLB();
+
+  // --------- Score intake (single-submit guard) ----------
+  let lastSig = '';
+  let lastAt = 0;
+  const addScore = (rawScore) => {
+    const score = Math.max(0, Math.floor(Number(rawScore)||0));
+    const initials = getInitials() || '???';
+
+    const now = Date.now();
+    const sig = `${initials}:${score}`;
+    if(sig===lastSig && (now-lastAt) < 1200) return; // de-dupe burst
+    lastSig = sig; lastAt = now;
+
+    const rows = load(NEW_KEY);
+    rows.push({ initials, score, t: now });
+    rows.sort((a,b)=> (b.score||0)-(a.score||0) || (a.t||0)-(b.t||0));
+    save(NEW_KEY, rows.slice(0,10));
+    renderLB();
+  };
+
+  window.addEventListener('message', (e)=>{
+    const d = e.data || {};
+    const type = d.type;
+    if(!type) return;
+
+    // set initials from home if sent
+    if(type==='PIXELNET_SET_INITIALS' && d.initials){
+      setInitials(d.initials); renderInitials(); return;
+    }
+
+    // accept score signals
+    if(type==='GAME_OVER_SCORE' || type==='GAME_OVER' || type==='PIXELNET_SCORE' || type==='PIXELNET_SUBMIT_SCORE'){
+      const s = (d.score!=null)? d.score : (d.finalScore!=null? d.finalScore : d.value);
+      if(s!=null) addScore(s);
+    }
+  });
+
+  // focus iframe when interacting
+  const f = document.getElementById('gameFrame');
+  const focusFrame = ()=>{ try{ f?.contentWindow?.focus?.(); }catch(_){ } };
+  document.addEventListener('pointerdown', focusFrame, {passive:true});
+  window.addEventListener('keydown', focusFrame, {passive:true});
+
 })();
-
-// optional live theme updates (no-op unless a game sends it)
-function applyThemeVars(vars){
-  try{
-    if(!vars) return;
-    const root=document.documentElement;
-    for(const [k,v] of Object.entries(vars)){
-      if(!k) continue;
-      const key = k.startsWith("--") ? k : `--${k}`;
-      root.style.setProperty(key, String(v));
-    }
-  }catch(_){}
-}
-window.addEventListener("message",(e)=>{
-  try{
-    const d=e.data||{};
-    if(d && d.type==="THEME_UPDATE" && d.vars){
-      applyThemeVars(d.vars);
-    }
-  }catch(_){}
-});
-
 </script>
 </body>
 </html>

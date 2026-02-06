@@ -235,15 +235,14 @@ body {
         .hidden { display: none !important; }
 
         @media (max-width: 768px) {
-  h1 { font-size: 2rem; }
-  .leaderboard { width: 90%; font-size: 0.9rem; }
-}
-
-@media (hover:none) and (pointer:coarse){
-  .controls-info { display:none; }
-  #mobile-controls { display:flex; }
-}
-
+            h1 { font-size: 2rem; }
+            .controls-info { display: none; }
+            #mobile-controls { display: flex; }
+            .leaderboard { width: 90%; font-size: 0.9rem; }
+        }
+    
+/* touch-only controls */
+.mobile-controls{display:none;}
 @media (hover:none) and (pointer:coarse){
   .mobile-controls{display:flex;}
 }
@@ -1197,18 +1196,17 @@ function gameOver() {
     document.getElementById('game-over-screen').classList.remove('hidden');
     document.getElementById('finalScore').innerText = state.score;
 
+    // No in-game initials prompt. Wrapper owns initials + leaderboard.
     const form = document.getElementById('high-score-form');
     const controls = document.getElementById('standard-game-over-controls');
-    
-    if (HighScoreSys.isHighScore(state.score)) {
-        form.style.display = 'flex';
-        controls.style.display = 'none';
-        AudioSys.highScore();
-        setTimeout(() => document.getElementById('initials-input').focus(), 100);
-    } else {
-        form.style.display = 'none';
-        controls.style.display = 'block';
-    }
+    if(form) form.style.display = 'none';
+    if(controls) controls.style.display = 'block';
+
+    try{
+        if(window.parent && window.parent !== window){
+            window.parent.postMessage({ type: "GAME_OVER_SCORE", score: state.score }, "*");
+        }
+    }catch(_){}
 }
 
 function resetGame() {
@@ -1362,17 +1360,7 @@ document.getElementById('restartBtn').addEventListener('click', () => {
     resetGame();
 });
 
-document.getElementById('submitScoreBtn').addEventListener('click', () => {
-    const nameInput = document.getElementById('initials-input');
-    const name = nameInput.value || "UNK";
-    HighScoreSys.addScore(name, state.score);
-    
-    // Return to start screen to see score
-    document.getElementById('game-over-screen').classList.add('hidden');
-    document.getElementById('start-screen').style.display = 'flex';
-    renderLeaderboard();
-});
-
+try{document.getElementById('submitScoreBtn')?.addEventListener('click', ()=>{});}catch(_){ }
 // Force uppercase in input
 document.getElementById('initials-input').addEventListener('input', function() {
     this.value = this.value.toUpperCase();

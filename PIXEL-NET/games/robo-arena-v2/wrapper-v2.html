@@ -6,18 +6,19 @@
 <title>Robo-Arena (version 2.0) — PIXEL-NET</title>
 <style>
 :root{
-  --bg0:#050505;
-  --bg1:#0b0b0b;
-  --bg2:#000000;
+  --bg0:#04060a;
+  --bg1:#050b14;
+  --bg2:#04060a;
   --text:#f3f6ff;
   --muted:rgba(243,246,255,.78);
   --border:rgba(255,255,255,.14);
-  --accent:#00ffff;
-  --accent2:#ff00ff;
-  --card:rgba(0,0,0,.28);
+  --accent:#ff2b2b;   /* villain red */
+  --accent2:#00cfff;  /* hero blue */
+  --accent3:#a8ff00;  /* lime pop */
+  --card:rgba(0,0,0,.30);
   --shadow:0 10px 30px rgba(0,0,0,.35);
-  --font:system-ui,-apple-system,"Segoe UI",Roboto,Arial;
-  --aspect:4 / 3;
+  --font:"Orbitron", system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+  --aspect:3 / 4;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -200,30 +201,23 @@ iframe{width:100%;height:100%;border:0;display:block;background:#000}
 .panel li{margin:10px 0}
 .mini{font-size:12px;opacity:.9}
 .pills .pill{font-size:12px}
-
-/* THEME_OVERRIDES */
-:root{
-  --bg0:#050005;
-  --bg1:#120006;
-  --bg2:#00040a;
-  --text:#ffeef0;
-  --muted:rgba(255,238,240,.80);
-  --border:rgba(255,255,255,.18);
-  --accent:#ff2d2d;
-  --accent2:#2f7bff;
-  --accent3:#9dff3a;
-  --card:rgba(0,0,0,.32);
-  --font:"Orbitron","Bank Gothic","Rajdhani",system-ui,-apple-system,"Segoe UI",Roboto,Arial;
-  --aspect:3 / 4;
-}
-body,.panel,.center,.topbar,.badge,.player,.exit{transition:background-color .6s ease, background .6s ease, border-color .6s ease, color .6s ease;}
+/* LB rows (shared) */
+.lb{display:flex;flex-direction:column;gap:10px}
+.lbRow{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;
+  padding:10px 12px;border:1px solid var(--border);border-radius:14px;
+  background:color-mix(in srgb, var(--card) 85%, transparent);
+  box-shadow:0 10px 24px rgba(0,0,0,.25) inset}
+.lbRow .rank{color:var(--accent);font-weight:900}
+.lbRow .who{letter-spacing:.08em;font-weight:800}
+.lbRow .sc{color:var(--accent2);font-weight:900}
+.muted{color:var(--muted)}
 </style>
 </head>
 <body>
   <div class="topbar">
     <a class="exit" href="../../index.html">EXIT</a>
     <div class="badge">PIXEL-NET ARCADE</div>
-    <div class="player" title="Stored as playerInitials / PIXELNET_INITIALS">
+    <div class="player" title="Stored as PIXELNET_INITIALS">
       <div class="tag">PLAYER</div>
       <div id="initials">???</div>
     </div>
@@ -247,7 +241,7 @@ body,.panel,.center,.topbar,.badge,.player,.exit{transition:background-color .6s
         </div>
         <div class="frameWrap">
           <div class="frameSizer">
-            <iframe src="./game.html" title="Robo-Arena (version 2.0)" allow="fullscreen" id="gameFrame"></iframe>
+            <iframe src="./game.html" title="Robo-Arena (version 2.0)" allow="fullscreen" id=\"gameFrame\"></iframe>
           </div>
         </div>
       </div>
@@ -271,132 +265,144 @@ body,.panel,.center,.topbar,.badge,.player,.exit{transition:background-color .6s
   </div>
 
 <script>
-const INITIALS_KEY="playerInitials";
-const ALT_INITIALS_KEY="PIXELNET_INITIALS";
-function getInitials(){
-  const v=(localStorage.getItem(INITIALS_KEY)||localStorage.getItem(ALT_INITIALS_KEY)||"???").toString().trim().toUpperCase();
-  return (v||"???").slice(0,3);
-}
-function setInitials(v){
-  const s=(v||"").toString().trim().toUpperCase().slice(0,3);
-  if(!s) return;
-  localStorage.setItem(INITIALS_KEY,s);
-  localStorage.setItem(ALT_INITIALS_KEY,s);
-  document.getElementById("initials").textContent = s;
-}
-document.getElementById("initials").textContent = getInitials();
+(() => {
+  // --------- Initials (canonical) ----------
+  const PRIMARY = 'playerInitials';
+  const MIRROR  = 'PIXELNET_INITIALS';
+  const norm = (v) => (v||'').toString().trim().toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,3);
+  const getInitials = () => norm(localStorage.getItem(PRIMARY) || localStorage.getItem(MIRROR) || '');
+  const setInitials = (v) => {
+    v = norm(v);
+    if(!v) return;
+    localStorage.setItem(PRIMARY, v);
+    localStorage.setItem(MIRROR, v);
+  };
 
+  const initialsEl = document.getElementById('initials');
+  const renderInitials = () => { if(initialsEl) initialsEl.textContent = getInitials() || '???'; };
+  renderInitials();
+  window.addEventListener('storage', (e)=>{ if(e.key===PRIMARY || e.key===MIRROR) renderInitials(); });
 
-const LB_KEY = "LB_robo-arena-v2";
+  // Optional initials modal (if present)
+  const modal = document.getElementById('initModal');
+  const input = document.getElementById('initInput');
+  const btnSave = document.getElementById('initSave');
+  const btnCancel = document.getElementById('initCancel');
+  const playerBtn = document.getElementById('playerBtn') || initialsEl;
 
-function focusGameFrame(){
-  const f=document.getElementById("gameFrame");
-  try{ f?.contentWindow?.focus?.(); }catch(_){}
-}
-document.addEventListener("pointerdown", focusGameFrame, {passive:true});
-window.addEventListener("keydown", focusGameFrame, {passive:true});
+  const openModal = () => {
+    if(!modal || !input) return;
+    input.value = getInitials() || '';
+    modal.style.display = 'flex';
+    setTimeout(()=>input.focus(), 50);
+  };
+  const closeModal = () => { if(modal) modal.style.display = 'none'; };
 
-function loadLB(){
-  try{ return JSON.parse(localStorage.getItem(LB_KEY)||"[]"); }catch(e){ return []; }
-}
-function renderLB(){
-  const data=loadLB().sort((a,b)=>b.score-a.score).slice(0,10);
-  const el=document.getElementById("lb");
-  if(!data.length){ el.innerHTML='<div class="mini">No scores yet.</div>'; return; }
-  el.innerHTML=data.map((r,i)=>`
-    <div class="pill">
-      <div class="rank">#${i+1}</div>
-      <div class="who">${(r.initials||r.name||"???").toUpperCase().slice(0,3)}</div>
-      <div class="score">${Number(r.score)||0}</div>
-    </div>`).join("");
-}
-renderLB();
+  playerBtn?.addEventListener('click', (e)=>{ e.preventDefault(); openModal(); });
+  btnCancel?.addEventListener('click', (e)=>{ e.preventDefault(); closeModal(); });
+  btnSave?.addEventListener('click', (e)=>{
+    e.preventDefault();
+    setInitials(input?.value || '');
+    renderInitials();
+    closeModal();
+  });
+  modal?.addEventListener('click', (e)=>{ if(e.target===modal) closeModal(); });
 
-// Mobile tabs
-const btns=[...document.querySelectorAll(".tabBtn")];
-function setActive(id){
-  for(const b of btns) b.classList.toggle("active", b.dataset.target===id);
-  for(const p of ["pHow","pGame","pLB"]) {
-    const node=document.getElementById(p);
-    if(!node) continue;
-    node.classList.toggle("active", p===id);
-  }
-}
-for(const b of btns) b.addEventListener("click", ()=>setActive(b.dataset.target));
+  // --------- Leaderboard (localStorage Top-10 per copy) ----------
+  const lbEl = document.getElementById('lb');
 
-// initials modal wiring
-const initModal=document.getElementById("initModal");
-const initInput=document.getElementById("initInput");
-document.getElementById("initials").addEventListener("click", ()=>{
-  initModal.classList.add("show");
-  initInput.value=getInitials()==="???"?"":getInitials();
-  setTimeout(()=>initInput.focus(),50);
-});
-document.getElementById("initCancel").addEventListener("click", ()=>initModal.classList.remove("show"));
-document.getElementById("initSave").addEventListener("click", ()=>{
-  setInitials(initInput.value);
-  initModal.classList.remove("show");
-});
-initInput.addEventListener("keydown",(e)=>{
-  if(e.key==="Enter"){ e.preventDefault(); document.getElementById("initSave").click(); }
-  if(e.key==="Escape"){ e.preventDefault(); document.getElementById("initCancel").click(); }
-});
-window.addEventListener("storage",(e)=>{
-  if(e.key===INITIALS_KEY||e.key===ALT_INITIALS_KEY){
-    document.getElementById("initials").textContent=getInitials();
-  }
-});
+  // slug from folder name (…/games/<slug>/wrapper-v2.html)
+  const slug = (() => {
+    try{
+      const parts = location.pathname.split('/').filter(Boolean);
+      const gi = parts.lastIndexOf('games');
+      if(gi>=0 && parts[gi+1]) return parts[gi+1];
+    }catch(_){}
+    return 'unknown';
+  })();
 
+  const NEW_KEY = `LB_${slug}`;
+  const LEGACY_KEYS = [
+    `PIXELNET_LB_${slug}_v2_0`,
+    `PIXELNET_LB_${slug}_v2_0`.replace(/-/g,'_'),
+    `PIXELNET_LB_${slug}`,
+  ];
 
-function saveLB(arr){
-  try{ localStorage.setItem(LB_KEY, JSON.stringify(arr||[])); }catch(_){}
-}
-function addLB(score){
-  score = Math.max(0, Math.floor(Number(score)||0));
-  const initials = (typeof getInitials==="function") ? getInitials() : (document.getElementById("initials")?.textContent||"").trim();
-  if(!initials || initials==="???") return;
-  const arr = (typeof loadLB==="function") ? loadLB() : [];
-  arr.push({ initials, score, ts: Date.now() });
-  saveLB(arr);
-  if(typeof renderLB==="function") renderLB();
-}
+  const load = (k) => { try{ return JSON.parse(localStorage.getItem(k)||'[]'); }catch(_){ return []; } };
+  const save = (k, arr) => { try{ localStorage.setItem(k, JSON.stringify(arr)); }catch(_){ } };
 
-window.PixelNet = window.PixelNet || {};
-window.PixelNet.getInitials = ()=> (typeof getInitials==="function") ? getInitials() : "";
-window.PixelNet.setInitials = (v)=> { if(typeof setInitials==="function"){ setInitials(v); } };
-window.PixelNet.submitScore = (s)=> addLB(s);
-
-window.addEventListener("message",(e)=>{
+  // migrate legacy -> new (only if new empty)
   try{
-    const d=e.data||{};
-    if(d && (d.type==="PIXELNET_SCORE"||d.type==="PIXELNET_SUBMIT_SCORE"||d.type==="GAME_OVER_SCORE"||d.type==="GAME_OVER") && d.score!=null){
-      addLB(d.score);
+    if(load(NEW_KEY).length===0){
+      for(const k of LEGACY_KEYS){
+        const v = load(k);
+        if(Array.isArray(v) && v.length){
+          save(NEW_KEY, v);
+          break;
+        }
+      }
     }
   }catch(_){}
-});
 
-
-// optional live theme updates (no-op unless a game sends it)
-function applyThemeVars(vars){
-  try{
-    if(!vars) return;
-    const root=document.documentElement;
-    for(const [k,v] of Object.entries(vars)){
-      if(!k) continue;
-      const key = k.startsWith("--") ? k : `--${k}`;
-      root.style.setProperty(key, String(v));
+  const renderLB = () => {
+    if(!lbEl) return;
+    const rows = load(NEW_KEY).slice(0,10);
+    if(!rows.length){
+      lbEl.innerHTML = '<div class="muted">No scores yet.</div>';
+      return;
     }
-  }catch(_){}
-}
-window.addEventListener("message",(e)=>{
-  try{
-    const d=e.data||{};
-    if(d && d.type==="THEME_UPDATE" && d.vars){
-      applyThemeVars(d.vars);
-    }
-  }catch(_){}
-});
+    lbEl.innerHTML = rows.map((r,i)=>{
+      const initials = (r && (r.initials || r.name)) ? String(r.initials || r.name).toUpperCase().slice(0,3) : '???';
+      const score = (r && r.score!=null) ? Math.floor(Number(r.score)||0) : 0;
+      return `<div class="lbRow"><span class="rank">${i+1}</span><span class="who">${initials}</span><span class="sc">${score}</span></div>`;
+    }).join('');
+  };
+  window.PX_refreshLeaderboard = renderLB;
+  renderLB();
 
+  // --------- Score intake (single-submit guard) ----------
+  let lastSig = '';
+  let lastAt = 0;
+  const addScore = (rawScore) => {
+    const score = Math.max(0, Math.floor(Number(rawScore)||0));
+    const initials = getInitials() || '???';
+
+    const now = Date.now();
+    const sig = `${initials}:${score}`;
+    if(sig===lastSig && (now-lastAt) < 1200) return; // de-dupe burst
+    lastSig = sig; lastAt = now;
+
+    const rows = load(NEW_KEY);
+    rows.push({ initials, score, t: now });
+    rows.sort((a,b)=> (b.score||0)-(a.score||0) || (a.t||0)-(b.t||0));
+    save(NEW_KEY, rows.slice(0,10));
+    renderLB();
+  };
+
+  window.addEventListener('message', (e)=>{
+    const d = e.data || {};
+    const type = d.type;
+    if(!type) return;
+
+    // set initials from home if sent
+    if(type==='PIXELNET_SET_INITIALS' && d.initials){
+      setInitials(d.initials); renderInitials(); return;
+    }
+
+    // accept score signals
+    if(type==='GAME_OVER_SCORE' || type==='GAME_OVER' || type==='PIXELNET_SCORE' || type==='PIXELNET_SUBMIT_SCORE'){
+      const s = (d.score!=null)? d.score : (d.finalScore!=null? d.finalScore : d.value);
+      if(s!=null) addScore(s);
+    }
+  });
+
+  // focus iframe when interacting
+  const f = document.getElementById('gameFrame');
+  const focusFrame = ()=>{ try{ f?.contentWindow?.focus?.(); }catch(_){ } };
+  document.addEventListener('pointerdown', focusFrame, {passive:true});
+  window.addEventListener('keydown', focusFrame, {passive:true});
+
+})();
 </script>
 
 <div class="modal" id="initModal" aria-hidden="true">

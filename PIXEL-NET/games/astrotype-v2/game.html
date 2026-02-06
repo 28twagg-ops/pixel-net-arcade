@@ -567,6 +567,8 @@ Purpose: AI implementation for themes
             document.getElementById('menu-high-score').innerText = `HIGH SCORE: ${highScore}`;
         }
         document.getElementById('final-score').innerText = state.score;
+        try{ if(window.parent && window.parent!==window){ window.parent.postMessage({type:'GAME_OVER_SCORE', score: state.score}, '*'); } }catch(_){ }
+
         document.getElementById('game-over-screen').classList.remove('hidden');
     }
 
