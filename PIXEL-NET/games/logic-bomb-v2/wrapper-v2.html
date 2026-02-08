@@ -6,301 +6,529 @@
 <title>Logic Bomb (version 2.0) — PIXEL-NET</title>
 <style>
 :root{
-  --bg0:#120b00;
-  --bg1:#1a1200;
-  --bg2:#241800;
+  --bg0:#050510;
+  --bg1:#070a1f;
+  --bg2:#04040e;
   --text:#f3f6ff;
-  --muted:rgba(243,246,255,.78);
+  --muted:rgba(243,246,255,.80);
   --border:rgba(255,255,255,.14);
-  --accent:#ffcc00;
-  --accent2:#ff3b3b;
-  --card:rgba(0,0,0,.28);
-  --shadow:0 10px 30px rgba(0,0,0,.35);
+  --accent:#00ff88;
+  --accent2:#00ccff;
+  --accent3:#ff2a2a;
+  --card:rgba(0,0,0,.30);
+  --shadow:0 12px 34px rgba(0,0,0,.40);
   --font:"Courier New", Courier, monospace;
+  --aspect:1 / 1;
 }
+
 *{box-sizing:border-box}
 html,body{height:100%}
 body{
   margin:0;
   color:var(--text);
   font-family:var(--font);
+  font-size:16px;                 /* ↑ overall readability */
+  line-height:1.35;
   background:
-    radial-gradient(1200px 700px at 18% 10%, color-mix(in srgb, var(--accent) 25%, transparent), transparent 70%),
-    radial-gradient(900px 520px at 88% 18%, color-mix(in srgb, var(--accent2) 22%, transparent), transparent 70%),
+    radial-gradient(1200px 700px at 18% 10%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%),
+    radial-gradient(900px 520px at 88% 18%, color-mix(in srgb, var(--accent2) 18%, transparent), transparent 70%),
     linear-gradient(135deg,var(--bg0),var(--bg1) 55%,var(--bg2));
+  overflow:hidden;
 }
 a{color:inherit;text-decoration:none}
+
 .topbar{
-  position:sticky;top:0;z-index:5;
-  position:relative;
-  display:flex;align-items:center;justify-content:space-between;
+  height:62px;                     /* ↑ room for bigger text */
+  position:sticky;top:0;z-index:30;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
   padding:10px 14px;
   background:rgba(0,0,0,.55);
   backdrop-filter:blur(10px);
   border-bottom:1px solid var(--border);
 }
-.leftTop{display:flex;align-items:center;gap:10px}
-.btn{
-  appearance:none;border:1px solid var(--border);
-  background:rgba(0,0,0,.35);color:var(--text);
-  padding:8px 12px;border-radius:12px;
-  cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.25);
-}
-.btn:hover{border-color:color-mix(in srgb, var(--accent) 55%, var(--border));}
-.badge{
-  padding:7px 10px;border-radius:999px;
-  border:1px solid color-mix(in srgb, var(--accent) 55%, var(--border));
-  background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 18%, rgba(0,0,0,.35)), rgba(0,0,0,.35));
-  font-weight:800;letter-spacing:.08em;
-  text-transform:uppercase;font-size:12px;
-}
-.player{
-  display:flex;align-items:center;gap:10px;
-  padding:7px 10px;border-radius:999px;
+.exit{
+  display:inline-flex;align-items:center;gap:8px;
   border:1px solid var(--border);
   background:rgba(0,0,0,.35);
+  padding:9px 13px;border-radius:14px;
+  font-weight:900;
+  font-size:15px;                 /* ↑ */
+  letter-spacing:.08em;
 }
-.player .tag{opacity:.8;font-size:12px;letter-spacing:.12em}
-.player #initials{font-weight:900;font-size:14px;letter-spacing:.18em;color:var(--accent)}
-.wrap{max-width:1400px;margin:0 auto;padding:12px}
-.grid{display:grid;grid-template-columns:320px minmax(300px,1fr) 320px;gap:12px;align-items:start}
+.exit:hover{border-color:color-mix(in srgb, var(--accent) 55%, var(--border));}
+.badge{
+  justify-self:center;
+  padding:9px 14px;border-radius:999px;
+  border:1px solid color-mix(in srgb, var(--accent) 55%, var(--border));
+  background:linear-gradient(90deg,color-mix(in srgb, var(--accent) 16%, rgba(0,0,0,.35)), rgba(0,0,0,.35));
+  font-weight:900;
+  letter-spacing:.10em;
+  text-transform:uppercase;
+  font-size:13px;                 /* ↑ */
+}
+.player{
+  justify-self:end;
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;border-radius:999px;
+  border:1px solid var(--border);
+  background:rgba(0,0,0,.35);
+  cursor:pointer;
+}
+.player .tag{
+  opacity:.85;
+  font-size:12px;                 /* ↑ slightly */
+  letter-spacing:.14em;
+}
+.player #initials{
+  font-weight:900;
+  font-size:16px;                 /* ↑ */
+  letter-spacing:.18em;
+  color:var(--accent)
+}
+
+.app{
+  height:calc(100vh - 62px);
+  display:flex;
+  padding:12px;
+}
+.grid{
+  width:100%;
+  max-width:1500px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:340px minmax(320px,1fr) 340px; /* ↑ */
+  gap:12px;
+  align-items:stretch;
+  height:100%;
+}
 .panel{
   background:var(--card);
   border:1px solid var(--border);
   border-radius:18px;
   box-shadow:var(--shadow);
   overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  min-height:0;
 }
 .panel h3{
   margin:0;
   padding:12px 14px;
-  font-size:13px;
-  letter-spacing:.1em;
+  font-size:14px;                 /* ↑ */
+  letter-spacing:.12em;
   text-transform:uppercase;
   border-bottom:1px solid var(--border);
   background:rgba(0,0,0,.25);
 }
-.panel .content{padding:12px 14px}
-.howto p{margin:0 0 10px 0;color:var(--muted);line-height:1.35}
-.howto ul{margin:10px 0 0 18px;padding:0}
-.howto li{margin:8px 0}
+.panel .content{
+  padding:14px 16px;              /* ↑ */
+  overflow:auto;
+  flex:1;
+  min-height:0;
+}
+.howto p{margin:0 0 12px 0;color:var(--muted)}
+.howto ul{margin:10px 0 0 20px;padding:0}
+.howto li{margin:10px 0;font-size:16px} /* ↑ */
+
 .center{
   background:rgba(0,0,0,.28);
   border:1px solid var(--border);
   border-radius:18px;
   box-shadow:var(--shadow);
   overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  min-height:0;
 }
-.gameTitle{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);background:rgba(0,0,0,.25)}
-.gameTitle .name{font-weight:900;letter-spacing:.06em}
-.gameTitle .hint{font-size:12px;color:var(--muted)}
-.frameWrap{width:100%;height:min(calc(100svh - 220px), 900px);min-height:520px;background:rgba(0,0,0,.35)}
-iframe{width:100%;height:100%;border:0;display:block;background:transparent}
-@media (max-width:1100px){.grid{grid-template-columns:1fr}.frameWrap{height:min(calc(100svh - 240px), 880px);min-height:520px}}
-@media (max-width:520px){.wrap{padding:10px}.frameWrap{min-height:480px}.btn{padding:8px 10px}}
+.centerHead{
+  padding:12px 14px;
+  border-bottom:1px solid var(--border);
+  background:rgba(0,0,0,.25);
+  display:flex;align-items:center;justify-content:space-between;gap:10px;
+}
+.centerHead .name{font-weight:900;letter-spacing:.06em;font-size:16px}
+.centerHead .hint{font-size:13px;color:var(--muted)}
+.frameWrap{
+  flex:1;min-height:0;
+  display:flex;
+  align-items:stretch;
+  justify-content:stretch;
+  background:rgba(0,0,0,.35);
+  padding:12px;
+}
+.frameSizer{
+  margin:auto;
+  height:100%;
+  width:auto;
+  max-width:100%;
+  max-height:100%;
+  aspect-ratio:var(--aspect);
+}
+iframe{width:100%;height:100%;border:0;display:block;background:#000;border-radius:12px}
 
+.pills{display:flex;flex-direction:column;gap:10px}
+.mini{
+  font-size:12px;                 /* ↑ */
+  letter-spacing:.10em;
+  color:var(--muted);
+  text-transform:uppercase
+}
+.lbRow{
+  display:grid;
+  grid-template-columns:40px 1fr auto; /* ↑ */
+  gap:12px;
+  align-items:center;
+  padding:12px 14px;              /* ↑ */
+  border:1px solid var(--border);
+  background:rgba(0,0,0,.22);
+  border-radius:14px;
+}
+.rank{font-weight:900;color:var(--accent2);font-size:15px}
+.who{font-weight:900;letter-spacing:.20em;font-size:15px}
+.sc{font-weight:900;color:var(--accent);font-size:15px}
 
-.tabs{display:none; gap:10px; padding:10px; position:sticky; bottom:0; z-index:50; background:linear-gradient(180deg, transparent, rgba(0,0,0,.65)); backdrop-filter: blur(6px);}
-.tabBtn{flex:1; padding:12px 10px; border-radius:14px; border:1px solid rgba(255,255,255,.10); background:rgba(10,12,18,.75); color:#eaffff; font-weight:800; letter-spacing:.08em; text-transform:uppercase}
-.tabBtn.active{border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,234,255,.18), 0 0 24px rgba(0,234,255,.20); color:#00ffad}
-@media (max-width:980px){
-  .tabs{display:flex;}
-  .grid{grid-template-columns:1fr;}
-  .how,.lb{display:none;}
-  .grid[data-view="howto"] .how{display:block;}
-  .grid[data-view="lb"] .lb{display:block;}
-  .grid[data-view="game"] .how,.grid[data-view="game"] .lb{display:none;}
+.tabs{
+  display:none;
+  position:fixed;left:0;right:0;bottom:0;z-index:40;
+  height:64px;                    /* ↑ */
+  padding:10px 12px;
+  background:rgba(0,0,0,.6);
+  backdrop-filter:blur(12px);
+  border-top:1px solid var(--border);
+}
+.tabRow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;height:100%}
+.tabBtn{
+  border:1px solid var(--border);
+  background:rgba(0,0,0,.28);
+  color:var(--text);
+  border-radius:16px;
+  font-weight:900;
+  font-size:13px;                 /* ↑ */
+  letter-spacing:.10em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+.tabBtn.active{
+  border-color:color-mix(in srgb, var(--accent) 70%, white);
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+@media (max-width: 980px){
+  .app{padding:10px;padding-bottom:86px}
+  .grid{grid-template-columns:1fr;height:100%}
+  .panel,.center{display:none}
+  .panel.active,.center.active{display:flex}
+  .tabs{display:block}
 }
 
-/* PN_CENTER_PATCH */
-.topbar .badge{position:absolute;left:50%;transform:translateX(-50%);}
-.gameTitle{position:relative;justify-content:flex-end;}
-.gameTitle .name{position:absolute;left:50%;transform:translateX(-50%);text-align:center;white-space:nowrap;max-width:70%;overflow:hidden;text-overflow:ellipsis;}
-
-
-.modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);z-index:9999}
-.modal[aria-hidden="false"]{display:flex}
-.modalCard{width:min(420px,92vw);border:1px solid var(--border);border-radius:18px;padding:18px;background:rgba(10,12,18,.78);box-shadow:var(--shadow)}
-.modalTitle{font-size:14px;letter-spacing:1px;margin-bottom:14px;text-align:center}
-#initInput{width:100%;padding:14px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(0,0,0,.35);color:var(--text);font-family:var(--font);font-size:18px;letter-spacing:6px;text-align:center}
-.modalBtns{display:flex;gap:10px;margin-top:14px}
-.btn{flex:1;padding:12px 10px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--text);font-family:var(--font);cursor:pointer}
-.btn.primary{background:color-mix(in srgb,var(--accent) 30%, rgba(255,255,255,.06));border-color:color-mix(in srgb,var(--accent) 55%, var(--border))}
-.player{cursor:pointer;user-select:none}
-
-/* PX_OVERRIDES */
-.panel .content{font-size:13px;line-height:1.65}
-.panel h3{font-size:14px}
-.mini{font-size:12px;opacity:.9}
-.pills .pill{font-size:12px}
+/* Initials modal (Creek-Crosser style) */
+.modal{
+  position:fixed;inset:0;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(0,0,0,.62);
+  backdrop-filter:blur(8px);
+  z-index:60;
+}
+.modalCard{
+  width:min(660px,92vw);          /* ↑ */
+  border-radius:26px;
+  border:2px solid color-mix(in srgb, var(--accent) 55%, rgba(255,255,255,.16));
+  background:linear-gradient(180deg, rgba(0,0,0,.78), rgba(0,0,0,.55));
+  box-shadow:0 22px 70px rgba(0,0,0,.58);
+  overflow:hidden;
+}
+.modalTop{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 18px;
+  border-bottom:1px solid rgba(255,255,255,.12);
+  background:rgba(0,0,0,.28);
+}
+.modalTop .title{
+  flex:1;text-align:center;
+  font-weight:900;letter-spacing:.18em;
+  text-transform:uppercase;font-size:19px; /* ↑ */
+}
+.modalTop .spacer{width:40px;height:40px}
+.closeX{
+  width:40px;height:40px;border-radius:999px;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(0,0,0,.35);
+  color:var(--text);
+  font-size:20px; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center;
+}
+.closeX:hover{ border-color:color-mix(in srgb, var(--accent) 60%, rgba(255,255,255,.18)); }
+.modalBody{padding:16px 18px 18px}
+.modalSub{
+  text-align:center;
+  font-size:14px;                 /* ↑ */
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:rgba(243,246,255,.72);
+  margin:6px 0 12px;
+}
+.modalBox{
+  border-radius:18px;
+  border:2px solid color-mix(in srgb, var(--accent2) 45%, rgba(255,255,255,.14));
+  background:rgba(0,0,0,.35);
+  padding:14px 16px;
+}
+#initInput{
+  width:100%;
+  background:transparent;border:0;outline:none;
+  color:var(--text);
+  font-family:var(--font);
+  font-weight:900;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  font-size:52px;                 /* ↑ */
+  text-align:center;
+}
+#initInput::placeholder{color:rgba(243,246,255,.20)}
+#initSave{
+  width:100%;
+  margin-top:14px;
+  padding:16px 18px;
+  border-radius:20px;
+  border:0;
+  background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 92%, #000), rgba(255,255,255,.12));
+  color:rgba(255,255,255,.92);
+  font-weight:900;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  font-size:18px;                 /* ↑ */
+  cursor:pointer;
+}
+#initSave:hover{filter:brightness(1.06)}
+.modalHint{margin-top:10px;text-align:center;font-size:13px;color:rgba(243,246,255,.60)}
 </style>
 </head>
 <body>
+
   <div class="topbar">
-    <div class="leftTop">
-      <a class="btn" href="../../index.html" id="exitLink">EXIT</a>
-      <div class="badge">PIXEL-NET ARCADE</div>
-    </div>
-    <div class="player" id="playerBtn" role="button" tabindex="0" title="Uses home initials">
+    <a class="exit" href="../../index.html">← Exit</a>
+    <div class="badge">LOGIC BOMB v2.0</div>
+    <div class="player" id="playerBtn" role="button" tabindex="0" aria-label="Change initials">
       <div class="tag">PLAYER</div>
       <div id="initials">???</div>
     </div>
   </div>
 
-  <div class="wrap">
+  <div class="app">
     <div class="grid">
-      <div class="panel howto">
-        <h3>How To Play</h3>
+      <div class="panel howto" id="pHow">
+        <h3>How to play</h3>
         <div class="content">
-          <p>Defuse the system by hacking fast. One mistake and it detonates.
-
-• Move: Arrow Keys / WASD
-• Plant bomb: SPACE (when prompt says READY)
-• Objective: collect DATA nodes, avoid sentries, survive the timer
-• Tip: bait enemies into dead-ends before planting
-
-Scores auto-save on Game Over.</li>
+          <p>Logic Bomb (version 2.0)</p>
+          <ul>
+            <li>Move: Arrow Keys / WASD</li>
+            <li>Bomb: SPACE (place / detonate)</li>
+            <li>Goal: collect data nodes • avoid sentries</li>
           </ul>
+          <div class="mini" style="margin-top:12px">Scores auto-save on Game Over.</div>
+          <div class="mini" style="margin-top:8px">No scrolling: use the tabs on mobile.</div>
         </div>
       </div>
 
-      <div class="center">
-        <div class="gameTitle">
+      <div class="center active" id="pGame">
+        <div class="centerHead">
           <div class="name">Logic Bomb (version 2.0)</div>
-          <div class="hint">Tap tabs on mobile</div>
+          <div class="hint">Uniform scaling • No stretching</div>
         </div>
         <div class="frameWrap">
-          <iframe id="gameFrame" src="./embed.html" allow="autoplay; fullscreen *" title="Logic Bomb (version 2.0)"></iframe>
+          <div class="frameSizer">
+            <iframe src="./game.html" title="Logic Bomb (version 2.0)" allow="fullscreen" id="gameFrame"></iframe>
+          </div>
         </div>
       </div>
 
-      <div class="panel">
+      <div class="panel" id="pLB">
         <h3>Leaderboard</h3>
         <div class="content">
-          <div style="color:var(--muted);line-height:1.35">Coming soon.</div>
+          <div class="mini" id="lbStatus">LOCAL TOP-10</div>
+          <div class="pills" id="lb"></div>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs" role="tablist" aria-label="Mobile tabs">
+    <div class="tabRow">
+      <button class="tabBtn" data-target="pHow" type="button">How To</button>
+      <button class="tabBtn active" data-target="pGame" type="button">Game</button>
+      <button class="tabBtn" data-target="pLB" type="button">Leaderboard</button>
+    </div>
+  </div>
+
+  <div class="modal" id="initModal" aria-hidden="true">
+    <div class="modalCard" role="dialog" aria-modal="true" aria-label="Enter initials">
+      <div class="modalTop">
+        <div class="spacer"></div>
+        <div class="title">ENTER INITIALS</div>
+        <button class="closeX" id="initClose" type="button" aria-label="Close">×</button>
+      </div>
+      <div class="modalBody">
+        <div class="modalSub">3 CHARACTERS</div>
+        <div class="modalBox">
+          <input id="initInput" maxlength="3" placeholder="---" autocomplete="off">
+        </div>
+        <button id="initSave" type="button">SAVE</button>
+        <div class="modalHint">Press Enter to save</div>
       </div>
     </div>
   </div>
 
 <script>
-const LB_KEY = "PIXELNET_LB_logic-bomb-v2_v2_0";
+(() => {
+  const PRIMARY = 'playerInitials';
+  const MIRROR  = 'PIXELNET_INITIALS';
+  const norm = (v) => (v||'').toString().trim().toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,3);
+  const getInitials = () => norm(localStorage.getItem(PRIMARY) || localStorage.getItem(MIRROR) || '');
+  const setInitials = (v) => {
+    v = norm(v);
+    if(!v) return;
+    localStorage.setItem(PRIMARY, v);
+    localStorage.setItem(MIRROR, v);
+  };
 
-function focusGameFrame(){
-  const f=document.getElementById("gameFrame");
-  try{ f?.contentWindow?.focus?.(); }catch(_){}
-}
-document.addEventListener("pointerdown", focusGameFrame, {passive:true});
-window.addEventListener("keydown", focusGameFrame, {passive:true});
+  const initialsEl = document.getElementById('initials');
+  const renderInitials = () => { initialsEl.textContent = getInitials() || '???'; };
+  renderInitials();
 
+  window.addEventListener('storage', (e)=>{
+    if(e.key===PRIMARY || e.key===MIRROR) renderInitials();
+  });
 
-const K1='PIXELNET_INITIALS';
-const K2='playerInitials';
-function norm(v){
-  v=(v||'').toString().trim().toUpperCase();
-  v=v.replace(/[^A-Z0-9]/g,'');
-  return v.slice(0,3);
-}
-function get(){
-  return norm(localStorage.getItem(K1) || localStorage.getItem(K2) || '');
-}
-function set(v){
-  v=norm(v);
-  if(!v) return;
-  localStorage.setItem(K1,v);
-  localStorage.setItem(K2,v);
-}
-function render(){
-  const v=get() || '???';
-  document.getElementById('initials').textContent=v;
-}
-render();
-window.addEventListener('storage', (e)=>{ if(e.key===K1||e.key===K2) render(); });
-set(get());
+  const modal = document.getElementById('initModal');
+  const input = document.getElementById('initInput');
+  const btnSave = document.getElementById('initSave');
+  const btnClose = document.getElementById('initClose');
+  const playerBtn = document.getElementById('playerBtn');
 
-window.addEventListener('message',(e)=>{
-  try{
-    const d=e.data||{};
-    if(d && d.type==='PIXELNET_SET_INITIALS' && d.initials){ set(d.initials); render(); }
-  }catch(_){}
-});
+  const openModal = () => {
+    input.value = getInitials() || '';
+    modal.style.display = 'flex';
+    modal.setAttribute('aria-hidden','false');
+    setTimeout(()=>input.focus(), 30);
+  };
+  const closeModal = () => {
+    modal.style.display = 'none';
+    modal.setAttribute('aria-hidden','true');
+  };
 
+  playerBtn.addEventListener('click', (e)=>{ e.preventDefault(); openModal(); });
+  playerBtn.addEventListener('keydown', (e)=>{ if(e.key==='Enter' || e.key===' '){ e.preventDefault(); openModal(); } });
+  btnClose.addEventListener('click', (e)=>{ e.preventDefault(); closeModal(); });
+  modal.addEventListener('click', (e)=>{ if(e.target===modal) closeModal(); });
 
-const INITIALS_KEY="PIXELNET_INITIALS";
-const ALT_INITIALS_KEY="playerInitials";
-function norm(v){
-  v=(v||"").toString().trim().toUpperCase().replace(/[^A-Z0-9]/g,"");
-  return v.slice(0,3);
-}
-function getInitials(){
-  return norm(localStorage.getItem(INITIALS_KEY)||localStorage.getItem(ALT_INITIALS_KEY)||"");
-}
-function setInitials(v){
-  v=norm(v);
-  if(!v) return;
-  localStorage.setItem(INITIALS_KEY,v);
-  localStorage.setItem(ALT_INITIALS_KEY,v);
-}
-function renderInitials(){
-  document.getElementById("initials").textContent = getInitials() || "???";
-}
-renderInitials();
+  input.addEventListener('input', ()=>{ input.value = norm(input.value); });
+  input.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter'){ e.preventDefault(); btnSave.click(); }
+    if(e.key === 'Escape'){ e.preventDefault(); closeModal(); }
+  });
+  btnSave.addEventListener('click', (e)=>{
+    e.preventDefault();
+    setInitials(input.value);
+    renderInitials();
+    closeModal();
+  });
 
-function loadLB(){ try{ return JSON.parse(localStorage.getItem(LB_KEY)||"[]"); }catch(_){ return []; } }
-function saveLB(arr){ try{ localStorage.setItem(LB_KEY, JSON.stringify(arr||[])); }catch(_){ } }
-function renderLB(){
-  const data=loadLB().sort((a,b)=>b.score-a.score).slice(0,10);
-  const el=document.getElementById("lb");
-  if(!el) return;
-  if(!data.length){ el.innerHTML='<div class="mini">No scores yet.</div>'; return; }
-  el.innerHTML=data.map((r,i)=>`<div class="pill"><span>#${i+1}</span><b>${r.initials}</b><em>${r.score}</em></div>`).join("");
-}
-renderLB();
-function addLB(score){
-  score=Math.max(0,Math.floor(Number(score)||0));
-  const initials=getInitials();
-  if(!initials) return;
-  const arr=loadLB(); arr.push({initials,score,ts:Date.now()}); saveLB(arr); renderLB();
-}
+  const lbEl = document.getElementById('lb');
 
-window.PixelNet = window.PixelNet || {};
-window.PixelNet.getInitials = ()=> getInitials();
-window.PixelNet.setInitials = (v)=>{ setInitials(v); renderInitials(); };
-window.PixelNet.submitScore = (s)=> addLB(s);
+  const slug = (() => {
+    try{
+      const parts = location.pathname.split('/').filter(Boolean);
+      const gi = parts.lastIndexOf('games');
+      if(gi>=0 && parts[gi+1]) return parts[gi+1];
+    }catch(_){}
+    return 'unknown';
+  })();
 
-// initials modal
-const modal=document.getElementById("initModal");
-const input=document.getElementById("initInput");
-function openInitModal(){
-  modal.setAttribute("aria-hidden","false");
-  setTimeout(()=>{ input.value=getInitials(); input.focus(); input.select(); },50);
-}
-function closeInitModal(){ modal.setAttribute("aria-hidden","true"); }
-document.getElementById("playerBtn").addEventListener("click", openInitModal);
-document.getElementById("playerBtn").addEventListener("keydown",(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openInitModal(); }});
-document.getElementById("initCancel").addEventListener("click", closeInitModal);
-document.getElementById("initSave").addEventListener("click", ()=>{ const v=norm(input.value); if(v){ setInitials(v); renderInitials(); } closeInitModal(); });
-input.addEventListener("input", ()=>{ input.value=norm(input.value); });
-input.addEventListener("keydown",(e)=>{ if(e.key==="Enter"){ e.preventDefault(); document.getElementById("initSave").click(); } if(e.key==="Escape"){ e.preventDefault(); document.getElementById("initCancel").click(); }});
+  const LOCAL_KEY = `LB_${slug}`;
+  const loadLocal = () => { try{ return JSON.parse(localStorage.getItem(LOCAL_KEY)||'[]'); }catch(_){ return []; } };
+  const saveLocal = (arr) => { try{ localStorage.setItem(LOCAL_KEY, JSON.stringify(arr)); }catch(_){ } };
 
-// only open if missing
-if(!getInitials()) openInitModal();
+  const renderLB = (rows) => {
+    rows = Array.isArray(rows) ? rows.slice(0,10) : [];
+    if(!rows.length){
+      lbEl.innerHTML = '<div class="mini">No scores yet.</div>';
+      return;
+    }
+    lbEl.innerHTML = rows.map((r,i)=>{
+      const who = (r && (r.initials || r.name)) ? String(r.initials || r.name).toUpperCase().slice(0,3) : '???';
+      const sc = (r && r.score!=null) ? Math.floor(Number(r.score)||0) : 0;
+      return `<div class="lbRow"><span class="rank">${i+1}</span><span class="who">${who}</span><span class="sc">${sc}</span></div>`;
+    }).join('');
+  };
 
-window.addEventListener("storage",(e)=>{ if(e.key===INITIALS_KEY||e.key===ALT_INITIALS_KEY){ renderInitials(); } if(e.key===LB_KEY){ renderLB(); }});
-window.addEventListener("message",(e)=>{ try{ const d=e.data||{}; if(d && (d.type==="PIXELNET_SCORE"||d.type==="PIXELNET_SUBMIT_SCORE") && d.score!=null){ addLB(d.score); } }catch(_){ }});
+  renderLB(loadLocal());
 
+  let lastSig = '';
+  let lastAt = 0;
+  const addScoreLocal = (initials, rawScore) => {
+    const score = Math.max(0, Math.floor(Number(rawScore)||0));
+    const now = Date.now();
+    const sig = `${initials}:${score}`;
+    if(sig===lastSig && (now-lastAt) < 1200) return false;
+    lastSig = sig; lastAt = now;
+
+    const rows = loadLocal();
+    rows.push({ initials, score, t: now });
+    rows.sort((a,b)=> (b.score||0)-(a.score||0) || (a.t||0)-(b.t||0));
+    const top = rows.slice(0,10);
+    saveLocal(top);
+    renderLB(top);
+    return true;
+  };
+
+  window.addEventListener('message', (e)=>{
+    const d = e.data || {};
+    if(!d.type) return;
+
+    if(d.type==='PIXELNET_SET_INITIALS' && d.initials){
+      setInitials(d.initials);
+      renderInitials();
+      return;
+    }
+
+    if(d.type==='GAME_OVER_SCORE'){
+      const initials = getInitials() || '???';
+      const score = (d.score!=null) ? d.score : 0;
+      addScoreLocal(initials, score);
+    }
+  });
+
+  const tabBtns = Array.from(document.querySelectorAll('.tabBtn'));
+  const panels = {
+    pHow: document.getElementById('pHow'),
+    pGame: document.getElementById('pGame'),
+    pLB:  document.getElementById('pLB'),
+  };
+
+  const setActive = (id) => {
+    for(const [pid, el] of Object.entries(panels)){
+      if(!el) continue;
+      el.classList.toggle('active', pid===id);
+    }
+    for(const b of tabBtns){
+      b.classList.toggle('active', b.getAttribute('data-target')===id);
+    }
+  };
+
+  tabBtns.forEach((b)=>{
+    b.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const t = b.getAttribute('data-target');
+      if(t) setActive(t);
+    }, {passive:false});
+  });
+
+  setActive('pGame');
+})();
 </script>
-
-<div class="modal" id="initModal" aria-hidden="true">
-  <div class="modalCard">
-    <div class="modalTitle">ENTER INITIALS</div>
-    <input id="initInput" maxlength="3" placeholder="---" autocomplete="off" />
-    <div class="modalBtns">
-      <button class="btn" id="initCancel">EXIT</button>
-      <button class="btn primary" id="initSave">SAVE</button>
-    </div>
-  </div>
-</div>
 
 </body>
 </html>
