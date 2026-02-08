@@ -1,13 +1,16 @@
+<!-- PIXEL-NET/games/neon-chase-v2/game.html -->
 <!-- 
 Theme: Cyberpunk / Sci-Fi
 Font: Orbitron
 Style: Neon-noir, high contrast, glowing grid aesthetic with digital glitch effects
 Colors: 
   - Background: #050010 (Dark Cyber Purple)
-  - Walls: #00FF41 (Matrix Green)
+  - Walls (Zone 1): #00FF41 (Matrix Green)
+  - Walls (Zone 2): #00F0FF (Electric Blue)
+  - Walls (Zone 3): #FF00FF (Cyber Magenta)
   - Player (Data Orb): #00F0FF (Cyan)
   - Drones: #FF0055 (Red), #FF9900 (Orange), #CC00FF (Purple), #FFFF00 (Yellow)
-Dimensions: 456px width x 480px height (Calculated as 19 columns * 24px tile size by 20 rows * 24px tile size).
+Dimensions: 456px width x 480px height (19 cols * 24px by 20 rows * 24px).
 Location: The game area is contained within the HTML element with id="game-container".
 Purpose: AI implementation for themes
 -->
@@ -16,38 +19,49 @@ Purpose: AI implementation for themes
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Neon Maze Chase (version 2.0)</title>
+    <title>Neon Maze Chase</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+        html, body { width: 100%; height: 100%; }
 
         body {
-            background-color: #050010; /* Dark Cyber Purple */
+            background-color: #050010;
             color: #fff;
-            font-family: 'Orbitron', sans-serif; /* Sci-fi font */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
+            font-family: 'Orbitron', sans-serif;
             margin: 0;
+            width: 100%;
+            height: 100%;
             overflow: hidden;
             touch-action: none;
         }
 
-        #game-container{
-  width: min(100vw, 100vh);
-  height: min(100vw, 100vh);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+            border: 4px solid #333;
+            border-radius: 8px;
+            background-color: #000;
+        }
 
-        canvas{
-  display:block;
-  width:100%;
-  height:100%;
-  image-rendering:pixelated;
-}
+        /* Native game size: 456x480. Scaled uniformly to fit container. */
+        #scale-root {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 456px;
+            height: 480px;
+            transform: translate(-50%, -50%) scale(1);
+            transform-origin: center center;
+        }
+
+        canvas {
+            display: block;
+            background-color: #080808;
+        }
 
         #ui-layer {
             position: absolute;
@@ -97,80 +111,57 @@ Purpose: AI implementation for themes
             text-shadow: 0 0 10px #00F0FF;
             letter-spacing: 2px;
             line-height: 1.5;
+            font-weight: 900;
+        }
+
+        .failure-text {
+            color: #FF0055 !important;
+            text-shadow: 0 0 20px #FF0055, 0 0 10px rgba(255, 0, 85, 0.6) !important;
+            font-weight: 900 !important;
+            font-size: 44px !important;
+            margin-bottom: 10px;
         }
 
         p {
-            font-size: 12px;
+            font-size: 14px;
             color: #aaa;
             line-height: 1.6;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
             max-width: 80%;
         }
 
-        button {
+        .reboot-btn {
             background: transparent;
             color: #00FF41;
-            border: 2px solid #00FF41;
-            padding: 15px 30px;
+            border: 4px solid #00FF41;
+            padding: 20px 60px;
             font-family: 'Orbitron', sans-serif;
-            font-size: 16px;
+            font-size: 24px;
+            font-weight: 900; 
             cursor: pointer;
-            box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
             transition: all 0.2s;
             margin-top: 10px;
             text-transform: uppercase;
+            letter-spacing: 3px;
         }
 
-        button:hover {
+        .reboot-btn:hover {
             background: #00FF41;
             color: #000;
-            box-shadow: 0 0 20px rgba(0, 255, 65, 0.6);
-        }
-
-        /* Input Styles */
-        .input-group {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-        }
-
-        input#initials-input {
-            background: #000;
-            border: 2px solid #00F0FF;
-            color: #fff;
-            font-family: 'Orbitron', sans-serif;
-            font-size: 24px;
-            width: 120px;
-            text-align: center;
-            padding: 10px;
-            text-transform: uppercase;
-            outline: none;
-            box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+            box-shadow: 0 0 40px rgba(0, 255, 65, 0.9);
+            transform: scale(1.05);
         }
 
         .hidden {
             display: none !important;
         }
-        
-        .mobile-hint {
-            margin-top: 10px;
-            font-size: 10px;
-            color: #666;
-            display: none;
-        }
-        
-        @media (max-width: 600px) {
-            .mobile-hint { display: block; }
-        }
-
-    
-#high-score-form,#score-form,#name-form{display:none !important}
-</style>
+    </style>
 </head>
 <body>
 
     <div id="game-container">
+        <div id="scale-root">
         <canvas id="gameCanvas"></canvas>
         
         <div id="ui-layer">
@@ -184,82 +175,59 @@ Purpose: AI implementation for themes
             </div>
         </div>
 
-        <div id="overlay">
-            <!-- Content injected by JS -->
+        <div id="overlay"></div>
         </div>
     </div>
 
 <script>
+/*
+PIXEL-NET RULES:
+- NO in-game initials UI
+- NO in-game leaderboard ownership
+- Submit score ONCE via:
+  parent.postMessage({ type:'GAME_OVER_SCORE', score:<number> }, '*')
+*/
+let __px_sentScore = false;
+function postScoreOnce(){
+    if (__px_sentScore) return;
+    __px_sentScore = true;
+    try { parent.postMessage({ type:'GAME_OVER_SCORE', score: Math.max(0, Math.floor(Number(score)||0)) }
+// Dev-only hotkeys (disable on live unless ?dev=1)
+const __DEV = new URLSearchParams(location.search).get('dev') === '1';
+, '*'); } catch(_) {}
+}
+
+/* Uniform scale to fit wrapper container */
+function fitScale(){
+    const box = document.getElementById('game-container');
+    const root = document.getElementById('scale-root');
+    if(!box || !root) return;
+    const vw = box.clientWidth || 1;
+    const vh = box.clientHeight || 1;
+    const s = Math.max(0.01, Math.min(vw / 456, vh / 480));
+    root.style.transform = `translate(-50%, -50%) scale(${s})`;
+}
+window.addEventListener('resize', fitScale);
+window.addEventListener('message', (e)=>{
+    const d = e.data || {};
+    if (d && d.type === 'PIXELNET_RESIZE') fitScale();
+});
+
 /**
- * LEADERBOARD SYSTEM (V3 for new game)
+ * HIGH SCORE TRACKING
  */
-const Leaderboard = {
-    key: 'neon_chase_leaderboard_v2_0', 
-    data: [],
-    
-    load: function() {
-        const stored = localStorage.getItem(this.key);
-        if (stored) {
-            try {
-                this.data = JSON.parse(stored);
-            } catch(e) {
-                this.createDefaults();
-            }
-        } else {
-            this.createDefaults();
-        }
-        this.data.sort((a, b) => b.score - a.score);
-    },
-
-    createDefaults: function() {
-        this.data = [
-            {name: 'NEO', score: 2000},
-            {name: 'TRN', score: 1500},
-            {name: 'CYB', score: 1000},
-            {name: 'BOT', score: 500},
-            {name: 'CPU', score: 200}
-        ];
-        this.save();
-    },
-
-    save: function() {
-        localStorage.setItem(this.key, JSON.stringify(this.data));
-    },
-
-    isHighScore: function(score) {
-        if (this.data.length < 5) return true;
-        return score > this.data[this.data.length - 1].score;
-    },
-
-    add: function(name, score) {
-        this.data.push({ name: name.toUpperCase().substring(0, 3), score: parseInt(score) });
-        this.data.sort((a, b) => b.score - a.score);
-        this.data = this.data.slice(0, 5);
-        this.save();
-    },
-
-    getTopScore: function() {
-        return this.data.length > 0 ? this.data[0].score : 0;
-    }
-};
+/* High score is display-only in-game; PIXEL-NET leaderboard lives in wrapper. */
 
 /**
  * AUDIO ENGINE
- * Updated sounds for a "tech" feel
  */
 const AudioEngine = (() => {
     let ctx = null;
     let enabled = false;
-
     const init = () => {
-        if (!ctx) {
-            ctx = new (window.AudioContext || window.webkitAudioContext)();
-            enabled = true;
-        } else if (ctx.state === 'suspended') {
-            ctx.resume();
-        }
+        if (!ctx) { ctx = new (window.AudioContext || window.webkitAudioContext)(); enabled = true; } 
+        else if (ctx.state === 'suspended') { ctx.resume(); }
     };
-
     const playTone = (freq, type, duration, vol = 0.1) => {
         if (!enabled || !ctx) return;
         const osc = ctx.createOscillator();
@@ -267,92 +235,114 @@ const AudioEngine = (() => {
         osc.type = type;
         osc.frequency.setValueAtTime(freq, ctx.currentTime);
         gain.gain.setValueAtTime(vol, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
         osc.stop(ctx.currentTime + duration);
     };
-
     return {
         init,
-        step: () => { // "Tick" instead of Waka
-            if (!enabled) return;
-            playTone(800, 'square', 0.05, 0.02);
-        },
-        eatDrone: () => playTone(1200, 'sawtooth', 0.1, 0.1),
+        collectBit: () => { if (enabled) playTone(240, 'triangle', 0.05, 0.03); },
+        eatDrone: () => playTone(900, 'sawtooth', 0.1, 0.08),
         crash: () => {
             if (!enabled) return;
-            for(let i=0; i<5; i++) {
-                setTimeout(() => playTone(100 - (i*20), 'sawtooth', 0.2, 0.2), i*50);
-            }
+            for(let i=0; i<5; i++) setTimeout(() => playTone(100 - (i*20), 'sawtooth', 0.2, 0.15), i*50);
         },
         start: () => {
             if (!enabled) return;
-            playTone(440, 'sine', 0.1, 0.1);
-            setTimeout(() => playTone(880, 'sine', 0.3, 0.1), 150);
+            playTone(440, 'sine', 0.1, 0.05);
+            setTimeout(() => playTone(660, 'sine', 0.2, 0.05), 150);
         }
     };
 })();
 
 const TILE_SIZE = 24; 
-const WALL_COLOR = '#00FF41'; // Matrix Green
-const GATE_COLOR = '#FF0055';
 
-// NEW CUSTOM MAZE LAYOUT
-// 0: Empty, 1: Wall, 2: Bit, 3: Power Up, 4: Drone Gate
-const MAP = [
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-    [1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,1],
-    [1,2,1,1,1,2,1,1,2,1,2,1,1,2,1,1,1,2,1],
-    [1,3,1,1,1,2,1,1,2,1,2,1,1,2,1,1,1,3,1],
-    [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
-    [1,2,1,1,1,2,1,2,1,1,1,2,1,2,1,1,1,2,1],
-    [1,2,2,2,2,2,1,2,2,1,2,2,1,2,2,2,2,2,1],
-    [1,1,1,1,1,2,1,1,0,1,0,1,1,2,1,1,1,1,1],
-    [0,0,0,0,1,2,1,0,0,4,0,0,1,2,1,0,0,0,0],
-    [1,1,1,1,1,2,1,0,1,1,1,0,1,2,1,1,1,1,1],
-    [0,2,2,2,2,2,0,0,1,0,1,0,0,2,2,2,2,2,0],
-    [1,1,1,1,1,2,1,0,1,1,1,0,1,2,1,1,1,1,1],
-    [0,0,0,0,1,2,1,0,0,0,0,0,1,2,1,0,0,0,0],
-    [1,1,1,1,1,2,1,2,1,1,1,2,1,2,1,1,1,1,1],
-    [1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,1],
-    [1,2,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,2,1],
-    [1,3,2,1,2,2,2,2,2,0,2,2,2,2,2,1,2,3,1],
-    [1,1,2,1,2,1,2,1,1,1,1,1,2,1,2,1,2,1,1],
-    [1,2,2,2,2,1,2,2,2,1,2,2,2,1,2,2,2,2,1],
-    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+const LEVEL_COLORS = ['#00FF41', '#00F0FF', '#FF00FF', '#FFFF00', '#FF3300'];
+const LEVEL_MAPS = [
+    // Map 1
+    [
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,1],
+        [1,2,1,1,1,2,1,1,2,1,2,1,1,2,1,1,1,2,1],
+        [1,3,1,1,1,2,1,1,2,1,2,1,1,2,1,1,1,3,1],
+        [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+        [1,2,1,1,1,2,1,2,1,1,1,2,1,2,1,1,1,2,1],
+        [1,2,2,2,2,2,1,2,2,1,2,2,1,2,2,2,2,2,1],
+        [1,1,1,1,1,2,1,1,0,1,0,1,1,2,1,1,1,1,1],
+        [0,0,0,0,1,2,1,0,0,0,0,0,1,2,1,0,0,0,0],
+        [1,1,1,1,1,2,1,0,1,1,1,0,1,2,1,1,1,1,1],
+        [0,2,2,2,2,2,0,0,1,0,1,0,0,2,2,2,2,2,0],
+        [1,1,1,1,1,2,1,0,1,1,1,0,1,2,1,1,1,1,1],
+        [0,0,0,0,1,2,1,0,0,0,0,0,1,2,1,0,0,0,0],
+        [1,1,1,1,1,2,1,2,1,1,1,2,1,2,1,1,1,1,1],
+        [1,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,1],
+        [1,2,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,2,1],
+        [1,3,2,1,2,2,2,2,2,0,2,2,2,2,2,1,2,3,1],
+        [1,1,2,1,2,1,2,1,1,1,1,1,2,1,2,1,2,1,1],
+        [1,2,2,2,2,1,2,2,2,1,2,2,2,1,2,2,2,2,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    ],
+    // Map 2
+    [
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,3,2,2,2,2,2,1,2,2,2,1,2,2,2,2,2,3,1],
+        [1,2,1,1,1,1,2,1,2,1,2,1,2,1,1,1,1,2,1],
+        [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+        [1,1,2,1,1,1,1,1,0,1,0,1,1,1,1,1,2,1,1],
+        [1,2,2,2,2,2,2,1,0,0,0,1,2,2,2,2,2,2,1],
+        [1,2,1,1,1,1,2,1,1,0,1,1,2,1,1,1,1,2,1],
+        [1,2,1,0,0,1,2,0,0,0,0,0,2,1,0,0,1,2,1],
+        [1,2,1,0,0,1,1,1,0,0,0,1,1,1,0,0,1,2,1],
+        [1,2,2,2,2,2,2,2,2,0,2,2,2,2,2,2,2,2,1],
+        [1,1,1,1,2,1,1,1,1,1,1,1,1,1,2,1,1,1,1],
+        [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+        [1,2,1,1,1,1,2,1,1,1,1,1,2,1,1,1,1,2,1],
+        [1,2,2,2,1,2,2,2,2,1,2,2,2,2,1,2,2,2,1],
+        [1,1,1,2,1,2,1,1,2,1,2,1,1,2,1,2,1,1,1],
+        [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+        [1,2,1,1,1,1,1,1,2,1,2,1,1,1,1,1,1,2,1],
+        [1,3,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,3,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    ],
+    // Map 3
+    [
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,2,2,1,2,2,2,2,2,2,2,2,2,2,2,1,2,2,1],
+        [1,3,2,1,2,1,1,1,1,1,1,1,1,1,2,1,2,3,1],
+        [1,1,2,1,2,2,2,2,2,1,2,2,2,2,2,1,2,1,1],
+        [1,1,2,1,1,1,1,1,2,1,2,1,1,1,1,1,2,1,1],
+        [1,2,2,2,2,2,2,2,2,0,2,2,2,2,2,2,2,2,1],
+        [1,2,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,2,1],
+        [1,2,2,2,2,2,1,0,0,0,0,0,1,2,2,2,2,2,1],
+        [1,1,1,1,1,2,1,0,1,0,1,0,1,2,1,1,1,1,1],
+        [1,2,2,2,1,2,1,0,0,0,0,0,1,2,1,2,2,2,1],
+        [1,2,1,2,1,2,1,1,1,1,1,1,1,2,1,2,1,2,1],
+        [1,2,1,2,1,2,2,2,2,2,2,2,2,2,1,2,1,2,1],
+        [1,3,1,2,1,1,1,1,2,1,2,1,1,1,1,2,1,3,1],
+        [1,2,1,2,2,2,2,2,2,1,2,2,2,2,2,2,1,2,1],
+        [1,2,1,1,1,1,1,1,2,1,2,1,1,1,1,1,1,2,1],
+        [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+        [1,1,1,1,1,1,2,1,1,1,1,1,2,1,1,1,1,1,1],
+        [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    ]
 ];
 
-const COLS = MAP[0].length;
-const ROWS = MAP.length;
+const COLS = LEVEL_MAPS[0][0].length;
+const ROWS = LEVEL_MAPS[0].length;
 
-// Game State
-let canvas, ctx;
-let gameInterval;
-let score = 0;
-let level = 1;
-let highScore = 0;
-let lives = 3;
-let gameState = 'START'; 
-let powerModeTime = 0;
-let flashTimer = 0;
+let currentMapData = LEVEL_MAPS[0];
+let wallColor = LEVEL_COLORS[0];
+let canvas, ctx, gameInterval;
+let score = 0, level = 1, highScore = 0, lives = 3;
+let gameState = 'START', powerModeTime = 0, flashTimer = 0;
+let player = {}, drones = [], particles = [], bits = [];
+let nextDir = { x: 0, y: 0 }, touchStartX = 0, touchStartY = 0;
 
-// Entities
-let player = {};
-let drones = [];
-let particles = [];
-let bits = [];
-
-// Input
-let keys = {};
-let nextDir = { x: 0, y: 0 }; 
-let touchStartX = 0;
-let touchStartY = 0;
-
-/**
- * CLASSES 
- */
 class Entity {
     constructor(x, y, color) {
         this.x = x * TILE_SIZE + TILE_SIZE/2;
@@ -362,9 +352,7 @@ class Entity {
         this.speed = 2;
         this.radius = TILE_SIZE * 0.4;
     }
-    getGridPos() {
-        return { c: Math.floor(this.x / TILE_SIZE), r: Math.floor(this.y / TILE_SIZE) };
-    }
+    getGridPos() { return { c: Math.floor(this.x / TILE_SIZE), r: Math.floor(this.y / TILE_SIZE) }; }
     isCentered() {
         const threshold = 1.0;
         const centerX = (this.getGridPos().c * TILE_SIZE) + TILE_SIZE/2;
@@ -378,12 +366,11 @@ class Entity {
     }
     canMove(dx, dy) {
         const p = this.getGridPos();
-        const nextC = p.c + dx;
-        const nextR = p.r + dy;
+        const nextC = p.c + dx, nextR = p.r + dy;
         if (nextC < 0 || nextC >= COLS) return true;
         if (nextR >= 0 && nextR < ROWS) {
-            const tile = MAP[nextR][nextC];
-            return tile !== 1 && tile !== 4;
+            const tile = currentMapData[nextR][nextC];
+            return tile !== 1;
         }
         return false;
     }
@@ -396,58 +383,33 @@ class Entity {
 }
 
 class Player extends Entity {
-    constructor(x, y) {
-        super(x, y, '#00F0FF'); // Cyan
-        this.pulse = 0;
-    }
+    constructor(x, y) { super(x, y, '#00F0FF'); }
     update() {
         if (this.isCentered()) {
             if (nextDir.x !== 0 || nextDir.y !== 0) {
-                if (this.canMove(nextDir.x, nextDir.y)) {
-                    this.snapToGrid();
-                    this.dir = { ...nextDir };
-                }
+                if (this.canMove(nextDir.x, nextDir.y)) { this.snapToGrid(); this.dir = { ...nextDir }; }
             }
-            if (!this.canMove(this.dir.x, this.dir.y)) {
-                this.snapToGrid();
-                this.dir = { x: 0, y: 0 };
-            }
+            if (!this.canMove(this.dir.x, this.dir.y)) { this.snapToGrid(); this.dir = { x: 0, y: 0 }; }
         }
         this.move();
-        
-        // Step Sound
-        if ((this.dir.x !== 0 || this.dir.y !== 0) && Math.random() < 0.1) {
-             AudioEngine.step();
-        }
-
-        // Collect Bits
         const p = this.getGridPos();
         if (p.r >= 0 && p.r < ROWS && p.c >= 0 && p.c < COLS) {
-            const bitIndex = bits.findIndex(b => b.c === p.c && b.r === p.r);
-            if (bitIndex !== -1) {
-                const b = bits[bitIndex];
-                bits.splice(bitIndex, 1);
+            const bIndex = bits.findIndex(b => b.c === p.c && b.r === p.r);
+            if (bIndex !== -1) {
+                const b = bits[bIndex]; bits.splice(bIndex, 1);
+                AudioEngine.collectBit(); 
                 if (b.type === 2) score += 10;
                 else if (b.type === 3) { score += 50; activatePowerMode(); }
+                highScore = Math.max(highScore, score);
                 if (bits.length === 0) winGame();
             }
         }
     }
     draw() {
         ctx.fillStyle = this.color;
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = this.color;
-        
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fill();
-        
-        // Inner core
-        ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius * 0.4, 0, Math.PI * 2);
-        ctx.fill();
-        
+        ctx.shadowBlur = 10; ctx.shadowColor = this.color;
+        ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(this.x, this.y, this.radius * 0.4, 0, Math.PI * 2); ctx.fill();
         ctx.shadowBlur = 0;
     }
 }
@@ -455,186 +417,160 @@ class Player extends Entity {
 class Drone extends Entity {
     constructor(x, y, color, type) {
         super(x, y, color);
-        this.originalColor = color;
+        this.startX = x;
+        this.startY = y;
+        this.originalColor = color; 
         this.type = type;
-        let baseSpeed = 1.5;
-        if (level >= 2) baseSpeed = 2.0;
-        if (level >= 5) baseSpeed = 2.4; 
-        this.speed = baseSpeed; 
-        this.mode = 'SCATTER';
+        this.speed = level === 1 ? 1.2 : (level === 2 ? 1.5 : (level === 3 ? 1.6 : (level === 4 ? 2.0 : 2.4)));
+        this.mode = 'CHASE'; 
         this.dir = { x: 0, y: 0 };
-        this.inHouse = true;
+        this.stuckTimer = 0;
+        this.history = [];
+        this.forcedDirectionTimer = 0;
     }
+
     update() {
+        const p = this.getGridPos();
+        
         if (this.isCentered()) {
-            const options = [];
-            const dirs = [{x:0, y:-1}, {x:0, y:1}, {x:-1, y:0}, {x:1, y:0}];
-            dirs.forEach(d => {
-                if (d.x === -this.dir.x && d.y === -this.dir.y && this.dir.x !==0) return;
-                const p = this.getGridPos();
-                const nextC = p.c + d.x;
-                const nextR = p.r + d.y;
-                if (nextC >=0 && nextC < COLS && nextR >=0 && nextR < ROWS) {
-                    const tile = MAP[nextR][nextC];
-                    if (tile === 1) return;
-                    if (tile === 4 && !this.inHouse) return;
-                    options.push(d);
-                }
-            });
-            if (options.length > 0) {
-                if (this.mode === 'FRIGHTENED') {
-                    this.dir = options[Math.floor(Math.random() * options.length)];
-                } else {
-                    if (this.mode === 'CHASE' && Math.random() > 0.4) {
-                        let bestDir = options[0];
-                        let minDist = 999999;
-                        options.forEach(opt => {
-                            const tx = (this.getGridPos().c + opt.x) * TILE_SIZE;
-                            const ty = (this.getGridPos().r + opt.y) * TILE_SIZE;
-                            const dist = Math.hypot(tx - player.x, ty - player.y);
-                            if (dist < minDist) { minDist = dist; bestDir = opt; }
-                        });
-                        this.dir = bestDir;
-                    } else {
-                         this.dir = options[Math.floor(Math.random() * options.length)];
-                    }
-                }
-                this.snapToGrid();
+            this.snapToGrid();
+            
+            // Stuck Detection
+            if (this.lastGrid && this.lastGrid.c === p.c && this.lastGrid.r === p.r) {
+                this.stuckTimer++;
             } else {
-                this.dir = { x: -this.dir.x, y: -this.dir.y };
+                this.stuckTimer = 0;
+            }
+            this.lastGrid = { ...p };
+
+            // Anti-Oscillation
+            this.history.push(`${p.c},${p.r}`);
+            if (this.history.length > 5) this.history.shift();
+            
+            let isLooping = false;
+            if (this.history.length >= 4) {
+                if (this.history[0] === this.history[2] && this.history[1] === this.history[3]) {
+                    isLooping = true;
+                }
+            }
+
+            if (this.stuckTimer > 30 || isLooping || this.forcedDirectionTimer > 0) {
+                if (this.forcedDirectionTimer <= 0) this.forcedDirectionTimer = 40;
+                this.forcedDirectionTimer--;
+                this.stuckTimer = 0;
+                const possible = [];
+                [{x:0,y:-1},{x:0,y:1},{x:-1,y:0},{x:1,y:0}].forEach(d => {
+                    if (this.canMove(d.x, d.y)) possible.push(d);
+                });
+                if (possible.length > 0) this.dir = possible[Math.floor(Math.random() * possible.length)];
+            } else {
+                const options = [];
+                [{x:0,y:-1},{x:0,y:1},{x:-1,y:0},{x:1,y:0}].forEach(d => {
+                    if (d.x === -this.dir.x && d.y === -this.dir.y && this.dir.x !== 0) return;
+                    const nc = p.c + d.x, nr = p.r + d.y;
+                    if (nc >= 0 && nc < COLS && nr >= 0 && nr < ROWS) {
+                        const tile = currentMapData[nr][nc];
+                        if (tile !== 1) options.push(d);
+                    }
+                });
+
+                if (options.length > 0) {
+                    if (this.mode === 'FRIGHTENED') {
+                        this.dir = options[Math.floor(Math.random() * options.length)];
+                    } else {
+                        let best = options[0], min = 999999;
+                        options.forEach(opt => {
+                            const dist = Math.hypot((p.c + opt.x) * TILE_SIZE - player.x, (p.r + opt.y) * TILE_SIZE - player.y);
+                            if (dist < min) { min = dist; best = opt; }
+                        });
+                        this.dir = (Math.random() > 0.3) ? best : options[Math.floor(Math.random() * options.length)];
+                    }
+                } else {
+                    this.dir = { x: -this.dir.x, y: -this.dir.y };
+                }
             }
         }
+        
         this.move();
-        const dist = Math.hypot(this.x - player.x, this.y - player.y);
-        if (dist < TILE_SIZE) {
-            if (this.mode === 'FRIGHTENED') {
-                AudioEngine.eatDrone();
+        if (Math.hypot(this.x - player.x, this.y - player.y) < TILE_SIZE * 0.8) {
+            if (this.mode === 'FRIGHTENED') { 
+                AudioEngine.eatDrone(); 
+                const _px = this.x, _py = this.y;
                 this.reset();
-                score += 200;
-                createParticles(this.x, this.y, this.originalColor);
+                score += 200; 
+                highScore = Math.max(highScore, score);
+                createParticles(_px, _py, this.originalColor); 
             } else if (this.mode !== 'EATEN') {
                 killPlayer();
             }
         }
     }
+
     reset() {
-        this.x = 9 * TILE_SIZE + TILE_SIZE/2;
-        this.y = 8 * TILE_SIZE + TILE_SIZE/2;
+        // Respawn in the opposite corner from where the drone was eaten,
+        // so it doesn't immediately re-appear on top of the player.
+        const p = this.getGridPos();
+        const midC = (COLS - 1) / 2;
+        const midR = (ROWS - 1) / 2;
+
+        let spawnC = 1, spawnR = 1;
+
+        // TL -> BR, TR -> BL, BL -> TR, BR -> TL
+        if (p.c < midC && p.r < midR) {          // top-left
+            spawnC = COLS - 2; spawnR = ROWS - 2;
+        } else if (p.c >= midC && p.r < midR) {  // top-right
+            spawnC = 1; spawnR = ROWS - 2;
+        } else if (p.c < midC && p.r >= midR) {  // bottom-left
+            spawnC = COLS - 2; spawnR = 1;
+        } else {                                 // bottom-right
+            spawnC = 1; spawnR = 1;
+        }
+
+        this.x = spawnC * TILE_SIZE + TILE_SIZE/2;
+        this.y = spawnR * TILE_SIZE + TILE_SIZE/2;
         this.mode = 'CHASE';
-        this.dir = {x:0, y:-1};
+        this.dir = {x:0, y:0};
+
         this.inHouse = true;
         let releaseTime = Math.max(500, 2000 - (level * 200));
         setTimeout(() => { this.inHouse = false; }, releaseTime);
     }
+    
     draw() {
-        const color = (this.mode === 'FRIGHTENED') ? 
-                      ((flashTimer > 0 && Math.floor(Date.now() / 200) % 2 === 0) ? '#fff' : '#00f') : 
-                      this.originalColor;
-        ctx.fillStyle = color;
-        
-        // Draw Drone as Triangle
-        const r = this.radius;
-        ctx.beginPath();
-        ctx.moveTo(this.x, this.y - r);
-        ctx.lineTo(this.x + r, this.y + r);
-        ctx.lineTo(this.x - r, this.y + r);
-        ctx.closePath();
-        ctx.fill();
-        
-        // "Eye"
-        ctx.fillStyle = '#000';
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, r/3, 0, Math.PI*2);
-        ctx.fill();
+        const c = (this.mode === 'FRIGHTENED') ? ((flashTimer > 0 && Math.floor(Date.now() / 200) % 2 === 0) ? '#fff' : '#00f') : this.originalColor;
+        ctx.fillStyle = c; const r = this.radius;
+        ctx.beginPath(); ctx.moveTo(this.x, this.y - r); ctx.lineTo(this.x + r, this.y + r); ctx.lineTo(this.x - r, this.y + r); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(this.x, this.y, r/3, 0, Math.PI*2); ctx.fill();
     }
 }
 
 /**
- * GAME LOGIC
+ * GAME ENGINE
  */
-
-
-function resizeScale(){
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  const s = Math.min(vw / canvas.width, vh / canvas.height);
-  canvas.style.position="absolute";
-  canvas.style.left="50%";
-  canvas.style.top="50%";
-  canvas.style.transform=`translate(-50%,-50%) scale(${s})`;
-  canvas.style.transformOrigin="top left";
-}
-
 function init() {
-    canvas = document.getElementById('gameCanvas');
-    ctx = canvas.getContext('2d');
-    canvas.width = COLS * TILE_SIZE;
-    canvas.height = ROWS * TILE_SIZE;
-    resizeScale();
+    canvas = document.getElementById('gameCanvas'); ctx = canvas.getContext('2d');
+    canvas.width = COLS * TILE_SIZE; canvas.height = ROWS * TILE_SIZE;
+    highScore = 0;
 
-    Leaderboard.load();
-    highScore = Leaderboard.getTopScore();
-    
-    // UI Event Listeners
-    window.addEventListener('resize', ()=>{ try{ resizeScale(); }catch(e){} });
-
-window.addEventListener('keydown', handleKey);
+    window.addEventListener('keydown', handleKey);
     window.addEventListener('touchstart', handleTouchStart, {passive: false});
     window.addEventListener('touchend', handleTouchEnd, {passive: false});
-
-    showStartScreen();
-    resetLevel();
-    draw();
+    showStartScreen(); resetLevel(); draw(); fitScale();
 }
 
 function showStartScreen() {
-    gameState = 'START';
-    const ov = document.getElementById('overlay');
-    ov.classList.remove('hidden');
-    
-    // Leaderboard display removed
-    ov.innerHTML = `
-        <h1>NEON CHASE</h1>
-        <p>ARROWS / SWIPE to Move<br>Collect Bits & Hack Drones</p>
-        <button onclick="startGame()">INITIATE</button>
-    `;
-}
-
-function showInputScreen() {
-    gameState = 'INPUT_SCORE';
-    const ov = document.getElementById('overlay');
-    ov.classList.remove('hidden');
-    
-    ov.innerHTML = `
-        <h1 style="color:#00ff00; font-size:20px;">NEW RECORD!</h1>
-        <p>BITS COLLECTED: ${score}</p>
-        `;
-    // auto-submit (no initials prompt)
-    if(!window.__autoSubmitOnce){
-      window.__autoSubmitOnce=true;
-      setTimeout(()=>{ try{ submitScore(); }catch(e){} }, 50);
-    }
-}
-
-
-function getInitials(){
-  const v=(localStorage.getItem("PIXELNET_INITIALS")||localStorage.getItem("playerInitials")||"???").toString().trim().toUpperCase();
-  return (v||"???").slice(0,3);
-}
-
-function submitScore(){
-    const name = getInitials();
-    Leaderboard.add(name, score);
-    highScore = Leaderboard.getTopScore();
-    showStartScreen();
+    gameState = 'START'; const ov = document.getElementById('overlay'); ov.classList.remove('hidden');
+    ov.innerHTML = `<h1>NEON CHASE</h1><p>ARROWS / SWIPE to Move<br>Drones hunt from the corners.</p><button class="reboot-btn" onclick="startGame()">INITIATE</button>`;
 }
 
 function resetLevel() {
     bits = [];
+    currentMapData = LEVEL_MAPS[(level - 1) % LEVEL_MAPS.length];
+    wallColor = LEVEL_COLORS[(level - 1) % LEVEL_COLORS.length];
     for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
-            if (MAP[r][c] === 2) bits.push({c, r, type: 2});
-            if (MAP[r][c] === 3) bits.push({c, r, type: 3});
+            if (currentMapData[r][c] === 2) bits.push({c, r, type: 2});
+            if (currentMapData[r][c] === 3) bits.push({c, r, type: 3});
         }
     }
     resetEntities();
@@ -643,96 +579,55 @@ function resetLevel() {
 function resetEntities() {
     player = new Player(9, 15);
     drones = [
-        new Drone(9, 8, '#FF0055', 0), // Red
-        new Drone(8, 9, '#FF9900', 1), // Orange
-        new Drone(10, 9, '#CC00FF', 2), // Purple
-        new Drone(9, 9, '#FFFF00', 3)  // Yellow
+        new Drone(1, 1, '#FF0055', 0), 
+        new Drone(17, 1, '#FF9900', 1), 
+        new Drone(1, 18, '#CC00FF', 2), 
+        new Drone(17, 18, '#FFFF00', 3)
     ];
-    drones[0].inHouse = false;
-    drones[0].dir = {x: -1, y: 0};
     nextDir = { x: 0, y: 0 };
 }
 
 function startGame() {
-    AudioEngine.init();
-    AudioEngine.start();
-    document.getElementById('overlay').classList.add('hidden');
-    score = 0;
-    lives = 3;
-    level = 1;
-    updateUI();
-    gameState = 'PLAY';
-    resetLevel();
-    if (gameInterval) clearInterval(gameInterval);
-    gameInterval = setInterval(gameLoop, 1000/60);
+    __px_sentScore = false;
+    AudioEngine.init(); AudioEngine.start(); document.getElementById('overlay').classList.add('hidden');
+    score = 0; lives = 3; level = 1; updateUI(); gameState = 'PLAY'; resetLevel();
+    if (gameInterval) clearInterval(gameInterval); gameInterval = setInterval(gameLoop, 1000/60);
 }
 
 function winGame() {
-    gameState = 'LEVEL_TRANSITION';
-    AudioEngine.start();
-    level++;
-    
-    const ov = document.getElementById('overlay');
-    ov.classList.remove('hidden');
-    ov.innerHTML = `<h1>ZONE ${level}</h1><p>SYNCING...</p>`;
-    
+    gameState = 'LEVEL_TRANSITION'; AudioEngine.start(); level++;
+    const ov = document.getElementById('overlay'); ov.classList.remove('hidden');
+    ov.innerHTML = `<h1>ZONE ${level}</h1><p>SYNCING CORE...</p>`;
     clearInterval(gameInterval);
-    setTimeout(() => {
-        ov.classList.add('hidden');
-        gameState = 'PLAY';
-        resetLevel();
-        gameInterval = setInterval(gameLoop, 1000/60);
-    }, 3000);
+    setTimeout(() => { ov.classList.add('hidden'); gameState = 'PLAY'; resetLevel(); gameInterval = setInterval(gameLoop, 1000/60); }, 1500);
 }
 
 function gameOver() {
-  try{ parent?.PixelNet?.submitScore?.(score); }catch(e){}
+    gameState = 'GAMEOVER'; clearInterval(gameInterval);
+    postScoreOnce();
+    highScore = Math.max(highScore, score);
 
-    gameState = 'GAMEOVER';
-    clearInterval(gameInterval);
-    
-    if (Leaderboard.isHighScore(score)) {
-        setTimeout(showInputScreen, 1500);
-    } else {
-        const ov = document.getElementById('overlay');
-        ov.classList.remove('hidden');
-        ov.innerHTML = `
-            <h1 style="color:#FF0055">SYSTEM FAILURE</h1>
-            <p>BITS: ${score}</p>
-            <button onclick="showStartScreen()">REBOOT</button>
-        `;
-    }
+    const ov = document.getElementById('overlay'); 
+    ov.classList.remove('hidden');
+    ov.innerHTML = `
+        <h1 class="failure-text">SYSTEM FAILURE</h1>
+        <p style="font-weight: 900; color: #fff; font-size: 20px;">BITS: ${score}</p>
+        <button class="reboot-btn" onclick="startGame()">REBOOT</button>
+    `;
 }
 
 function killPlayer() {
-    lives--;
-    updateUI();
-    AudioEngine.crash();
-    createParticles(player.x, player.y, '#00F0FF');
-    if (lives <= 0) {
-        gameOver();
-    } else {
-        resetEntities();
-    }
+    lives--; updateUI(); AudioEngine.crash(); createParticles(player.x, player.y, '#00F0FF');
+    if (lives <= 0) gameOver(); else resetEntities();
 }
 
 function activatePowerMode() {
-    let duration = Math.max(120, 600 - ((level-1) * 60));
-    powerModeTime = duration;
-    flashTimer = 0;
+    powerModeTime = Math.max(240, 600 - ((level-1) * 60)); flashTimer = 0;
     drones.forEach(g => { if (g.mode !== 'EATEN') g.mode = 'FRIGHTENED'; });
 }
 
 function createParticles(x, y, color) {
-    for(let i=0; i<8; i++) {
-        particles.push({
-            x: x, y: y,
-            vx: (Math.random() - 0.5) * 5,
-            vy: (Math.random() - 0.5) * 5,
-            life: 30,
-            color: color
-        });
-    }
+    for(let i=0; i<8; i++) particles.push({ x, y, vx: (Math.random()-0.5)*5, vy: (Math.random()-0.5)*5, life: 30, color });
 }
 
 function updateUI() {
@@ -740,99 +635,47 @@ function updateUI() {
     document.getElementById('high-score-val').textContent = highScore;
     document.getElementById('lives-val').textContent = lives;
     document.getElementById('level-val').textContent = level;
+    document.getElementById('level-display').querySelector('span').style.color = wallColor;
 }
 
 function gameLoop() {
     if (gameState !== 'PLAY') return;
-    player.update();
-    drones.forEach(g => g.update());
+    player.update(); drones.forEach(g => g.update());
     if (powerModeTime > 0) {
-        powerModeTime--;
-        if (powerModeTime < 120) flashTimer++;
-        if (powerModeTime === 0) {
-            drones.forEach(g => { if (g.mode === 'FRIGHTENED') g.mode = 'CHASE'; });
-        }
+        powerModeTime--; if (powerModeTime < 120) flashTimer++;
+        if (powerModeTime === 0) drones.forEach(g => { if (g.mode === 'FRIGHTENED') g.mode = 'CHASE'; });
     }
     for (let i = particles.length - 1; i >= 0; i--) {
-        const p = particles[i];
-        p.x += p.vx;
-        p.y += p.vy;
-        p.life--;
+        const p = particles[i]; p.x += p.vx; p.y += p.vy; p.life--;
         if (p.life <= 0) particles.splice(i, 1);
     }
-    updateUI();
-    draw();
+    updateUI(); draw();
 }
 
-/**
- * RENDERING
- */
 function draw() {
-    ctx.fillStyle = '#050010'; // Dark bg
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
+    ctx.fillStyle = '#050010'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
-            const x = c * TILE_SIZE;
-            const y = r * TILE_SIZE;
-            if (MAP[r][c] === 1) {
-                ctx.strokeStyle = WALL_COLOR;
-                ctx.lineWidth = 1;
-                ctx.strokeRect(x + 2, y + 2, TILE_SIZE - 4, TILE_SIZE - 4);
-                // Glow effect
-                ctx.shadowBlur = 5;
-                ctx.shadowColor = WALL_COLOR;
-                ctx.strokeRect(x + 4, y + 4, TILE_SIZE - 8, TILE_SIZE - 8);
-                ctx.shadowBlur = 0;
-            } else if (MAP[r][c] === 4) {
-                ctx.strokeStyle = GATE_COLOR;
-                ctx.beginPath();
-                ctx.moveTo(x, y + TILE_SIZE/2);
-                ctx.lineTo(x + TILE_SIZE, y + TILE_SIZE/2);
-                ctx.stroke();
+            const x = c * TILE_SIZE, y = r * TILE_SIZE;
+            if (currentMapData[r][c] === 1) {
+                ctx.strokeStyle = wallColor; ctx.lineWidth = 1; ctx.strokeRect(x + 2, y + 2, TILE_SIZE - 4, TILE_SIZE - 4);
+                ctx.shadowBlur = 5; ctx.shadowColor = wallColor; ctx.strokeRect(x + 4, y + 4, TILE_SIZE - 8, TILE_SIZE - 8); ctx.shadowBlur = 0;
             }
         }
     }
-    
     bits.forEach(b => {
-        const x = b.c * TILE_SIZE + TILE_SIZE/2;
-        const y = b.r * TILE_SIZE + TILE_SIZE/2;
+        const x = b.c * TILE_SIZE + TILE_SIZE/2, y = b.r * TILE_SIZE + TILE_SIZE/2;
         ctx.fillStyle = '#00F0FF';
-        if (b.type === 2) {
-            ctx.fillRect(x-1, y-1, 2, 2);
-        } else {
-            // Power Up Pulse
-            if (Math.floor(Date.now() / 100) % 2 === 0) {
-                ctx.beginPath();
-                ctx.arc(x, y, 5, 0, Math.PI * 2);
-                ctx.fill();
-            }
-        }
+        if (b.type === 2) ctx.fillRect(x-1, y-1, 2, 2);
+        else if (Math.floor(Date.now() / 100) % 2 === 0) { ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fill(); }
     });
-    
-    player.draw();
-    drones.forEach(g => g.draw());
-    particles.forEach(p => {
-        ctx.fillStyle = p.color;
-        ctx.fillRect(p.x, p.y, 3, 3);
-    });
+    player.draw(); drones.forEach(g => g.draw());
+    particles.forEach(p => { ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 3, 3); });
 }
 
 function handleKey(e) {
-    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].indexOf(e.code) > -1) {
-        e.preventDefault();
-    }
-    if (gameState === 'INPUT_SCORE' && e.key === 'Enter') {
-        submitScore();
-        return;
-    }
-    
-    // DEVELOPER KEY: 'N' for Next Level
-    if (e.key.toLowerCase() === 'n' && gameState === 'PLAY') {
-        winGame();
-        return;
-    }
-
+    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].indexOf(e.code) > -1) e.preventDefault();
+    if (__DEV && gameState === 'PLAY' && e.key.toLowerCase() === 'n') { winGame(); return; }
     switch(e.code) {
         case 'ArrowUp': nextDir = { x: 0, y: -1 }; break;
         case 'ArrowDown': nextDir = { x: 0, y: 1 }; break;
@@ -840,26 +683,14 @@ function handleKey(e) {
         case 'ArrowRight': nextDir = { x: 1, y: 0 }; break;
     }
 }
-
-function handleTouchStart(e) {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-}
-
+function handleTouchStart(e) { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; e.preventDefault(); }
 function handleTouchEnd(e) {
-    const touchEndX = e.changedTouches[0].clientX;
-    const touchEndY = e.changedTouches[0].clientY;
-    const dx = touchEndX - touchStartX;
-    const dy = touchEndY - touchStartY;
-    if (Math.abs(dx) > Math.abs(dy)) {
-        if (Math.abs(dx) > 30) nextDir = dx > 0 ? {x:1, y:0} : {x:-1, y:0};
-    } else {
-        if (Math.abs(dy) > 30) nextDir = dy > 0 ? {x:0, y:1} : {x:0, y:-1};
-    }
+    const dx = e.changedTouches[0].clientX - touchStartX, dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) > Math.abs(dy)) { if (Math.abs(dx) > 30) nextDir = dx > 0 ? {x:1, y:0} : {x:-1, y:0}; }
+    else { if (Math.abs(dy) > 30) nextDir = dy > 0 ? {x:0, y:1} : {x:0, y:-1}; }
+    e.preventDefault();
 }
-
 init();
-
 </script>
 </body>
 </html>
