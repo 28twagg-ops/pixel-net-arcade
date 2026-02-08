@@ -187,14 +187,20 @@ PIXEL-NET RULES:
 - Submit score ONCE via:
   parent.postMessage({ type:'GAME_OVER_SCORE', score:<number> }, '*')
 */
+
+// Dev-only hotkeys are disabled on live unless ?dev=1 is present
+const __DEV = new URLSearchParams(location.search).get('dev') === '1';
+
 let __px_sentScore = false;
 function postScoreOnce(){
     if (__px_sentScore) return;
     __px_sentScore = true;
-    try { parent.postMessage({ type:'GAME_OVER_SCORE', score: Math.max(0, Math.floor(Number(score)||0)) }
-// Dev-only hotkeys (disable on live unless ?dev=1)
-const __DEV = new URLSearchParams(location.search).get('dev') === '1';
-, '*'); } catch(_) {}
+    try {
+        parent.postMessage(
+            { type:'GAME_OVER_SCORE', score: Math.max(0, Math.floor(Number(score)||0)) },
+            '*'
+        );
+    } catch(_) {}
 }
 
 /* Uniform scale to fit wrapper container */
@@ -212,7 +218,8 @@ window.addEventListener('message', (e)=>{
     const d = e.data || {};
     if (d && d.type === 'PIXELNET_RESIZE') fitScale();
 });
-
+// IMPORTANT: apply once on load so the game is not stuck at scale(1)
+window.addEventListener('load', fitScale);
 /**
  * HIGH SCORE TRACKING
  */
