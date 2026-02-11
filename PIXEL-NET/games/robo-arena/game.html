@@ -274,6 +274,22 @@
   }
 })();
 </script>
+<script>
+/* Touch enablement (mobile only) — uses wrapper signal, no UI ownership outside playfield */
+(function(){
+  function isCoarsePointer(){
+    return (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || ('ontouchstart' in window);
+  }
+  window.addEventListener('message', (e) => {
+    const d = e && e.data;
+    if(!d || d.type !== 'PIXELNET_EMBEDDED') return;
+    if(isCoarsePointer()){
+      document.documentElement.classList.add('pn-touch');
+    }
+  });
+})();
+</script>
+
 <style>
 /* When embedded inside the canonical wrapper, show ONLY the game surface */
 .pn-embed, .pn-embed body {
@@ -316,6 +332,11 @@
 </style>
 
 
+
+<style>
+/* Force-enable mobile controls when wrapper signals embedded + touch */
+html.pn-touch #mobile-controls{display:flex !important;}
+</style>
 <style id="pn-embed-style">
 /* PATCH_VERSION:EMBED_MODE_v2026-02-03 */
 html.pn-embed, body.pn-embed{height:100%;}
