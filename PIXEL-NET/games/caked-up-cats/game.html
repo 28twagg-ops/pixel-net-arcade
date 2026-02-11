@@ -1162,6 +1162,7 @@ html.pn-embed canvas{display:block; width:100% !important; height:100% !importan
             winGraceFrames = 30;
 
             player = new Cat(selectedCatType);
+            ensurePlayerSpawnSafe();
             mouse = new Mouse();
             ensureMouseSpawnSafe();
 
@@ -1262,6 +1263,39 @@ html.pn-embed canvas{display:block; width:100% !important; height:100% !importan
                 }
             }
             return best;
+        }
+
+        function findNearestOpenSpotTo(gx, gy) {
+            // Expanding ring search (cheap + deterministic). Returns first open tile found.
+            const maxR = Math.max(COLS, ROWS);
+            for (let r = 0; r <= maxR; r++) {
+                for (let y = gy - r; y <= gy + r; y++) {
+                    for (let x = gx - r; x <= gx + r; x++) {
+                        if (x <= 0 || y <= 0 || x >= COLS - 1 || y >= ROWS - 1) continue;
+                        if (!mapData[y]) continue;
+                        if (mapData[y][x] === 0) return { x, y };
+                    }
+                }
+            }
+            return null;
+        }
+
+        function ensurePlayerSpawnSafe() {
+            // Player defaults to (1,1). If maze generation walls it off, relocate to nearest open tile.
+            if (!player) return;
+            const gx = player.gridX, gy = player.gridY;
+            if (mapData[gy] && mapData[gy][gx] === 0) return;
+
+            const spot = findNearestOpenSpotTo(gx, gy) || findOpenSpot();
+            if (!spot) return;
+
+            player.gridX = spot.x;
+            player.gridY = spot.y;
+            player.x = spot.x * TILE;
+            player.y = spot.y * TILE;
+            player.dir = { x: 0, y: 0 };
+            player.nextDir = { x: 0, y: 0 };
+            player.moving = false;
         }
 
         function ensureMouseSpawnSafe() {
@@ -1634,11 +1668,13 @@ html.pn-embed canvas{display:block; width:100% !important; height:100% !importan
                 updateCharSelect();
                 screenLevelUp.style.display = 'flex';
             } else {
-                // Freeze + submit score once at GAME OVER (PIXEL-NET backend)
-                if (!scoreSubmitted && window.PixelNet && typeof PixelNet.submitScore === "function") {
+                // Submit score once per real GAME OVER (wrapper owns leaderboard)
+                if (!scoreSubmitted) {
                     scoreSubmitted = true;
                     const finalScore = Math.floor(Number(score) || 0);
-                    try { PixelNet.submitScore(GAME_SLUG, finalScore); } catch (e) {}
+                    try {
+                        (window.parent || window).postMessage({ type: 'GAME_OVER_SCORE', score: finalScore }, '*');
+                    } catch (e) {}
                 }
 
                 if (score > highScore) {
