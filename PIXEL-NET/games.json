@@ -1,12 +1,5 @@
 [
   {
-    "name": "CYBER PYTHON",
-    "type": "iframe",
-    "path": "games/cyber-python/wrapper-v2.html",
-    "thumb": "assets/cyber-python_thumb.png",
-    "description": "Classic snake, cyber style."
-  },
-  {
     "name": "CAKED UP CATS",
     "type": "iframe",
     "path": "games/caked-up-cats/wrapper-v2.html",
