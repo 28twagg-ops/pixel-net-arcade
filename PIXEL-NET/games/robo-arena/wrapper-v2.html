@@ -125,6 +125,84 @@ iframe{width:100%;height:100%;border:0;display:block;background:transparent}
 }
 
 
+/* --- PIXEL-NET mobile touch controls (wrapper-only) --- */
+.touchControls{
+  position: fixed;
+  left: 8px; right: 8px; bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+  padding: 10px; max-width: 1200px; margin: 0 auto;
+  display:none;
+  gap: 12px;
+  align-items: flex-end;
+  justify-content: space-between;
+  pointer-events:none;
+  z-index: 45;
+}
+@media (max-width: 1100px){
+  .touchControls{ display: none; }
+}
+.touchPad, .touchBtns{ pointer-events:auto; display:flex; gap:10px; }
+.dpad{
+  width: 176px; height: 176px;
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.28);
+  backdrop-filter: blur(10px);
+  position: relative;
+  touch-action: none;
+}
+.dpad button{
+  position:absolute;
+  width: 56px; height: 56px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.24);
+  color: rgba(243,246,255,.92);
+  font-weight: 900;
+  cursor:pointer;
+}
+.dpad button:active, .touchBtns button:active{ transform: translateY(1px); }
+.dpad .up{ left:60px; top:8px; }
+.dpad .down{ left:60px; bottom:8px; }
+.dpad .left{ left:8px; top:60px; }
+.dpad .right{ right:8px; top:60px; }
+.touchBtns{
+  flex-direction: column;
+  align-items: flex-end;
+}
+.touchBtns button{
+  width: 88px; height: 66px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.24);
+  color: rgba(243,246,255,.92);
+  font-weight: 1000;
+  letter-spacing:.04em;
+  cursor:pointer;
+  touch-action:none;
+}
+.touchHint{
+  position:absolute;
+  left: 12px;
+  bottom: 12px;
+  font-size: 12px;
+  color: rgba(243,246,255,.72);
+  pointer-events:none;
+}
+
+
+/* --- PIXEL-NET swipe controls (wrapper-only, mobile only) --- */
+.frame, .mobileFrame, .displayCard, .displayZone, .center { position: relative; }
+.swipeLayer{
+  position:absolute;
+  inset:0;
+  z-index: 40;
+  display:none;
+  pointer-events:none;
+  touch-action:none;
+}
+@media (pointer: coarse){
+  .swipeLayer{ display:block; pointer-events:auto; }
+}
 </style>
 </head>
 <body>
@@ -160,6 +238,7 @@ iframe{width:100%;height:100%;border:0;display:block;background:transparent}
         </div>
         <div class="frameWrap">
           <iframe id="gameFrame" src="./embed.html" allow="autoplay; fullscreen *" title="Robo Arena"></iframe>
+        <div class="swipeLayer" data-iframe="gameFrame" aria-hidden="true"></div>
         </div>
       </div>
 
@@ -178,6 +257,251 @@ iframe{width:100%;height:100%;border:0;display:block;background:transparent}
 const KEY="PIXELNET_INITIALS";
 document.getElementById("initials").textContent = localStorage.getItem(KEY) || "???";
 </script>
+
+<script>
+
+
+/* --- PIXEL-NET swipe controls: wrapper-only, mobile only (no visual buttons) --- */
+/* IMPORTANT: This layer MUST forward pointer events into the iframe so in-game taps/joysticks still work. */
+(function(){
+  const isCoarse = () => window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+  if(!isCoarse()) return;
+
+  const layers = Array.from(document.querySelectorAll('.swipeLayer[data-iframe]'));
+  if(!layers.length) return;
+
+  // Map: swipe direction -> Arrow keys. Tap -> Space. Two-finger tap -> X.
+  const KEY = {
+    up:    { key:'ArrowUp',   code:'ArrowUp'   },
+    down:  { key:'ArrowDown', code:'ArrowDown' },
+    left:  { key:'ArrowLeft', code:'ArrowLeft' },
+    right: { key:'ArrowRight',code:'ArrowRight'}
+  };
+  const TAP_A = { key:' ', code:'Space' };
+  const TAP_B = { key:'x', code:'KeyX' };
+
+  function getIframe(layer){
+    const id = layer.getAttribute('data-iframe');
+    return id ? document.getElementById(id) : null;
+  }
+
+  function getTargetWindow(layer){
+    const iframe = getIframe(layer);
+    if(!iframe) return null;
+    try{ iframe.contentWindow?.focus?.(); }catch(_){}
+    try{ return iframe.contentWindow; }catch(_){ return null; }
+  }
+
+  function dispatchKey(w, type, key, code){
+    if(!w) return;
+    const evInit = { key, code, bubbles:true, cancelable:true };
+    let ev;
+    try{ ev = new w.KeyboardEvent(type, evInit); }
+    catch(_){ ev = new KeyboardEvent(type, evInit); }
+    try{ w.dispatchEvent(ev); }catch(_){}
+    try{ w.document?.dispatchEvent(ev); }catch(_){}
+  }
+
+  function pulse(w, key, code){
+    dispatchKey(w, 'keydown', key, code);
+    // short pulse avoids "stuck" for tap actions
+    setTimeout(()=>dispatchKey(w,'keyup',key,code), 32);
+  }
+
+  // Forward pointer events into the iframe (same-origin) so game UI still receives taps/joysticks.
+  function forwardPointer(layer, e, type){
+    const iframe = getIframe(layer);
+    if(!iframe) return;
+
+    let win;
+    try{ win = iframe.contentWindow; }catch(_){ return; }
+    if(!win || !win.document) return;
+
+    const rect = iframe.getBoundingClientRect();
+    // Coordinates in the wrapper viewport
+    const lx = e.clientX - rect.left;
+    const ly = e.clientY - rect.top;
+    if(lx < 0 || ly < 0 || lx > rect.width || ly > rect.height) return;
+
+    // Map to iframe viewport coords
+    const sx = rect.width ? (win.innerWidth / rect.width) : 1;
+    const sy = rect.height ? (win.innerHeight / rect.height) : 1;
+    const ix = lx * sx;
+    const iy = ly * sy;
+
+    let target;
+    try{ target = win.document.elementFromPoint(ix, iy) || win.document; }
+    catch(_){ target = win.document; }
+
+    // Construct a PointerEvent in the iframe's realm.
+    let pev;
+    const init = {
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      pointerId: e.pointerId,
+      pointerType: e.pointerType || 'touch',
+      isPrimary: e.isPrimary,
+      buttons: (type === 'pointerup' || type === 'pointercancel') ? 0 : (e.buttons || 1),
+      clientX: ix,
+      clientY: iy,
+      screenX: e.screenX,
+      screenY: e.screenY,
+      pressure: e.pressure || (type === 'pointerup' ? 0 : 0.5),
+      width: e.width || 1,
+      height: e.height || 1
+    };
+    try{ pev = new win.PointerEvent(type, init); }
+    catch(_){
+      // Fallback: MouseEvent for older browsers
+      try{ pev = new win.MouseEvent(type.replace('pointer','mouse'), init); }
+      catch(__){ return; }
+    }
+
+    try{ target.dispatchEvent(pev); }catch(_){}
+  }
+
+  function install(layer){
+    const w = () => getTargetWindow(layer);
+
+    let activeDir = null;        // 'up'|'down'|'left'|'right'|null
+    let down = false;
+    let startX = 0, startY = 0, startT = 0;
+    let pointers = new Set();
+    let hadMulti = false;
+
+    const THRESH = 18;           // px before direction engages
+    const TAP_DIST = 10;         // px max move for a tap
+    const TAP_TIME = 220;        // ms max for a tap
+
+    function setDir(dir){
+      if(dir === activeDir) return;
+      const win = w();
+      if(activeDir){
+        const k = KEY[activeDir];
+        dispatchKey(win,'keyup',k.key,k.code);
+      }
+      activeDir = dir;
+      if(activeDir){
+        const k = KEY[activeDir];
+        dispatchKey(win,'keydown',k.key,k.code);
+      }
+    }
+
+    function clearDir(){
+      setDir(null);
+    }
+
+    layer.addEventListener('pointerdown', (e)=>{
+      if(!isCoarse()) return;
+
+      // Keep page from scrolling/zooming during swipe, but DO NOT eat the game input:
+      // forward the event into the iframe immediately.
+      e.preventDefault();
+      forwardPointer(layer, e, 'pointerdown');
+
+      layer.setPointerCapture?.(e.pointerId);
+      pointers.add(e.pointerId);
+      if(pointers.size > 1) hadMulti = true;
+
+      if(pointers.size === 1){
+        down = true;
+        startX = e.clientX; startY = e.clientY; startT = performance.now();
+        activeDir = null;
+        hadMulti = false;
+      }
+    }, { passive:false });
+
+    layer.addEventListener('pointermove', (e)=>{
+      if(!pointers.has(e.pointerId)) return;
+      e.preventDefault();
+      forwardPointer(layer, e, 'pointermove');
+
+      if(!down) return;
+
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      const adx = Math.abs(dx), ady = Math.abs(dy);
+
+      if(adx < THRESH && ady < THRESH){
+        // still in deadzone, don't engage movement yet
+        return;
+      }
+
+      // Dominant axis decides direction (prevents diagonal jitter)
+      if(adx >= ady){
+        setDir(dx > 0 ? 'right' : 'left');
+      }else{
+        setDir(dy > 0 ? 'down' : 'up');
+      }
+    }, { passive:false });
+
+    function endPointer(e, type){
+      if(!pointers.has(e.pointerId)) return;
+      e.preventDefault();
+      forwardPointer(layer, e, type);
+
+      pointers.delete(e.pointerId);
+
+      // Only evaluate tap on the *last* finger up.
+      if(pointers.size > 0) return;
+
+      const win = w();
+      const dt = performance.now() - startT;
+      const dx = (e.clientX - startX);
+      const dy = (e.clientY - startY);
+      const dist = Math.hypot(dx, dy);
+
+      // Release movement key if held
+      clearDir();
+      down = false;
+
+      // Tap actions: 1-finger tap => A, 2-finger tap => B
+      if(dt <= TAP_TIME && dist <= TAP_DIST){
+        const k = hadMulti ? TAP_B : TAP_A;
+        pulse(win, k.key, k.code);
+      }
+    }
+
+    layer.addEventListener('pointerup', (e)=> endPointer(e,'pointerup'), { passive:false });
+    layer.addEventListener('pointercancel', (e)=> endPointer(e,'pointercancel'), { passive:false });
+
+    // Safety: if the page loses visibility, release movement keys.
+    document.addEventListener('visibilitychange', ()=>{
+      if(document.hidden){
+        const win = w();
+        if(activeDir){
+          const k = KEY[activeDir];
+          dispatchKey(win,'keyup',k.key,k.code);
+        }
+        activeDir = null;
+        down = false;
+        pointers.clear();
+        hadMulti = false;
+      }
+    });
+  }
+
+  layers.forEach(install);
+})();
+
+</script>
+
+<!-- Mobile touch controls (wrapper-only). Generates keyboard events for the game iframe. -->
+<div class="touchControls" id="touchControls" aria-hidden="true">
+  <div class="touchPad">
+    <div class="dpad" id="dpad">
+      <button class="up" data-key="ArrowUp" data-code="ArrowUp">▲</button>
+      <button class="down" data-key="ArrowDown" data-code="ArrowDown">▼</button>
+      <button class="left" data-key="ArrowLeft" data-code="ArrowLeft">◀</button>
+      <button class="right" data-key="ArrowRight" data-code="ArrowRight">▶</button>
+    </div>
+  </div>
+  <div class="touchBtns">
+    <button data-key=" " data-code="Space">A</button>
+    <button data-key="x" data-code="KeyX">B</button>
+  </div>
+</div>
 
 </body>
 </html>

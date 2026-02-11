@@ -262,6 +262,7 @@ document.getElementById("initials").textContent = localStorage.getItem(KEY) || "
 
 
 /* --- PIXEL-NET swipe controls: wrapper-only, mobile only (no visual buttons) --- */
+/* IMPORTANT: This layer MUST forward pointer events into the iframe so in-game taps/joysticks still work. */
 (function(){
   const isCoarse = () => window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
   if(!isCoarse()) return;
@@ -279,9 +280,13 @@ document.getElementById("initials").textContent = localStorage.getItem(KEY) || "
   const TAP_A = { key:' ', code:'Space' };
   const TAP_B = { key:'x', code:'KeyX' };
 
-  function getTargetWindow(layer){
+  function getIframe(layer){
     const id = layer.getAttribute('data-iframe');
-    const iframe = document.getElementById(id);
+    return id ? document.getElementById(id) : null;
+  }
+
+  function getTargetWindow(layer){
+    const iframe = getIframe(layer);
     if(!iframe) return null;
     try{ iframe.contentWindow?.focus?.(); }catch(_){}
     try{ return iframe.contentWindow; }catch(_){ return null; }
@@ -303,16 +308,71 @@ document.getElementById("initials").textContent = localStorage.getItem(KEY) || "
     setTimeout(()=>dispatchKey(w,'keyup',key,code), 32);
   }
 
+  // Forward pointer events into the iframe (same-origin) so game UI still receives taps/joysticks.
+  function forwardPointer(layer, e, type){
+    const iframe = getIframe(layer);
+    if(!iframe) return;
+
+    let win;
+    try{ win = iframe.contentWindow; }catch(_){ return; }
+    if(!win || !win.document) return;
+
+    const rect = iframe.getBoundingClientRect();
+    // Coordinates in the wrapper viewport
+    const lx = e.clientX - rect.left;
+    const ly = e.clientY - rect.top;
+    if(lx < 0 || ly < 0 || lx > rect.width || ly > rect.height) return;
+
+    // Map to iframe viewport coords
+    const sx = rect.width ? (win.innerWidth / rect.width) : 1;
+    const sy = rect.height ? (win.innerHeight / rect.height) : 1;
+    const ix = lx * sx;
+    const iy = ly * sy;
+
+    let target;
+    try{ target = win.document.elementFromPoint(ix, iy) || win.document; }
+    catch(_){ target = win.document; }
+
+    // Construct a PointerEvent in the iframe's realm.
+    let pev;
+    const init = {
+      bubbles: true,
+      cancelable: true,
+      composed: true,
+      pointerId: e.pointerId,
+      pointerType: e.pointerType || 'touch',
+      isPrimary: e.isPrimary,
+      buttons: (type === 'pointerup' || type === 'pointercancel') ? 0 : (e.buttons || 1),
+      clientX: ix,
+      clientY: iy,
+      screenX: e.screenX,
+      screenY: e.screenY,
+      pressure: e.pressure || (type === 'pointerup' ? 0 : 0.5),
+      width: e.width || 1,
+      height: e.height || 1
+    };
+    try{ pev = new win.PointerEvent(type, init); }
+    catch(_){
+      // Fallback: MouseEvent for older browsers
+      try{ pev = new win.MouseEvent(type.replace('pointer','mouse'), init); }
+      catch(__){ return; }
+    }
+
+    try{ target.dispatchEvent(pev); }catch(_){}
+  }
+
   function install(layer){
     const w = () => getTargetWindow(layer);
+
     let activeDir = null;        // 'up'|'down'|'left'|'right'|null
     let down = false;
     let startX = 0, startY = 0, startT = 0;
     let pointers = new Set();
+    let hadMulti = false;
 
     const THRESH = 18;           // px before direction engages
     const TAP_DIST = 10;         // px max move for a tap
-    const TAP_TIME = 200;        // ms max for a tap
+    const TAP_TIME = 220;        // ms max for a tap
 
     function setDir(dir){
       if(dir === activeDir) return;
@@ -334,21 +394,30 @@ document.getElementById("initials").textContent = localStorage.getItem(KEY) || "
 
     layer.addEventListener('pointerdown', (e)=>{
       if(!isCoarse()) return;
+
+      // Keep page from scrolling/zooming during swipe, but DO NOT eat the game input:
+      // forward the event into the iframe immediately.
       e.preventDefault();
+      forwardPointer(layer, e, 'pointerdown');
+
       layer.setPointerCapture?.(e.pointerId);
       pointers.add(e.pointerId);
+      if(pointers.size > 1) hadMulti = true;
 
-      // If a second finger comes down, treat as "B" on release (two-finger tap)
       if(pointers.size === 1){
         down = true;
         startX = e.clientX; startY = e.clientY; startT = performance.now();
         activeDir = null;
+        hadMulti = false;
       }
     }, { passive:false });
 
     layer.addEventListener('pointermove', (e)=>{
-      if(!down) return;
+      if(!pointers.has(e.pointerId)) return;
       e.preventDefault();
+      forwardPointer(layer, e, 'pointermove');
+
+      if(!down) return;
 
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
@@ -367,8 +436,11 @@ document.getElementById("initials").textContent = localStorage.getItem(KEY) || "
       }
     }, { passive:false });
 
-    function endPointer(e){
+    function endPointer(e, type){
       if(!pointers.has(e.pointerId)) return;
+      e.preventDefault();
+      forwardPointer(layer, e, type);
+
       pointers.delete(e.pointerId);
 
       // Only evaluate tap on the *last* finger up.
@@ -386,18 +458,13 @@ document.getElementById("initials").textContent = localStorage.getItem(KEY) || "
 
       // Tap actions: 1-finger tap => A, 2-finger tap => B
       if(dt <= TAP_TIME && dist <= TAP_DIST){
-        // If the gesture began as multi-touch, send B; otherwise A.
-        // (We can't reliably know "began" here; approximate: if the pointerup was from a multi-touch session.)
-        // We treat a quick second finger tap as B by checking if more than 1 pointer was active at any point.
-        // For minimalism: if the pointer was NOT primary (rare), still treat as B.
-        const asB = (e.isPrimary === false);
-        const k = asB ? TAP_B : TAP_A;
+        const k = hadMulti ? TAP_B : TAP_A;
         pulse(win, k.key, k.code);
       }
     }
 
-    layer.addEventListener('pointerup', (e)=>{ e.preventDefault(); endPointer(e); }, { passive:false });
-    layer.addEventListener('pointercancel', (e)=>{ e.preventDefault(); endPointer(e); }, { passive:false });
+    layer.addEventListener('pointerup', (e)=> endPointer(e,'pointerup'), { passive:false });
+    layer.addEventListener('pointercancel', (e)=> endPointer(e,'pointercancel'), { passive:false });
 
     // Safety: if the page loses visibility, release movement keys.
     document.addEventListener('visibilitychange', ()=>{
@@ -410,6 +477,7 @@ document.getElementById("initials").textContent = localStorage.getItem(KEY) || "
         activeDir = null;
         down = false;
         pointers.clear();
+        hadMulti = false;
       }
     });
   }
