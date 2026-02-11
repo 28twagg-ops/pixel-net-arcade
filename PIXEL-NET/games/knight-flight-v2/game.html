@@ -638,14 +638,29 @@ window.addEventListener('keyup', e => {
     if (e.code === 'ArrowRight') keys.ArrowRight = false;
 });
 
-canvas.addEventListener('touchstart', e => {
+// PIXELNET_TOUCH_SWIPE: swipe left/right (diagonal resolves by horizontal sign)
+let _pnStartX = 0, _pnStartY = 0;
+canvas.addEventListener('touchstart', (e) => {
     e.preventDefault();
-    const touch = e.touches[0];
-    const x = touch.clientX - canvas.getBoundingClientRect().left;
-    keys.Space = true;
-    if (x < 400) keys.ArrowLeft = true; else keys.ArrowRight = true;
+    if(!e.touches || e.touches.length !== 1) return;
+    const t = e.touches[0];
+    _pnStartX = t.clientX; _pnStartY = t.clientY;
+    keys.Space = true; // hold joust
+    keys.ArrowLeft = false; keys.ArrowRight = false;
 }, {passive: false});
-canvas.addEventListener('touchend', e => {
+canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    if(!e.touches || e.touches.length !== 1) return;
+    const t = e.touches[0];
+    const dx = t.clientX - _pnStartX;
+    const dy = t.clientY - _pnStartY;
+    // If diagonal up-left/up-right, horizontal sign wins.
+    if (Math.abs(dx) >= Math.abs(dy)) {
+        keys.ArrowLeft = dx < 0;
+        keys.ArrowRight = dx > 0;
+    }
+}, {passive: false});
+canvas.addEventListener('touchend', () => {
     keys.Space = false; keys.ArrowLeft = false; keys.ArrowRight = false;
 });
 

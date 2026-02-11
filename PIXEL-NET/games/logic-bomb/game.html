@@ -950,6 +950,58 @@ function loop() {
 }
 
 messageBox.style.display = 'block';
+
+
+// PIXELNET_TOUCH_SWIPE: mobile swipe-to-move + tap-to-action (no buttons)
+(function(){
+  const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints||0) > 0;
+  if(!isTouch) return;
+  let startX=0, startY=0, moved=false;
+  const THRESH=18; // px
+
+  function setDirFromDelta(dx, dy){
+    // Match Caked Up Cats feel: dominant axis.
+    if (Math.abs(dx) >= Math.abs(dy)) {
+      player.nextDir = dx >= 0 ? DIR.RIGHT : DIR.LEFT;
+    } else {
+      player.nextDir = dy >= 0 ? DIR.DOWN : DIR.UP;
+    }
+  }
+
+  // attach to canvas if present, else document
+  const target = (typeof canvas !== 'undefined') ? canvas : document;
+
+  target.addEventListener('touchstart', (e)=>{
+    if(!e.touches || e.touches.length !== 1) return;
+    const t = e.touches[0];
+    startX = t.clientX; startY = t.clientY; moved=false;
+  }, {passive:true});
+
+  target.addEventListener('touchmove', (e)=>{
+    if(!e.touches || e.touches.length !== 1) return;
+    const t = e.touches[0];
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+    if(!moved && (Math.abs(dx) > THRESH || Math.abs(dy) > THRESH)) moved=true;
+    if(moved) setDirFromDelta(dx, dy);
+  }, {passive:true});
+
+  target.addEventListener('touchend', ()=>{
+    // Tap = action
+    if(!moved){
+      if (!gameRunning && messageBox && messageBox.style.display !== 'none') {
+        startGame();
+        return;
+      }
+      if (gameRunning) {
+        // Tap places bomb (same as Space)
+        handleBombInput();
+        spacePressed = true;
+        setTimeout(()=>{ spacePressed = false; }, 0);
+      }
+    }
+  }, {passive:true});
+})();
 </script>
 </body>
 </html>

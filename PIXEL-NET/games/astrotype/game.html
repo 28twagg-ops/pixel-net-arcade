@@ -597,6 +597,20 @@ html.pn-embed canvas{display:block; width:100% !important; height:100% !importan
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', hook); else hook();
 })();
+
+
+// PIXELNET_MOBILE_FOCUS: ensure mobile keyboard opens on first tap
+(function(){
+  const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints||0) > 0;
+  if(!isTouch) return;
+  function focusAny(){
+    const el = document.querySelector('input[type="text"], input:not([type]), textarea');
+    if(el){
+      try { el.focus({preventScroll:true}); } catch(_) { el.focus(); }
+    }
+  }
+  window.addEventListener('touchstart', ()=>{ focusAny(); }, {once:true, passive:true});
+})();
 </script>
 </body>
 </html>

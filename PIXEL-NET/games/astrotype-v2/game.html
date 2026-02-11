@@ -706,6 +706,20 @@ Purpose: AI implementation for themes
     document.getElementById('start-btn').addEventListener('pointerup', startGame);
     document.getElementById('restart-btn').addEventListener('click', startGame);
     document.getElementById('restart-btn').addEventListener('pointerup', startGame);
+
+
+// PIXELNET_MOBILE_FOCUS: ensure mobile keyboard opens on first tap
+(function(){
+  const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints||0) > 0;
+  if(!isTouch) return;
+  function focusAny(){
+    const el = document.querySelector('input[type="text"], input:not([type]), textarea');
+    if(el){
+      try { el.focus({preventScroll:true}); } catch(_) { el.focus(); }
+    }
+  }
+  window.addEventListener('touchstart', ()=>{ focusAny(); }, {once:true, passive:true});
+})();
 </script>
 </body>
 </html>
