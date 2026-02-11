@@ -321,6 +321,71 @@ iframe{ width:100%; height:100%; border:0; display:block; background:#000; borde
   box-shadow: 0 18px 60px rgba(0,0,0,.45);
 }
 .modalHint{ text-align:center; color: rgba(255,246,246,.72); font-size: 12px; font-style: italic; opacity: .92; }
+
+/* --- PIXEL-NET mobile touch controls (wrapper-only) --- */
+.touchControls{
+  position: fixed;
+  left: 8px; right: 8px; bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+  padding: 10px; max-width: 1200px; margin: 0 auto;
+  display:none;
+  gap: 12px;
+  align-items: flex-end;
+  justify-content: space-between;
+  pointer-events:none;
+  z-index: 45;
+}
+@media (max-width: 1100px){
+  .touchControls{ display:flex; }
+}
+.touchPad, .touchBtns{ pointer-events:auto; display:flex; gap:10px; }
+.dpad{
+  width: 176px; height: 176px;
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.28);
+  backdrop-filter: blur(10px);
+  position: relative;
+  touch-action: none;
+}
+.dpad button{
+  position:absolute;
+  width: 56px; height: 56px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.24);
+  color: rgba(243,246,255,.92);
+  font-weight: 900;
+  cursor:pointer;
+}
+.dpad button:active, .touchBtns button:active{ transform: translateY(1px); }
+.dpad .up{ left:60px; top:8px; }
+.dpad .down{ left:60px; bottom:8px; }
+.dpad .left{ left:8px; top:60px; }
+.dpad .right{ right:8px; top:60px; }
+.touchBtns{
+  flex-direction: column;
+  align-items: flex-end;
+}
+.touchBtns button{
+  width: 88px; height: 66px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(0,0,0,.24);
+  color: rgba(243,246,255,.92);
+  font-weight: 1000;
+  letter-spacing:.04em;
+  cursor:pointer;
+  touch-action:none;
+}
+.touchHint{
+  position:absolute;
+  left: 12px;
+  bottom: 12px;
+  font-size: 12px;
+  color: rgba(243,246,255,.72);
+  pointer-events:none;
+}
+
 </style>
 </head>
 
@@ -628,5 +693,109 @@ const fetchWithTimeout = async (url, opts={}, ms=2500) => {
   setActive('pGame');
 })();
 </script>
+
+<script>
+
+/* --- PIXEL-NET touch controls: keyboard emulation into iframe (mobile only) --- */
+(function(){
+  const frame = document.getElementById('gameFrame');
+  const controls = document.getElementById('touchControls');
+  if(!frame || !controls) return;
+
+  const isMobile = () => window.matchMedia && window.matchMedia('(max-width: 1100px)').matches;
+
+  // Only enable on mobile to avoid any desktop behavior changes.
+  const refreshVisibility=()=>{
+    if(!isMobile()) { controls.style.display='none'; return; }
+    // If the wrapper uses a play panel that can be hidden (mobile tabs), respect it.
+    const play = document.getElementById('pPlay');
+    const hidden = play && (play.classList.contains('hidden') || play.style.display==='none');
+    controls.style.display = hidden ? 'none' : 'flex';
+  };
+  refreshVisibility();
+  window.addEventListener('resize', refreshVisibility);
+
+  if(!isMobile()) return;
+
+  const cw = () => { try { return frame.contentWindow; } catch(_) { return null; } };
+  const cd = () => { try { return frame.contentWindow?.document; } catch(_) { return null; } };
+
+  const dispatchKey = (type, key, code) => {
+    const w = cw();
+    const d = cd();
+    if(!w) return;
+    try{ w.focus?.(); }catch(_){}
+    const evInit = { key, code, bubbles:true, cancelable:true };
+    let ev;
+    try{ ev = new w.KeyboardEvent(type, evInit); }
+    catch(_){ ev = new KeyboardEvent(type, evInit); }
+    try{ w.dispatchEvent(ev); }catch(_){}
+    try{ d?.dispatchEvent(ev); }catch(_){}
+  };
+
+  const downSet = new Set(); // 'key|code'
+  const press = (key, code) => {
+    const id = key + '|' + code;
+    if(downSet.has(id)) return;
+    downSet.add(id);
+    dispatchKey('keydown', key, code);
+  };
+  const release = (key, code) => {
+    const id = key + '|' + code;
+    if(!downSet.has(id)) return;
+    downSet.delete(id);
+    dispatchKey('keyup', key, code);
+  };
+
+  const bindBtn = (btn) => {
+    const key = btn.dataset.key ?? '';
+    const code = btn.dataset.code ?? '';
+    // Pointer events handle touch + mouse; on mobile these are touch pointers.
+    btn.addEventListener('pointerdown', (e)=>{
+      e.preventDefault();
+      btn.setPointerCapture?.(e.pointerId);
+      press(key, code);
+    }, {passive:false});
+    const end = (e)=>{
+      e.preventDefault();
+      release(key, code);
+    };
+    btn.addEventListener('pointerup', end, {passive:false});
+    btn.addEventListener('pointercancel', end, {passive:false});
+    btn.addEventListener('pointerleave', end, {passive:false});
+  };
+
+  controls.querySelectorAll('button[data-key]').forEach(bindBtn);
+
+  // Safety: if the page loses visibility, release all keys so nothing gets "stuck".
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden){
+      Array.from(downSet).forEach((id)=>{
+        const [key, code] = id.split('|');
+        dispatchKey('keyup', key, code);
+      });
+      downSet.clear();
+    }
+  });
+
+})();
+</script>
+
+<!-- Mobile touch controls (wrapper-only). Generates keyboard events for the game iframe. -->
+<div class="touchControls" id="touchControls" aria-hidden="true">
+  <div class="touchPad">
+    <div class="dpad" id="dpad">
+      <button class="up" data-key="ArrowUp" data-code="ArrowUp">▲</button>
+      <button class="down" data-key="ArrowDown" data-code="ArrowDown">▼</button>
+      <button class="left" data-key="ArrowLeft" data-code="ArrowLeft">◀</button>
+      <button class="right" data-key="ArrowRight" data-code="ArrowRight">▶</button>
+    </div>
+  </div>
+  <div class="touchBtns">
+    <button data-key=" " data-code="Space">A</button>
+    <button data-key="x" data-code="KeyX">B</button>
+  </div>
+</div>
+
 </body>
 </html>
