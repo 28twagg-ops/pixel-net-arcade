@@ -160,11 +160,12 @@ a{color:inherit;text-decoration:none}
 }
 .frameSizer{
   margin:auto;
-  height:100%;
-  width:auto;
-  max-width:100%;
-  max-height:100%;
-  aspect-ratio:var(--aspect);
+  /*
+    IMPORTANT: Do NOT rely on CSS aspect-ratio + 100% height/width here.
+    In some desktop layouts the browser can clamp width while keeping a
+    fixed height, producing a non-uniform (stretched) viewport.
+    We size this box in JS to guarantee uniform "contain" scaling.
+  */
 }
 iframe{width:100%;height:100%;border:0;display:block;background:#000;border-radius:12px}
 
@@ -508,6 +509,43 @@ iframe{width:100%;height:100%;border:0;display:block;background:#000;border-radi
     pLB:  document.getElementById('pLB'),
   };
 
+  // --- Uniform contain sizing (prevents any non-uniform stretch) ---
+  const frameWrap = document.querySelector('.frameWrap');
+  const frameSizer = document.querySelector('.frameSizer');
+  const parseAspect = () => {
+    const raw = getComputedStyle(document.documentElement).getPropertyValue('--aspect').trim();
+    // Accept formats like: "1 / 1" or "16/9"
+    const parts = raw.split('/').map(s => parseFloat(String(s).trim())).filter(n => Number.isFinite(n) && n > 0);
+    if(parts.length >= 2) return parts[0] / parts[1];
+    return 1; // fallback square
+  };
+  let rafId = 0;
+  const sizeFrame = () => {
+    if(!frameWrap || !frameSizer) return;
+    // Only size when visible (prevents 0x0 reads on hidden mobile tabs)
+    if(frameWrap.offsetParent === null) return;
+
+    const a = parseAspect();
+    const w = frameWrap.clientWidth;
+    const h = frameWrap.clientHeight;
+    if(w <= 0 || h <= 0) return;
+
+    // contain
+    let tw = w;
+    let th = tw / a;
+    if(th > h){
+      th = h;
+      tw = th * a;
+    }
+
+    frameSizer.style.width  = `${Math.floor(tw)}px`;
+    frameSizer.style.height = `${Math.floor(th)}px`;
+  };
+  const scheduleSize = () => {
+    cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(sizeFrame);
+  };
+
   const setActive = (id) => {
     for(const [pid, el] of Object.entries(panels)){
       if(!el) continue;
@@ -516,6 +554,8 @@ iframe{width:100%;height:100%;border:0;display:block;background:#000;border-radi
     for(const b of tabBtns){
       b.classList.toggle('active', b.getAttribute('data-target')===id);
     }
+
+    if(id === 'pGame') scheduleSize();
   };
 
   tabBtns.forEach((b)=>{
@@ -526,7 +566,10 @@ iframe{width:100%;height:100%;border:0;display:block;background:#000;border-radi
     }, {passive:false});
   });
 
+  window.addEventListener('resize', scheduleSize, {passive:true});
   setActive('pGame');
+  // Initial sizing once layout settles
+  setTimeout(scheduleSize, 0);
 })();
 </script>
 

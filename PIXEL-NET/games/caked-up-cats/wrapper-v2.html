@@ -491,7 +491,33 @@ async function resolveEntry(){
   if (mobileFrame) mobileFrame.addEventListener("pointerdown", ()=>focusIframe(gm));
 })();;
 
-/* Leaderboard */
+/* Leaderboard (localStorage Top-10; no seeded/demo data) */
+const LOCAL_KEY = `LB_${CFG.slug}`;
+function lbLoad(){
+  let rows = [];
+  try{ rows = JSON.parse(localStorage.getItem(LOCAL_KEY) || "[]") || []; }catch(e){ rows = []; }
+
+  // If a previous build wrote seeded/demo rows into localStorage, clear them.
+  // Keep legit data; only purge the known demo-pattern (e.g., repeated "JRF").
+  try {
+    const arr = Array.isArray(rows) ? rows : [];
+    if (arr.length >= 5) {
+      const initials = arr.map(r => String((r && (r.initials || r.name)) || "").toUpperCase().slice(0,3));
+      const allSame = initials.every(x => x && x === initials[0]);
+      const looksLikeDemo = allSame && initials[0] === "JRF";
+      const hasDemoFlag = arr.some(r => r && (r.seeded || r.demo));
+      if (looksLikeDemo || hasDemoFlag) {
+        localStorage.removeItem(LOCAL_KEY);
+        rows = [];
+      }
+    }
+  } catch(e) {}
+
+  return Array.isArray(rows) ? rows : [];
+}
+function lbSave(rows){
+  try{ localStorage.setItem(LOCAL_KEY, JSON.stringify(rows || [])); }catch(e){}
+}
 function renderBoard(targetId, rows){
   const el = document.getElementById(targetId);
   el.innerHTML = "";
@@ -512,14 +538,48 @@ function renderBoard(targetId, rows){
     el.appendChild(row);
   });
 }
-async function refreshBoards(){
-  if (!window.PixelNet || !PixelNet.getLeaderboard) return;
-  const rows = await PixelNet.getLeaderboard(CFG.slug);
+function refreshBoards(){
+  const rows = lbLoad().slice(0,10);
   renderBoard("boardDesktop", rows);
   renderBoard("boardMobile", rows);
 }
 refreshBoards();
-setInterval(refreshBoards, 8000);
+
+let _lastSig = "";
+let _lastAt = 0;
+function addScore(rawScore){
+  const initials = getInitials() || "???";
+  const score = Math.max(0, Math.floor(Number(rawScore) || 0));
+  const now = Date.now();
+  const sig = `${initials}:${score}`;
+  if (sig === _lastSig && (now - _lastAt) < 1200) return; // rapid dedupe
+  _lastSig = sig; _lastAt = now;
+
+  const rows = lbLoad();
+  rows.push({ initials, score, t: now });
+  rows.sort((a,b)=> (b.score||0)-(a.score||0) || (a.t||0)-(b.t||0));
+  lbSave(rows.slice(0,10));
+  refreshBoards();
+}
+
+window.addEventListener('message', (e)=>{
+  const d = e.data || {};
+  if (!d || !d.type) return;
+
+  // Optional: allow a game to request an initials update (wrapper remains source of truth)
+  if (d.type === 'PIXELNET_SET_INITIALS' && d.initials) {
+    const v = cleanInitials(d.initials);
+    if (v) {
+      setInitialsAll(v);
+      setInitialsUI();
+    }
+    return;
+  }
+
+  if (d.type === 'GAME_OVER_SCORE') {
+    addScore(d.score);
+  }
+});
 
 /* Initials modal */
 const modalBack = document.getElementById("modalBack");

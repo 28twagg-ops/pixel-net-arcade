@@ -23,7 +23,7 @@ Purpose: AI implementation for themes
     <title>Creek Crosser</title>
     <style>
         :root {
-            --bg-color: #2c3e50;
+            --bg-color: #0b0f14;
             --ui-color: #ecf0f1;
             --accent-color: #f1c40f;
         }
@@ -249,6 +249,7 @@ Purpose: AI implementation for themes
  */
 
 // --- Constants & Config ---
+let __pnScorePosted = false;
 const GRID_SIZE = 40;
 const COLS = 13;
 const ROWS = 13;
@@ -269,14 +270,15 @@ function resizeGame() {
     const windowHeight = window.innerHeight;
     
     // Add some padding
-    const padding = 20;
+    const padding = 10;
     const availWidth = windowWidth - padding;
     const availHeight = windowHeight - padding;
     
     // Calculate scale
     const scaleX = availWidth / originalWidth;
     const scaleY = availHeight / originalHeight;
-    const scale = Math.min(scaleX, scaleY, 1); // Max scale 1 to prevent blurriness on huge screens
+    const MAX_SCALE = 1.65;
+    const scale = Math.min(scaleX, scaleY, MAX_SCALE); // uniform scaling; allow larger to reduce letterbox
     
     // Apply scale
     container.style.transform = `scale(${scale})`;
@@ -1300,13 +1302,24 @@ function levelUp() {
 }
 
 function gameOver() {
+    if (gameState.isGameOver) return;
     gameState.isGameOver = true;
     document.getElementById('end-title').innerText = gameState.victory ? "YOU WIN!" : "GAME OVER";
     document.getElementById('final-score').innerText = gameState.score;
     document.getElementById('game-over-screen').style.display = 'flex';
+
+    // PIXEL-NET score contract (post once per true game over)
+    if (!__pnScorePosted) {
+        __pnScorePosted = true;
+        try {
+            window.parent.postMessage({ type: 'GAME_OVER_SCORE', score: Number(gameState.score) || 0 }, '*');
+        } catch (e) {}
+    }
 }
 
 function resetGame() {
+    __pnScorePosted = false;
+
     gameState.score = 0; gameState.lives = 3; gameState.level = 1; gameState.goalsReached = 0; gameState.goalSlots = [false, false, false, false, false];
     gameState.isGameOver = false; gameState.isTransitioning = false; gameState.particles = []; resetTimer();
     initLanes(); player.reset(); updateHUD();

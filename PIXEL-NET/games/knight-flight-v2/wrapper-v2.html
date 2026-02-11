@@ -64,14 +64,15 @@ a{color:inherit;text-decoration:none}
 .player{cursor:pointer;user-select:none}
 .player .tag{opacity:.8;font-size:12px;letter-spacing:.12em}
 .player #initials{font-weight:900;font-size:14px;letter-spacing:.18em;color:var(--accent)}
-.wrap{max-width:1400px;margin:0 auto;padding:12px}
-.grid{display:grid;grid-template-columns:320px minmax(300px,1fr) 320px;gap:12px;align-items:start}
+.wrap{max-width:1400px;margin:0 auto;padding:12px;height:calc(100svh - var(--topbarH,56px));}
+.grid{display:grid;grid-template-columns:320px minmax(300px,1fr) 320px;gap:12px;height:100%;align-items:stretch}
 .panel{
   background:var(--card);
   border:1px solid var(--border);
   border-radius:18px;
   box-shadow:var(--shadow);
   overflow:hidden;
+  display:flex;flex-direction:column;min-height:0;
 }
 .panel h3{
   margin:0;
@@ -82,7 +83,7 @@ a{color:inherit;text-decoration:none}
   border-bottom:1px solid var(--border);
   background:rgba(0,0,0,.25);
 }
-.panel .content{padding:12px 14px}
+.panel .content{padding:12px 14px;flex:1;min-height:0}
 .howto p{margin:0 0 10px 0;color:var(--muted);line-height:1.35}
 .howto ul{margin:10px 0 0 18px;padding:0}
 .howto li{margin:8px 0}
@@ -92,13 +93,25 @@ a{color:inherit;text-decoration:none}
   border-radius:18px;
   box-shadow:var(--shadow);
   overflow:hidden;
+  display:flex;flex-direction:column;min-height:0;
 }
 .gameTitle{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);background:rgba(0,0,0,.25)}
 .gameTitle .name{font-weight:900;letter-spacing:.06em}
 .gameTitle .hint{font-size:12px;color:var(--muted)}
-.frameWrap{width:100%;height:min(calc(100svh - 220px), 900px);min-height:520px;background:rgba(0,0,0,.35)}
+.frameWrap{width:100%;flex:1;min-height:0;background:rgba(0,0,0,.35)}
 iframe{width:100%;height:100%;border:0;display:block;background:transparent}
-@media (max-width:1100px){.grid{grid-template-columns:1fr}.frameWrap{height:min(calc(100svh - 240px), 880px);min-height:520px}}
+.tabs{display:none}
+@media (max-width:1100px){
+  body{overflow:hidden}
+  .wrap{padding:10px 10px 74px}
+  .grid{grid-template-columns:1fr}
+  .panel,.center{height:100%}
+  .panel:not(.active),.center:not(.active){display:none}
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;gap:10px;justify-content:center;align-items:center;padding:10px 12px;background:rgba(0,0,0,.72);backdrop-filter:blur(10px);border-top:1px solid var(--border)}
+  .tabBtn{appearance:none;border:1px solid var(--border);background:rgba(0,0,0,.35);color:var(--text);padding:10px 14px;border-radius:14px;font-family:var(--font);font-weight:800;letter-spacing:.06em;text-transform:uppercase;font-size:12px}
+  .tabBtn[aria-selected="true"]{border-color:color-mix(in srgb,var(--accent) 55%, var(--border));background:color-mix(in srgb,var(--accent) 18%, rgba(0,0,0,.35))}
+}
+
 @media (max-width:520px){.wrap{padding:10px}.frameWrap{min-height:480px}.btn{padding:8px 10px}}
 
 /* PN_CENTER_PATCH */
@@ -113,8 +126,8 @@ iframe{width:100%;height:100%;border:0;display:block;background:transparent}
 .modalTitle{font-size:14px;letter-spacing:1px;margin-bottom:14px;text-align:center}
 #initInput{width:100%;padding:14px 12px;border-radius:12px;border:1px solid var(--border);background:rgba(0,0,0,.35);color:var(--text);font-family:var(--font);font-size:18px;letter-spacing:6px;text-align:center}
 .modalBtns{display:flex;gap:10px;margin-top:14px}
-.btn{flex:1;padding:12px 10px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--text);font-family:var(--font);cursor:pointer}
-.btn.primary{background:color-mix(in srgb,var(--accent) 30%, rgba(255,255,255,.06));border-color:color-mix(in srgb,var(--accent) 55%, var(--border))}
+.modalBtns .btn{flex:1;padding:12px 10px;border-radius:12px;border:1px solid var(--border);background:rgba(255,255,255,.06);color:var(--text);font-family:var(--font);cursor:pointer}
+.modalBtns .btn.primary{background:color-mix(in srgb,var(--accent) 30%, rgba(255,255,255,.06));border-color:color-mix(in srgb,var(--accent) 55%, var(--border))}
 
 /* PX_OVERRIDES */
 .panel .content{font-size:13px;line-height:1.65}
@@ -147,7 +160,7 @@ iframe{width:100%;height:100%;border:0;display:block;background:transparent}
 
   <div class="wrap">
     <div class="grid">
-      <div class="panel howto">
+      <div class="panel howto" id="howPanel">
         <h3>How To Play</h3>
         <div class="content">
           <p>Stay high. Joust well.</p>
@@ -158,7 +171,7 @@ iframe{width:100%;height:100%;border:0;display:block;background:transparent}
         </div>
       </div>
 
-      <div class="center">
+      <div class="center" id="gamePanel">
         <div class="gameTitle">
           <div class="name">Knight Flight (version 2.0)</div>
           <div class="hint">Tap tabs on mobile</div>
@@ -168,15 +181,22 @@ iframe{width:100%;height:100%;border:0;display:block;background:transparent}
         </div>
       </div>
 
-      <div class="panel">
+      <div class="panel" id="lbPanel">
         <h3>Leaderboard</h3>
-<div class="content"><div class="mini">Local copy leaderboard (separate from original).</div><div class="pills" id="lb"></div></div>
         <div class="content">
-          <div style="color:var(--muted);line-height:1.35">Coming soon.</div>
+          <div class="mini">Local copy leaderboard (separate from original).</div>
+          <div class="lb" id="lb"></div>
         </div>
+      </div>
       </div>
     </div>
   </div>
+
+  <nav class="tabs" id="tabs" aria-label="Mobile tabs" style="display:none">
+    <button class="tabBtn" data-tab="how" aria-selected="false" type="button">How To</button>
+    <button class="tabBtn" data-tab="game" aria-selected="true" type="button">Game</button>
+    <button class="tabBtn" data-tab="lb" aria-selected="false" type="button">Scores</button>
+  </nav>
 
 <script>
 (() => {
@@ -196,6 +216,69 @@ iframe{width:100%;height:100%;border:0;display:block;background:transparent}
   const renderInitials = () => { if(initialsEl) initialsEl.textContent = getInitials() || '???'; };
   renderInitials();
   window.addEventListener('storage', (e)=>{ if(e.key===PRIMARY || e.key===MIRROR) renderInitials(); });
+
+  // --------- Layout: dynamic topbar height ----------
+  const topbar = document.querySelector('.topbar');
+  const setTopbarVar = () => {
+    try{
+      const h = topbar ? Math.ceil(topbar.getBoundingClientRect().height) : 56;
+      document.documentElement.style.setProperty('--topbarH', h + 'px');
+    }catch(_){}
+  };
+  setTopbarVar();
+  window.addEventListener('resize', setTopbarVar);
+
+  // --------- Mobile tabs (How / Game / Scores) ----------
+  const tabs = document.getElementById('tabs');
+  const howPanel = document.getElementById('howPanel');
+  const gamePanel = document.getElementById('gamePanel');
+  const lbPanel  = document.getElementById('lbPanel');
+
+  const isMobile = () => window.matchMedia('(max-width:1100px)').matches;
+
+  const setActiveTab = (name) => {
+    if(!howPanel || !gamePanel || !lbPanel) return;
+    howPanel.classList.toggle('active', name==='how');
+    gamePanel.classList.toggle('active', name==='game');
+    lbPanel.classList.toggle('active',  name==='lb');
+
+    if(tabs){
+      tabs.style.display = isMobile() ? 'flex' : 'none';
+      tabs.querySelectorAll('.tabBtn').forEach(b=>{
+        const sel = b.dataset.tab === name;
+        b.setAttribute('aria-selected', sel ? 'true' : 'false');
+      });
+    }
+
+    if(name==='game') {
+      // restore input focus when returning to Game tab
+      setTimeout(()=>{ const fr=document.getElementById('gameFrame'); try{ fr?.contentWindow?.focus?.(); }catch(_){ } }, 50);
+    }
+  };
+
+  const ensureTabState = () => {
+    if(isMobile()){
+      // default to game
+      setActiveTab('game');
+    }else{
+      // desktop shows all
+      howPanel?.classList.add('active');
+      gamePanel?.classList.add('active');
+      lbPanel?.classList.add('active');
+      if(tabs) tabs.style.display = 'none';
+    }
+  };
+  ensureTabState();
+  window.addEventListener('resize', ensureTabState);
+
+  if(tabs){
+    tabs.addEventListener('click', (e)=>{
+      const btn = e.target.closest('.tabBtn');
+      if(!btn) return;
+      setActiveTab(btn.dataset.tab);
+    });
+  }
+
 
   // Optional initials modal (if present)
   const modal = document.getElementById('initModal');

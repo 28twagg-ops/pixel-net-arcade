@@ -216,6 +216,8 @@ const warningMsg = document.getElementById('warning-msg');
 
 let gameState = 'MENU';
 let score = 0;
+// PIXEL-NET: ensure score submit fires once per real game over
+let px_sentGameOverScore = false;
 let wave = 1;
 let lives = 5;
 let waveStartTime = 0;
@@ -492,7 +494,10 @@ function handlePlayerDeath() {
             if (gameState === 'PLAYING') {
                 gameState = 'GAMEOVER';
                 finalScoreEl.textContent = score;
-                try{ if(window.parent && window.parent!==window){ window.parent.postMessage({type:'GAME_OVER_SCORE', score: score}, '*'); } }catch(_){ }
+                if(!px_sentGameOverScore){
+                    px_sentGameOverScore = true;
+                    try{ if(window.parent && window.parent!==window){ window.parent.postMessage({type:'GAME_OVER_SCORE', score: score}, '*'); } }catch(_){ }
+                }
 
                 gameOverScreen.classList.remove('hidden');
             }
@@ -607,6 +612,7 @@ function gameLoop() {
 
 function startGame() {
     gameState = 'PLAYING';
+    px_sentGameOverScore = false;
     score = 0; wave = 1; lives = 5;
     scoreEl.textContent = 0; waveEl.textContent = 1; livesEl.textContent = 5;
     platforms = [

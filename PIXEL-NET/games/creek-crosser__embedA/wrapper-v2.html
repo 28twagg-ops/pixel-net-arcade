@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Creek Crosser — PIXEL-NET</title>
+<title>Creek Crosser</title>
 <style>
 :root{
   --bg0:#1b2a24;
@@ -22,15 +22,18 @@
   --uiFont: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
   --arcadeFont: ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 
-  --leftW: 320px;
-  --rightW: 320px;
-  --gap: 14px;
-  --pad: 14px;
+  /* Give the center game panel more room by tightening side panels
+     and letting the layout use the full viewport width (this game only). */
+  --leftW: 260px;
+  --rightW: 260px;
+  --gap: 10px;
+  --pad: 10px;
 
-  --shellMaxW: 1720px;
+  --shellMaxW: 100vw;
   --centerMaxW: 1200px;
 
-  --topbarH: 58px;
+  /* Remove the in-wrapper header strip for this game. */
+  --topbarH: 0px;
 
   --mobileBtnH: 58px;
   --mobileBtnGap: 10px;
@@ -60,6 +63,9 @@ body{
   background: rgba(0,0,0,.38);
   backdrop-filter: blur(12px);
 }
+
+/* Ensure header strip is fully removed (no reserved space). */
+.topbar{ display:none !important; }
 .top-left{ display:flex; gap:10px; align-items:center; }
 .exit{
   display:inline-flex; align-items:center; gap:10px;
@@ -116,7 +122,7 @@ body{
 
 .shell{
   max-width: var(--shellMaxW);
-  margin: 0 auto;
+  margin: 0;
   padding: var(--pad);
   height: calc(100vh - var(--topbarH));
   display:grid;
@@ -334,16 +340,8 @@ iframe{ width:100%; height:100%; border:0; display:block; background:#000; }
 </head>
 
 <body>
-<div class="topbar">
-  <div class="top-left">
-    <a class="exit" href="../../index.html" id="exitBtn">✕ EXIT</a>
-  </div>
-  <div class="gameBadge" id="gameBadge">CREEK CROSSER</div>
-  <div class="playerBtn" id="playerBtn" role="button" aria-label="Set player initials">
-    <span class="muted">PLAYER</span>
-    <strong id="initials">???</strong>
-  </div>
-</div>
+<!-- Top bar removed for this embed to maximize playable area.
+     Initials are still managed via the modal + localStorage keys. -->
 
 <div class="shell">
   <div class="panel">
@@ -434,17 +432,24 @@ function setInitialsAll(v){
   localStorage.setItem(KEY_FALLBACK_A, v);
   sessionStorage.setItem(KEY_FALLBACK_B, v);
 }
-function setInitialsUI(){ document.getElementById("initials").textContent = getInitials(); }
+function setInitialsUI(){
+  const badge = document.getElementById("initials");
+  if (badge) badge.textContent = getInitials();
+}
 setInitialsUI();
 
 /* Exit prefers back if possible */
-document.getElementById("exitBtn").addEventListener("click",(e)=>{
-  if(history.length>1){ e.preventDefault(); history.back(); }
-});
+const exitBtn = document.getElementById("exitBtn");
+if (exitBtn) {
+  exitBtn.addEventListener("click",(e)=>{
+    if(history.length>1){ e.preventDefault(); history.back(); }
+  });
+}
 
 /* Title */
-document.getElementById("gameBadge").textContent = CFG.title.toUpperCase();
-document.title = CFG.title + " — PIXEL-NET";
+const gameBadge = document.getElementById("gameBadge");
+if (gameBadge) gameBadge.textContent = CFG.title.toUpperCase();
+document.title = CFG.title;
 
 /* Instructions */
 function setInstructions(id){
@@ -498,14 +503,65 @@ function renderBoard(targetId, rows){
     el.appendChild(row);
   });
 }
-async function refreshBoards(){
-  if (!window.PixelNet || !PixelNet.getLeaderboard) return;
-  const rows = await PixelNet.getLeaderboard(CFG.slug);
+// Local leaderboard (no API calls)
+const LB_KEY = `LB_${CFG.slug}`;
+const DEDUPE_MS = 2000;
+
+function safeJsonParse(s, fallback){
+  try { return JSON.parse(s); } catch { return fallback; }
+}
+
+function loadLB(){
+  const raw = localStorage.getItem(LB_KEY);
+  const rows = safeJsonParse(raw, []);
+  return Array.isArray(rows) ? rows : [];
+}
+
+function saveLB(rows){
+  localStorage.setItem(LB_KEY, JSON.stringify(rows.slice(0,10)));
+}
+
+function refreshBoards(){
+  const rows = loadLB();
   renderBoard("boardDesktop", rows);
   renderBoard("boardMobile", rows);
 }
+
+function submitScore(score){
+  const s = Math.max(0, Math.floor(Number(score) || 0));
+  const initials = (getInitials() || "???").toUpperCase().slice(0,3);
+  const now = Date.now();
+
+  const rows = loadLB();
+  const last = rows[0];
+  // Dedupe rapid identical submissions (same initials + score within window)
+  if (last && last.initials===initials && last.score===s && (now - (last.ts||0)) < DEDUPE_MS) {
+    return;
+  }
+
+  rows.unshift({ initials, score: s, ts: now });
+  rows.sort((a,b)=> (b.score - a.score) || ((b.ts||0)-(a.ts||0)));
+  const top = rows.slice(0,10);
+  saveLB(top);
+  refreshBoards();
+}
+
+// Listen for game → wrapper score submission (once per true game over)
+window.addEventListener("message", (ev)=>{
+  const data = ev?.data;
+  if (!data || data.type !== "GAME_OVER_SCORE") return;
+
+  // Only accept from our own game iframe(s)
+  const fromGame = ["gameDesktop","gameMobile"].some((id)=>{
+    const f = document.getElementById(id);
+    return f && f.contentWindow === ev.source;
+  });
+  if (!fromGame) return;
+
+  submitScore(data.score);
+});
+
 refreshBoards();
-setInterval(refreshBoards, 8000);
 
 /* Initials modal */
 const modalBack = document.getElementById("modalBack");
@@ -526,10 +582,12 @@ function closeModal(){
   modalBack.setAttribute("aria-hidden","true");
 }
 
-playerBtn.addEventListener("click", openModal);
-modalClose.addEventListener("click", closeModal);
-modalBack.addEventListener("click", (e)=>{ if (e.target===modalBack) closeModal(); });
-document.addEventListener("keydown", (e)=>{ if (e.key==="Escape" && modalBack.style.display==="flex") closeModal(); });
+if (playerBtn) playerBtn.addEventListener("click", openModal);
+if (modalClose) modalClose.addEventListener("click", closeModal);
+if (modalBack) {
+  modalBack.addEventListener("click", (e)=>{ if (e.target===modalBack) closeModal(); });
+}
+document.addEventListener("keydown", (e)=>{ if (e.key==="Escape" && modalBack && modalBack.style.display==="flex") closeModal(); });
 
 function saveNow(){
   const v = cleanInitials(input.value);
@@ -538,8 +596,8 @@ function saveNow(){
   setInitialsUI();
   closeModal();
 }
-save.addEventListener("click", saveNow);
-input.addEventListener("keydown", (e)=>{ if (e.key==="Enter") saveNow(); });
+if (save) save.addEventListener("click", saveNow);
+if (input) input.addEventListener("keydown", (e)=>{ if (e.key==="Enter") saveNow(); });
 
 /* Mobile tabs */
 const btns = document.querySelectorAll(".tabBtn");

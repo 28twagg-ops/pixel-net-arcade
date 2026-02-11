@@ -505,6 +505,7 @@ html.pn-embed canvas{display:block; width:100% !important; height:100% !importan
         let viewY = 0; 
         let frameCount = 0;
         let respawnTimer = 0;
+        let winGraceFrames = 0; // prevent instant win on level start
         let darkness = 0.0;
 
         const CAT_TYPES = {
@@ -1157,8 +1158,12 @@ html.pn-embed canvas{display:block; width:100% !important; height:100% !importan
             TILE = Math.min(possibleTileW, possibleTileH);
             if (TILE < 30) TILE = 30;
 
+            frameCount = 0;
+            winGraceFrames = 30;
+
             player = new Cat(selectedCatType);
             mouse = new Mouse();
+            ensureMouseSpawnSafe();
 
             hazards = [];
             for(let i=0; i < (COLS*ROWS)/20; i++) {
@@ -1243,6 +1248,41 @@ html.pn-embed canvas{display:block; width:100% !important; height:100% !importan
             }
             return null;
         }
+
+
+        function findFarthestOpenSpotFrom(gx, gy) {
+            let best = null;
+            let bestD = -1;
+            for (let y = 1; y < ROWS - 1; y++) {
+                for (let x = 1; x < COLS - 1; x++) {
+                    if (mapData[y] && mapData[y][x] === 0) {
+                        const d = Math.abs(x - gx) + Math.abs(y - gy);
+                        if (d > bestD) { bestD = d; best = { x, y }; }
+                    }
+                }
+            }
+            return best;
+        }
+
+        function ensureMouseSpawnSafe() {
+            // If mouse spawns on/near the player due to maze topology, relocate it far away.
+            if (!player || !mouse) return;
+            const d = Math.hypot(player.gridX - mouse.gridX, player.gridY - mouse.gridY);
+            if (d >= 4) return;
+
+            const far = findFarthestOpenSpotFrom(player.gridX, player.gridY) || findOpenSpot();
+            if (!far) return;
+
+            mouse.gridX = far.x;
+            mouse.gridY = far.y;
+            mouse.x = far.x * TILE;
+            mouse.y = far.y * TILE;
+            mouse.dir = { x: 0, y: 0 };
+            mouse.nextDir = { x: 0, y: 0 };
+            mouse.moving = false;
+            mouse.history = [];
+        }
+
 
         function spawnItem(array, minDistance = 0) {
             let attempts = 100;
@@ -1413,10 +1453,14 @@ html.pn-embed canvas{display:block; width:100% !important; height:100% !importan
                 }
             }
 
-            let distMouse = Math.hypot(player.x - mouse.x, player.y - mouse.y);
-            if (distMouse < TILE/1.5) {
-                playSound('win');
-                endGame(true);
+            if (winGraceFrames > 0) {
+                winGraceFrames--;
+            } else {
+                let distMouse = Math.hypot(player.x - mouse.x, player.y - mouse.y);
+                if (distMouse < TILE/1.5) {
+                    playSound('win');
+                    endGame(true);
+                }
             }
 
             uiScore.innerText = `PTS: ${score}`;
