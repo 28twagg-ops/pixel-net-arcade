@@ -1656,69 +1656,57 @@ Purpose: AI implementation for themes
         });
 
         
-        // --- Mobile touch input (minimal; no UI) ---
+        // --- Mobile touch input (no UI) ---
         // Swipe on the playfield to change direction; tap to activate menu buttons.
         (function(){
             const isTouch = () => ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
             if (!isTouch()) return;
 
-            const SWIPE_PX = 18;
-            let startX = 0, startY = 0, active = false;
+            /* PIXELNET Swipe (no buttons). Horizontal-dominant on diagonals. */
+            const SwipeInput = (() => {
+              const MIN_DISTANCE = 30;
+              const MAX_TIME = 500;
+              let sx, sy, st;
+              function onStart(e){
+                const t = e.touches[0];
+                sx = t.clientX; sy = t.clientY; st = Date.now();
+                e.preventDefault();
+              }
+              function onEnd(e){
+                if(sx==null) return;
+                const t = e.changedTouches[0];
+                const dx = t.clientX - sx;
+                const dy = t.clientY - sy;
+                const dt = Date.now() - st;
+                const dist = Math.hypot(dx,dy);
+                sx = sy = st = null;
 
-            function dirFromDelta(dx, dy){
-                if (Math.abs(dx) > Math.abs(dy)){
-                    return dx > 0 ? {x: 1, y: 0} : {x: -1, y: 0};
-                } else {
-                    return dy > 0 ? {x: 0, y: 1} : {x: 0, y: -1};
+                // Tap = activate UI (same behavior as Enter)
+                if (dist < MIN_DISTANCE || dt > MAX_TIME) {
+                  if (gameState === 'MENU') triggerStart();
+                  else if (gameState === 'GAMEOVER') triggerRetry();
+                  else if (gameState === 'LEVELUP') triggerNext();
+                  return e.preventDefault();
                 }
-            }
 
-            function onPointerDown(e){
-                if (e.pointerType && e.pointerType !== 'touch') return;
-                active = true;
-                startX = e.clientX; startY = e.clientY;
-
-                // Tap-to-activate for menu/gameover/levelup (same as Enter)
-                if (gameState === 'MENU') {
-                    // let tap fall through; start on pointerup if it's a tap
-                }
-                try { gameCanvas.setPointerCapture?.(e.pointerId); } catch(_){}
-            }
-
-            function onPointerMove(e){
-                if (!active) return;
-                if (e.pointerType && e.pointerType !== 'touch') return;
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
-                if (Math.abs(dx) < SWIPE_PX && Math.abs(dy) < SWIPE_PX) return;
-
+                // Swipe = direction (PLAYING only)
                 if (gameState === 'PLAYING') {
-                    player.nextDir = dirFromDelta(dx, dy);
+                  if (Math.abs(dx) >= Math.abs(dy)) player.nextDir = dx < 0 ? {x:-1,y:0} : {x:1,y:0};
+                  else player.nextDir = dy < 0 ? {x:0,y:-1} : {x:0,y:1};
                 }
-                // reset baseline so continuous swipes work
-                startX = e.clientX; startY = e.clientY;
-                e.preventDefault?.();
-            }
-
-            function onPointerUp(e){
-                if (!active) return;
-                active = false;
-                if (e.pointerType && e.pointerType !== 'touch') return;
-
-                // If it was essentially a tap, trigger the same UI actions as Enter
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
-                if (Math.abs(dx) < SWIPE_PX && Math.abs(dy) < SWIPE_PX) {
-                    if (gameState === 'MENU') triggerStart();
-                    else if (gameState === 'GAMEOVER') triggerRetry();
-                    else if (gameState === 'LEVELUP') triggerNext();
+                e.preventDefault();
+              }
+              return {
+                init(el){
+                  el.style.touchAction = 'none';
+                  el.addEventListener('touchstart', onStart, {passive:false});
+                  el.addEventListener('touchend', onEnd, {passive:false});
+                  el.addEventListener('touchcancel', onEnd, {passive:false});
                 }
-            }
+              };
+            })();
 
-            gameCanvas.addEventListener('pointerdown', onPointerDown, {passive:true});
-            gameCanvas.addEventListener('pointermove', onPointerMove, {passive:false});
-            gameCanvas.addEventListener('pointerup', onPointerUp, {passive:true});
-            gameCanvas.addEventListener('pointercancel', onPointerUp, {passive:true});
+            SwipeInput.init(gameCanvas);
         })();
 // Force focus to body so keydown works immediately
         window.onload = function() {

@@ -560,8 +560,39 @@ function init() {
     highScore = 0;
 
     window.addEventListener('keydown', handleKey);
-    window.addEventListener('touchstart', handleTouchStart, {passive: false});
-    window.addEventListener('touchend', handleTouchEnd, {passive: false});
+
+    /* PIXELNET Swipe (no buttons). Horizontal-dominant on diagonals. */
+    const SwipeInput = (() => {
+      const MIN_DISTANCE = 30;
+      const MAX_TIME = 500;
+      let sx, sy, st;
+      function onStart(e){
+        const t = e.touches[0];
+        sx = t.clientX; sy = t.clientY; st = Date.now();
+        e.preventDefault();
+      }
+      function onEnd(e){
+        if(sx==null) return;
+        const t = e.changedTouches[0];
+        const dx = t.clientX - sx;
+        const dy = t.clientY - sy;
+        const dt = Date.now() - st;
+        sx = sy = st = null;
+        if (Math.hypot(dx,dy) < MIN_DISTANCE || dt > MAX_TIME) return e.preventDefault();
+        if (Math.abs(dx) >= Math.abs(dy)) nextDir = dx < 0 ? {x:-1,y:0} : {x:1,y:0};
+        else nextDir = dy < 0 ? {x:0,y:-1} : {x:0,y:1};
+        e.preventDefault();
+      }
+      return {
+        init(el){
+          el.style.touchAction = 'none';
+          el.addEventListener('touchstart', onStart, {passive:false});
+          el.addEventListener('touchend', onEnd, {passive:false});
+          el.addEventListener('touchcancel', onEnd, {passive:false});
+        }
+      };
+    })();
+    SwipeInput.init(canvas);
     showStartScreen(); resetLevel(); draw(); fitScale();
 }
 
@@ -689,13 +720,6 @@ function handleKey(e) {
         case 'ArrowLeft': nextDir = { x: -1, y: 0 }; break;
         case 'ArrowRight': nextDir = { x: 1, y: 0 }; break;
     }
-}
-function handleTouchStart(e) { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; e.preventDefault(); }
-function handleTouchEnd(e) {
-    const dx = e.changedTouches[0].clientX - touchStartX, dy = e.changedTouches[0].clientY - touchStartY;
-    if (Math.abs(dx) > Math.abs(dy)) { if (Math.abs(dx) > 30) nextDir = dx > 0 ? {x:1, y:0} : {x:-1, y:0}; }
-    else { if (Math.abs(dy) > 30) nextDir = dy > 0 ? {x:0, y:1} : {x:0, y:-1}; }
-    e.preventDefault();
 }
 init();
 </script>

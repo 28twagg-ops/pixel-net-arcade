@@ -648,47 +648,50 @@ display: flex;
         messageBox.style.display = 'block';
     
 
-        /* PIXELNET Swipe Module v1.0 (horizontal-dominant, no buttons) */
+        /* PIXELNET Swipe (no buttons). Horizontal-dominant on diagonals.
+           Also supports tap = action (bomb / start).
+        */
         const SwipeInput = (() => {
           const MIN_DISTANCE = 30;
           const MAX_TIME = 500;
-          const ANGLE_THRESHOLD = 30;
-          let startX, startY, startTime;
-          let canvasEl, cb;
-          function resolve(dx, dy, dt){
-            const dist = Math.hypot(dx,dy);
-            if(dist < MIN_DISTANCE || dt > MAX_TIME) return null;
-            const angle = Math.atan2(dy, dx) * (180/Math.PI);
-            if(angle >= -ANGLE_THRESHOLD && angle < ANGLE_THRESHOLD) return 'RIGHT';
-            if(angle >= 180-ANGLE_THRESHOLD || angle < -180+ANGLE_THRESHOLD) return 'LEFT';
-            if(angle >= 60 && angle < 120) return 'DOWN';
-            if(angle >= -120 && angle < -60) return 'UP';
-            return Math.abs(dx) > Math.abs(dy) ? (dx>0?'RIGHT':'LEFT') : (dy>0?'DOWN':'UP');
-          }
+          let sx, sy, st;
           function onStart(e){
             const t = e.touches[0];
-            startX=t.clientX; startY=t.clientY; startTime=Date.now();
+            sx = t.clientX; sy = t.clientY; st = Date.now();
             e.preventDefault();
           }
           function onEnd(e){
-            if(startX==null) return;
+            if(sx==null) return;
             const t = e.changedTouches[0];
-            const dx=t.clientX-startX, dy=t.clientY-startY, dt=Date.now()-startTime;
-            const dir = resolve(dx,dy,dt);
-            if(dir && cb) cb(dir);
-            startX=startY=startTime=null;
+            const dx = t.clientX - sx;
+            const dy = t.clientY - sy;
+            const dt = Date.now() - st;
+            const dist = Math.hypot(dx,dy);
+            sx = sy = st = null;
+
+            // Tap = action (start menu OR bomb)
+            if (dist < MIN_DISTANCE || dt > MAX_TIME) {
+              if (!gameRunning && messageBox.style.display === 'block') executeAction();
+              else if (gameRunning && !spacePressed) { handleBombInput(); spacePressed = true; setTimeout(()=>{ spacePressed = false; }, 120); }
+              return e.preventDefault();
+            }
+
+            // Horizontal dominance on diagonals
+            if (Math.abs(dx) >= Math.abs(dy)) player.nextDir = dx < 0 ? DIR.LEFT : DIR.RIGHT;
+            else player.nextDir = dy < 0 ? DIR.UP : DIR.DOWN;
             e.preventDefault();
           }
           return {
-            init(el, callback){
-              canvasEl = el; cb = callback;
-              canvasEl.style.touchAction = 'none';
-              canvasEl.addEventListener('touchstart', onStart, {passive:false});
-              canvasEl.addEventListener('touchend', onEnd, {passive:false});
-              canvasEl.addEventListener('touchcancel', onEnd, {passive:false});
+            init(el){
+              el.style.touchAction = 'none';
+              el.addEventListener('touchstart', onStart, {passive:false});
+              el.addEventListener('touchend', onEnd, {passive:false});
+              el.addEventListener('touchcancel', onEnd, {passive:false});
             }
           };
         })();
+
+        SwipeInput.init(canvas);
 
 </script>
 </body>
