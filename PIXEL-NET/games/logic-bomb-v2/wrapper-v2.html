@@ -95,19 +95,13 @@ a{color:inherit;text-decoration:none}
 }
 .grid{
   width:100%;
-  max-width:1500px;
+  max-width:1800px;
   margin:0 auto;
   display:grid;
-  grid-template-columns:340px minmax(320px,1fr) 340px; /* ↑ */
+  grid-template-columns:minmax(260px,1fr) max-content minmax(260px,1fr);
   gap:12px;
   align-items:stretch;
   height:100%;
-  justify-items: center;
-}
-
-.panel#pGame{
-  width:100%;
-  max-width:100%;
 }
 .panel{
   background:var(--card);
@@ -147,6 +141,9 @@ a{color:inherit;text-decoration:none}
   display:flex;
   flex-direction:column;
   min-height:0;
+  width:fit-content;
+  max-width:100%;
+  justify-self:center;
 }
 .centerHead{
   padding:12px 14px;
@@ -159,10 +156,10 @@ a{color:inherit;text-decoration:none}
 .frameWrap{
   flex:1;min-height:0;
   display:flex;
-  align-items:stretch;
-  justify-content:stretch;
+  align-items:center;
+  justify-content:center;
   background:rgba(0,0,0,.35);
-  padding:12px;
+  padding:0;
 }
 .frameSizer{
   margin:auto;
@@ -536,12 +533,12 @@ iframe{width:100%;height:100%;border:0;display:block;background:#000;border-radi
     const h = frameWrap.clientHeight;
     if(w <= 0 || h <= 0) return;
 
-    // contain
-    let tw = w;
-    let th = tw / a;
-    if(th > h){
-      th = h;
-      tw = th * a;
+    // contain (height-first: maximize vertical fill, then clamp by width)
+    let th = h;
+    let tw = th * a;
+    if(tw > w){
+      tw = w;
+      th = tw / a;
     }
 
     frameSizer.style.width  = `${Math.floor(tw)}px`;
